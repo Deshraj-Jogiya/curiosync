@@ -1,4 +1,4 @@
-name: Daily LinkedIn Publisher
+name: Daily LinkedIn Publisher & TIL Generator
 
 on:
   schedule:
@@ -14,21 +14,32 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout repository
+    - name: Checkout CurioSync
       uses: actions/checkout@v4
+      with:
+        path: curiosync
+
+    - name: Checkout dev-root-affinity
+      if: ${{ secrets.PAT_DEV_ROOT_AFFINITY != '' }}
+      uses: actions/checkout@v4
+      with:
+        repository: Deshraj-Jogiya/dev-root-affinity
+        token: ${{ secrets.PAT_DEV_ROOT_AFFINITY }}
+        path: dev-root-affinity
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
         cache: 'pip'
+        cache-dependency-path: curiosync/requirements.txt
 
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r curiosync/requirements.txt
 
-    - name: Run daily publisher
+    - name: Run daily publisher & TIL generator
       env:
         # Dummy configuration to satisfy Settings schema validations
         SECRET_KEY: "github-actions-dummy-secret-key-placeholder"
@@ -44,12 +55,28 @@ jobs:
         LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
+      working-directory: curiosync
       run: python -m github_cron
 
     - name: Commit and push run log
+      working-directory: curiosync
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add run_log.md || true
         git commit -m "chore: update daily execution log [skip ci]" || true
         git push || true
+
+    - name: Commit and push daily TIL
+      if: ${{ secrets.PAT_DEV_ROOT_AFFINITY != '' }}
+      working-directory: dev-root-affinity
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add notes/
+        if git diff --cached --quiet; then
+          echo "No new TIL notes to commit."
+        else
+          git commit -m "Add daily TIL note [skip ci]"
+          git push
+        fi
