@@ -10,6 +10,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -43,3 +45,11 @@ jobs:
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
       run: python -m github_cron
+
+    - name: Commit and push run log
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add run_log.md || true
+        git commit -m "chore: update daily execution log [skip ci]" || true
+        git push || true

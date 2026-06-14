@@ -17,6 +17,31 @@ from app.services.scheduler_service import run_daily_pipeline
 from app.utils.logging import logger
 
 
+def write_run_log(result: dict):
+    """Write/append the pipeline execution history to a markdown file."""
+    try:
+        import os
+        log_file = "run_log.md"
+        if not os.path.exists(log_file):
+            with open(log_file, "w", encoding="utf-8") as f:
+                f.write("# 📋 CurioSync Execution History\n\nAutomated execution history of the CurioSync daily publisher.\n\n| Date (UTC) | Status | Details |\n|---|---|---|\n")
+        
+        from datetime import datetime
+        date_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        status = result.get("status", "unknown").upper()
+        
+        # Clean steps for Markdown table representation
+        steps_dict = result.get("steps", {})
+        steps_summary = ", ".join(f"{k}: {v}" for k, v in steps_dict.items()) if steps_dict else result.get("error", "Unknown details")
+        steps_summary = steps_summary.replace("|", "\\|").replace("\n", " ")
+        
+        with open(log_file, "a", encoding="utf-8") as f:
+            f.write(f"| {date_str} | **{status}** | {steps_summary} |\n")
+        logger.info("Daily execution logged to run_log.md")
+    except Exception as exc:
+        logger.error("Failed to write to run_log.md: %s", exc)
+
+
 async def main():
     logger.info("Initializing GitHub Actions Daily Post Cron Job")
 
@@ -94,6 +119,9 @@ async def main():
     # 3. Run the standard pipeline
     logger.info("Executing daily posting pipeline...")
     result = await run_daily_pipeline(user_id=user_id, run_type="github_actions_cron")
+
+    # Write execution log entry
+    write_run_log(result)
 
     # 4. Handle result
     if result.get("status") == "success":
