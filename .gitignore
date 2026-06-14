@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# SQLite Database & Local Assets
+data/*.db
+data/graphics/
+app/static/generated/
+
+# Local Environment Variables
+.env
+
+# Pytest cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS generated files
+.DS_Store
+Thumbs.db

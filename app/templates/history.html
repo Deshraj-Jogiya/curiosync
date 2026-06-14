@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Post History — CurioSync{% endblock %}
+
+{% block content %}
+<a href="/" class="back-link">← Back to Dashboard</a>
+
+<div class="page-header">
+  <h1 class="page-header__title">📋 Post History</h1>
+  <p class="page-header__subtitle">All your generated and published LinkedIn posts.</p>
+</div>
+
+<div class="card card--no-hover animate-fade-in-up">
+  <div class="card__body">
+    {% if posts and posts|length > 0 %}
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Content</th>
+          <th>LinkedIn ID</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in posts %}
+        <tr>
+          <td>
+            <span class="font-medium">{{ post.published_at or post.created_at or '—' }}</span>
+          </td>
+          <td>
+            {% if post.status == 'published' %}
+              <span class="badge badge-success">✅ Published</span>
+            {% elif post.status == 'failed' %}
+              <span class="badge badge-error">❌ Failed</span>
+            {% elif post.status == 'draft' %}
+              <span class="badge badge-warning">📝 Draft</span>
+            {% else %}
+              <span class="badge badge-neutral">{{ post.status or 'Unknown' }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="content-preview" title="{{ post.content }}">
+              {{ post.content[:100] }}{% if post.content|length > 100 %}…{% endif %}
+            </div>
+          </td>
+          <td>
+            {% if post.linkedin_post_id %}
+              <code class="text-xs">{{ post.linkedin_post_id }}</code>
+            {% else %}
+              <span class="text-xs text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-state__icon">📭</div>
+      <p class="empty-state__text">No posts yet. Head to the dashboard to generate and publish your first LinkedIn post!</p>
+      <a href="/" class="btn btn-primary mt-4">Go to Dashboard</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

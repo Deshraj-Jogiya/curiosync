@@ -1,0 +1,45 @@
+name: Daily LinkedIn Publisher
+
+on:
+  schedule:
+    # Run daily at 17:00 UTC (10:00 AM MST / America/Phoenix timezone)
+    - cron: '0 17 * * *'
+  workflow_dispatch:
+    # Allows manual triggering from the GitHub Actions tab
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run daily publisher
+      env:
+        # Dummy configuration to satisfy Settings schema validations
+        SECRET_KEY: "github-actions-dummy-secret-key-placeholder"
+        LINKEDIN_CLIENT_ID: "github-actions-dummy-client-id-placeholder"
+        LINKEDIN_CLIENT_SECRET: "github-actions-dummy-client-secret-placeholder"
+        FERNET_KEY: "On9Xt3DeuvikAzn4c-yVjMCAyVAJJXGvKAh6rOstuUU="
+        DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+        
+        # Real credentials and settings configured in GitHub Repository Secrets
+        OPENAI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
+        OPENAI_MODEL: "gemini-3.5-flash"
+        LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+        LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
+        GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+      run: python -m github_cron

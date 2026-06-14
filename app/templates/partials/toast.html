@@ -1,0 +1,43 @@
+{# HTMX Partial — Toast Notification (no extends)
+   
+   Designed to be injected via HTMX out-of-band swap or embedded
+   inside another partial response. The JS handler in app.js detects
+   [data-flash] elements after htmx:afterSwap and renders them as
+   floating toasts.
+   
+   Usage from the server:
+     return templates.TemplateResponse("partials/toast.html", {
+         "request": request,
+         "message": "Post published successfully!",
+         "type": "success"  # success | error | info | warning
+     })
+   
+   Or embed inside another partial:
+     {% include "partials/toast.html" with context %}
+#}
+
+{# Icon map #}
+{% set icons = {
+  'success': '✅',
+  'error': '❌',
+  'info': 'ℹ️',
+  'warning': '⚠️'
+} %}
+
+{% set titles = {
+  'success': 'Success',
+  'error': 'Error',
+  'info': 'Info',
+  'warning': 'Warning'
+} %}
+
+{# 
+  Invisible element picked up by htmx:afterSwap handler in app.js.
+  The handler reads data-flash / data-flash-type, calls showToast(),
+  then removes this element from the DOM.
+#}
+<div data-flash="{{ message }}"
+     data-flash-type="{{ type or 'info' }}"
+     style="display:none;"
+     aria-hidden="true">
+</div>

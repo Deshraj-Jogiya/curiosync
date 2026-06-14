@@ -1,0 +1,45 @@
+{# HTMX Partial — News Results (no extends) #}
+
+{% if items and items|length > 0 %}
+<div class="animate-fade-in">
+  <p class="text-small mb-3">
+    <span class="font-semibold">{{ items|length }}</span> article{{ 's' if items|length != 1 else '' }} fetched
+    <span class="badge badge-info" style="margin-left: 6px;">Today</span>
+  </p>
+
+  <div class="news-list">
+    {% for item in items %}
+    <div class="news-item" style="--i: {{ loop.index0 }}; animation-delay: calc(0.04s * {{ loop.index0 }});">
+      <div class="news-item__header">
+        <h4 class="news-item__title">
+          <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">
+            {{ item.title }}
+          </a>
+        </h4>
+        {% if item.source_name %}
+        <span class="badge-source">{{ item.source_name }}</span>
+        {% endif %}
+      </div>
+
+      {% if item.summary %}
+      <p class="news-item__summary">{{ item.summary[:180] }}{% if item.summary|length > 180 %}…{% endif %}</p>
+      {% endif %}
+
+      <div class="news-item__meta">
+        {% if item.published_at %}
+        <span>🕐 {{ item.published_at }}</span>
+        {% endif %}
+        <a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">Open ↗</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% else %}
+
+<div class="empty-state animate-fade-in">
+  <div class="empty-state__icon">🔍</div>
+  <p class="empty-state__text">No tech news found for today. Try again later or check your news source configuration.</p>
+</div>
+{% endif %}

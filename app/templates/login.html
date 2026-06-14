@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In — CurioSync{% endblock %}
+
+{% block content %}
+<div class="login-container">
+  <div class="card card--glass login-card animate-scale-in">
+    <div class="card__body">
+      <!-- Logo & branding -->
+      <div class="login-card__logo">⚡</div>
+      <h1 class="login-card__title">CurioSync</h1>
+      <p class="login-card__desc">
+        Automatically fetch today's top tech headlines, generate polished LinkedIn posts with AI, and publish — all in one click.
+      </p>
+
+      <!-- LinkedIn sign-in button -->
+      <a href="/auth/linkedin/login" class="btn btn-linkedin">
+        🔗 Sign in with LinkedIn
+      </a>
+
+      <!-- Security note -->
+      <div class="login-card__security">
+        <span>🔒</span>
+        <span>We use official LinkedIn OAuth sign-in. Your credentials are never stored on our servers.</span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

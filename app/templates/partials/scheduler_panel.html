@@ -1,0 +1,58 @@
+{# HTMX Partial — Scheduler Status (no extends) #}
+
+<div class="scheduler-info animate-fade-in">
+  <div class="scheduler-info__row">
+    <span class="scheduler-info__label">🔄 Status</span>
+    <span class="scheduler-info__value">
+      {% if running %}
+        <span class="badge badge-success">Running</span>
+      {% else %}
+        <span class="badge badge-neutral">Stopped</span>
+      {% endif %}
+    </span>
+  </div>
+
+  <div class="scheduler-info__row">
+    <span class="scheduler-info__label">⏭️ Next Run</span>
+    <span class="scheduler-info__value">
+      {{ next_run or '—' }}
+    </span>
+  </div>
+
+  <div class="scheduler-info__row">
+    <span class="scheduler-info__label">✅ Last Success</span>
+    <span class="scheduler-info__value">
+      {% if last_success %}
+        {{ last_success }}
+      {% else %}
+        <span class="text-muted">Never</span>
+      {% endif %}
+    </span>
+  </div>
+
+  <div class="scheduler-info__row">
+    <span class="scheduler-info__label">❌ Last Failure</span>
+    <span class="scheduler-info__value">
+      {% if last_failure %}
+        <span style="color: var(--color-error);">{{ last_failure }}</span>
+      {% else %}
+        <span class="text-muted">None</span>
+      {% endif %}
+    </span>
+  </div>
+
+  <div class="scheduler-info__row">
+    <span class="scheduler-info__label">🔑 Token</span>
+    <span class="scheduler-info__value">
+      {% if token_status == 'valid' %}
+        <span class="badge badge-success">Valid</span>
+      {% elif token_status == 'expiring' %}
+        <span class="badge badge-warning">Expiring Soon</span>
+      {% elif token_status == 'expired' %}
+        <span class="badge badge-error">Expired</span>
+      {% else %}
+        <span class="badge badge-neutral">{{ token_status or 'Unknown' }}</span>
+      {% endif %}
+    </span>
+  </div>
+</div>

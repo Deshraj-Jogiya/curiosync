@@ -1,0 +1,66 @@
+{# HTMX Partial — Draft Content (no extends) #}
+
+{% if content %}
+<div class="draft-area animate-fade-in">
+  <!-- Draft text in an editable container -->
+  <div class="draft-content">
+    <textarea id="draft-textarea"
+              class="form-textarea"
+              style="border:none; background:transparent; width:100%; min-height:180px; resize:vertical;"
+              name="content">{{ content }}</textarea>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="draft-stats">
+    <div class="draft-stats__item">
+      <span>📝 Words:</span>
+      <span class="draft-stats__value word-count">{{ word_count or 0 }}</span>
+    </div>
+    <div class="draft-stats__item">
+      <span>🔤 Characters:</span>
+      <span class="draft-stats__value char-count">{{ char_count or 0 }}</span>
+    </div>
+    <div class="draft-stats__item">
+      <span>📏 Limit:</span>
+      <span class="draft-stats__value">3,000</span>
+    </div>
+  </div>
+
+  <!-- Compliance status -->
+  {% if compliance %}
+  <div class="compliance-status {{ 'compliance-status--passed' if compliance.passed else 'compliance-status--issues' }} mt-3">
+    {% if compliance.passed %}
+      <strong>✅ Compliance Check Passed</strong>
+      <span class="text-small" style="margin-left: 8px;">Ready to publish</span>
+    {% else %}
+      <strong>⚠️ Compliance Issues Found</strong>
+      {% if compliance.issues %}
+      <ul class="compliance-issues-list">
+        {% for issue in compliance.issues %}
+        <li>{{ issue }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Graphic Preview -->
+  {% if image_url %}
+  <div class="draft-preview-graphic mt-3" style="border-top: 1px dashed var(--color-border); padding-top: 16px;">
+    <strong class="text-small" style="display: block; margin-bottom: 8px; color: var(--color-text-secondary);">🖼️ Generated Technical Graphic Preview:</strong>
+    <img src="{{ image_url }}?v={{ timestamp }}"
+         alt="LinkedIn Graphic Preview"
+         style="width: 100%; max-width: 600px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border); box-shadow: var(--shadow-sm); display: block;"
+         class="img-fluid">
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+
+<div class="empty-state animate-fade-in">
+  <div class="empty-state__icon">📝</div>
+  <p class="empty-state__text">Generate a draft from today's news. The AI will craft a LinkedIn-ready post for you.</p>
+</div>
+{% endif %}

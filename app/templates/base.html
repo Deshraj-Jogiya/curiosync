@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Automatically fetch top tech news, generate LinkedIn posts with AI, and publish daily.">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}CurioSync — Automated Tech Curation & Publishing{% endblock %}</title>
+
+  <!-- Google Fonts — Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/static/css/style.css">
+
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <a href="/" class="navbar__brand">
+      <span class="navbar__brand-icon">⚡</span>
+      <span class="navbar__brand-text">CurioSync</span>
+    </a>
+
+    <div class="navbar__actions">
+      {% if user_name %}
+      <a href="/history" class="nav-link">History</a>
+      <div class="navbar__user">
+        <span class="navbar__user-avatar">{{ user_name[0] | upper }}</span>
+        <span class="navbar__user-name">{{ user_name }}</span>
+      </div>
+      {% endif %}
+
+      <button id="theme-toggle"
+              class="theme-toggle"
+              type="button"
+              aria-label="Toggle theme">
+        🌙
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- App JS -->
+  <script src="/static/js/app.js?v=2" defer></script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

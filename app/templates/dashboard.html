@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — CurioSync{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header animate-fade-in">
+  <h1 class="page-header__title">Welcome back, {{ user_name or 'there' }} 👋</h1>
+  <p class="page-header__subtitle">Your LinkedIn post command centre — fetch, draft, publish.</p>
+</div>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+
+  <!-- ═══════════════ 1. Connection Status ═══════════════ -->
+  <div class="card" id="card-connection">
+    <div class="card__header">
+      <h3 class="card__title">
+        <span class="card__title-icon">🔗</span> LinkedIn Connection
+      </h3>
+    </div>
+    <div class="card__body"
+         id="connection-status"
+         hx-get="/auth/linkedin/status"
+         hx-trigger="load"
+         hx-target="#connection-status"
+         hx-swap="innerHTML">
+      <!-- Partial loaded via HTMX -->
+      <div class="empty-state loading-pulse">
+        <div class="spinner spinner--center"></div>
+        <p class="text-small mt-3">Checking connection…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 2. News Panel ═══════════════ -->
+  <div class="card card--wide" id="card-news">
+    <div class="card__header">
+      <h3 class="card__title">
+        <span class="card__title-icon">📰</span> Tech News
+      </h3>
+      <button class="btn btn-primary btn-sm"
+              hx-post="/news/fetch-today"
+              hx-target="#news-results"
+              hx-swap="innerHTML"
+              hx-indicator="#news-loading">
+        🔄 Fetch Today's Top 15
+      </button>
+    </div>
+    <div class="card__body">
+      <!-- Loading indicator -->
+      <div id="news-loading" class="htmx-indicator text-center">
+        <span class="spinner"></span>
+        <span>Fetching latest news…</span>
+      </div>
+      <!-- Results container -->
+      <div id="news-results">
+        <div class="empty-state">
+          <div class="empty-state__icon">🗞️</div>
+          <p class="empty-state__text">Click above to fetch today's top tech news headlines.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 3. Draft Panel ═══════════════ -->
+  <div class="card card--wide" id="card-draft">
+    <div class="card__header">
+      <h3 class="card__title">
+        <span class="card__title-icon">✍️</span> Post Draft
+      </h3>
+      <button class="btn btn-primary btn-sm"
+              hx-post="/draft/generate"
+              hx-target="#draft-content"
+              hx-swap="innerHTML"
+              hx-indicator="#draft-loading">
+        ✨ Generate Draft
+      </button>
+    </div>
+    <div class="card__body">
+      <!-- Loading indicator -->
+      <div id="draft-loading" class="htmx-indicator text-center">
+        <span class="spinner"></span>
+        <span>AI is writing your post…</span>
+      </div>
+      <!-- Draft content area -->
+      <div id="draft-content">
+        <div class="empty-state">
+          <div class="empty-state__icon">📝</div>
+          <p class="empty-state__text">Generate a draft from today's news. The AI will craft a LinkedIn-ready post for you.</p>
+        </div>
+      </div>
+    </div>
+    <!-- Rewrite options -->
+    <div class="card__footer">
+      <p class="text-small mb-2">🎨 Rewrite with a different tone:</p>
+      <div class="btn-group">
+        <button class="btn btn-ghost btn-sm"
+                hx-post="/draft/rewrite"
+                hx-vals='{"tone": "professional"}'
+                hx-target="#draft-content"
+                hx-swap="innerHTML"
+                hx-indicator="#draft-loading"
+                hx-disabled-elt=".btn-group button">
+          💼 Professional
+        </button>
+        <button class="btn btn-ghost btn-sm"
+                hx-post="/draft/rewrite"
+                hx-vals='{"tone": "simple"}'
+                hx-target="#draft-content"
+                hx-swap="innerHTML"
+                hx-indicator="#draft-loading"
+                hx-disabled-elt=".btn-group button">
+          🎯 Simple
+        </button>
+        <button class="btn btn-ghost btn-sm"
+                hx-post="/draft/rewrite"
+                hx-vals='{"tone": "shorter"}'
+                hx-target="#draft-content"
+                hx-swap="innerHTML"
+                hx-indicator="#draft-loading"
+                hx-disabled-elt=".btn-group button">
+          ✂️ Shorter
+        </button>
+        <button class="btn btn-ghost btn-sm"
+                hx-post="/draft/rewrite"
+                hx-vals='{"tone": "more_engaging"}'
+                hx-target="#draft-content"
+                hx-swap="innerHTML"
+                hx-indicator="#draft-loading"
+                hx-disabled-elt=".btn-group button">
+          🔥 More Engaging
+        </button>
+        <button class="btn btn-ghost btn-sm"
+                hx-post="/draft/rewrite"
+                hx-vals='{"tone": "more_technical"}'
+                hx-target="#draft-content"
+                hx-swap="innerHTML"
+                hx-indicator="#draft-loading"
+                hx-disabled-elt=".btn-group button">
+          🔧 More Technical
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 4. Publish ═══════════════ -->
+  <div class="card" id="card-publish">
+    <div class="card__header">
+      <h3 class="card__title">
+        <span class="card__title-icon">🚀</span> Publish
+      </h3>
+    </div>
+    <div class="card__body">
+      <p class="text-small mb-4">Review your draft above, then publish it directly to LinkedIn.</p>
+
+      <button id="publish-btn"
+              class="btn btn-primary"
+              style="width:100%;"
+              hx-post="/linkedin/publish"
+              hx-include="#draft-textarea"
+              hx-target="#publish-result"
+              hx-swap="innerHTML"
+              hx-confirm="Publish this post to LinkedIn?"
+              hx-indicator="#publish-loading">
+        🚀 Publish Now
+      </button>
+
+      <!-- Loading indicator -->
+      <div id="publish-loading" class="htmx-indicator text-center mt-3">
+        <span class="spinner"></span>
+        <span>Publishing…</span>
+      </div>
+
+      <!-- Result container -->
+      <div id="publish-result" class="mt-4"></div>
+
+      {% if last_published %}
+      <p class="text-xs mt-3">
+        ⏰ Last published: {{ last_published }}
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ═══════════════ 5. Scheduler ═══════════════ -->
+  <div class="card" id="card-scheduler">
+    <div class="card__header">
+      <h3 class="card__title">
+        <span class="card__title-icon">⏰</span> Scheduler
+      </h3>
+      <button class="btn btn-secondary btn-sm"
+              hx-post="/scheduler/run-now"
+              hx-target="#scheduler-info"
+              hx-swap="innerHTML">
+        ▶️ Run Now
+      </button>
+    </div>
+    <div class="card__body"
+         id="scheduler-info"
+         hx-get="/scheduler/status"
+         hx-trigger="load, every 60s"
+         hx-target="#scheduler-info"
+         hx-swap="innerHTML">
+      <!-- Partial loaded via HTMX -->
+      <div class="empty-state loading-pulse">
+        <div class="spinner spinner--center"></div>
+        <p class="text-small mt-3">Loading scheduler…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 6. Quick History ═══════════════ -->
+  <div class="card" id="card-history">
+    <div class="card__header">
+      <h3 class="card__title">
+        <span class="card__title-icon">📋</span> Recent Posts
+      </h3>
+      <a href="/history" class="btn btn-ghost btn-sm">View All →</a>
+    </div>
+    <div class="card__body">
+      {% if recent_posts %}
+        {% for post in recent_posts[:3] %}
+        <div class="history-preview-item">
+          <div class="history-preview-item__date">
+            {{ post.published_at or post.created_at or 'Unknown date' }}
+            {% if post.status %}
+              <span class="badge badge-{{ 'success' if post.status == 'published' else 'warning' }} ml-2" style="margin-left:8px;">
+                {{ post.status }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="history-preview-item__content">
+            {{ post.content[:120] }}{% if post.content|length > 120 %}…{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state__icon">📭</div>
+          <p class="empty-state__text">No posts yet. Generate and publish your first one!</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Keyboard shortcut hint
+  document.addEventListener('DOMContentLoaded', function () {
+    const publishBtn = document.getElementById('publish-btn');
+    if (publishBtn) {
+      publishBtn.title = 'Publish to LinkedIn (Ctrl+Enter)';
+    }
+  });
+</script>
+{% endblock %}
