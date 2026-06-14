@@ -28,9 +28,19 @@ async def call_llm_with_fallback(
         if m not in models_to_try:
             models_to_try.append(m)
 
+    api_base = settings.openai_api_base
+    if isinstance(api_base, str):
+        api_base = api_base.strip()
+    if not api_base:
+        if settings.openai_api_key and settings.openai_api_key.startswith("AIzaSy"):
+            api_base = "https://generativelanguage.googleapis.com/v1beta/openai/"
+            logger.info("Auto-detected Gemini API key; defaulting API base to Google AI Studio.")
+        else:
+            api_base = None
+
     client = openai.AsyncOpenAI(
         api_key=settings.openai_api_key,
-        base_url=settings.openai_api_base,
+        base_url=api_base,
     )
 
     last_error = None
