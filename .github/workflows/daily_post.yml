@@ -20,7 +20,9 @@ jobs:
         path: curiosync
 
     - name: Checkout dev-root-affinity
-      if: ${{ secrets.PAT_DEV_ROOT_AFFINITY != '' }}
+      env:
+        PAT_DEV_ROOT_AFFINITY: ${{ secrets.PAT_DEV_ROOT_AFFINITY }}
+      if: ${{ env.PAT_DEV_ROOT_AFFINITY != '' }}
       uses: actions/checkout@v4
       with:
         repository: Deshraj-Jogiya/dev-root-affinity
@@ -68,7 +70,9 @@ jobs:
         git push || true
 
     - name: Commit and push daily TIL
-      if: ${{ secrets.PAT_DEV_ROOT_AFFINITY != '' }}
+      env:
+        PAT_DEV_ROOT_AFFINITY: ${{ secrets.PAT_DEV_ROOT_AFFINITY }}
+      if: ${{ env.PAT_DEV_ROOT_AFFINITY != '' }}
       working-directory: dev-root-affinity
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
