@@ -1,5 +1,7 @@
 """Draft generation service using OpenAI / Gemini with resume personalization."""
 
+import json
+import os
 import random
 import openai
 
@@ -132,16 +134,35 @@ async def generate_monday_project_spotlight(
         # If database session is provided, implement stateful rotation
         if db is not None:
             try:
-                # 1. Query showcased projects from database
+                JSON_BACKUP_PATH = "showcased_projects.json"
+
+                # 1. Seed the database from JSON file if the DB table is empty
+                # Check if DB table is empty
+                stmt = select(ShowcasedProject)
+                result = await db.execute(stmt)
+                db_records = result.scalars().all()
+
+                if not db_records and os.path.exists(JSON_BACKUP_PATH):
+                    try:
+                        with open(JSON_BACKUP_PATH, "r", encoding="utf-8") as f:
+                            saved_names = json.load(f)
+                        if isinstance(saved_names, list):
+                            for name in saved_names:
+                                db.add(ShowcasedProject(project_name=name, project_type=project_type))
+                            await db.commit()
+                    except Exception as json_err:
+                        logger.error("Failed to seed database from JSON backup file: %s", json_err)
+
+                # 2. Query showcased projects from database (now seeded if backup existed)
                 stmt = select(ShowcasedProject.project_name)
                 result = await db.execute(stmt)
                 showcased_names = set(result.scalars().all())
 
-                # 2. Filter unshowcased projects
+                # 3. Filter unshowcased projects
                 unshowcased = [p for p in projects if p.get("name") not in showcased_names]
 
                 if not unshowcased:
-                    # 3. All projects have been showcased! Reset history.
+                    # 4. All projects have been showcased! Reset history.
                     # Find the most recently showcased project to avoid back-to-back repeats
                     last_stmt = select(ShowcasedProject.project_name).order_by(ShowcasedProject.showcased_at.desc()).limit(1)
                     last_result = await db.execute(last_stmt)
@@ -167,7 +188,7 @@ async def generate_monday_project_spotlight(
                     # Since projects is already sorted (GitHub repos by stars), unshowcased[0] picks the next highest priority
                     selected = unshowcased[0]
 
-                # 4. Mark the selected project as showcased
+                # 5. Mark the selected project as showcased
                 if selected:
                     new_showcase = ShowcasedProject(
                         project_name=selected.get("name"),
@@ -175,6 +196,16 @@ async def generate_monday_project_spotlight(
                     )
                     db.add(new_showcase)
                     await db.commit()
+
+                # 6. Export updated showcase list to JSON backup file
+                all_stmt = select(ShowcasedProject.project_name)
+                all_result = await db.execute(all_stmt)
+                updated_names = all_result.scalars().all()
+                try:
+                    with open(JSON_BACKUP_PATH, "w", encoding="utf-8") as f:
+                        json.dump(updated_names, f, indent=2)
+                except Exception as json_err:
+                    logger.error("Failed to write to JSON backup file: %s", json_err)
 
             except Exception as e:
                 logger.exception("Error during stateful project rotation. Falling back to random selection.", extra={"error": str(e)})

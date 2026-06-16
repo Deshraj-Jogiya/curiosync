@@ -65,8 +65,8 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add run_log.md || true
-        git commit -m "chore: update daily execution log [skip ci]" || true
+        git add run_log.md showcased_projects.json || true
+        git commit -m "chore: update daily execution log & project showcase rotation [skip ci]" || true
         git push || true
 
     - name: Commit and push daily TIL

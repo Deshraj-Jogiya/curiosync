@@ -13,6 +13,7 @@ Designed for engineering leaders and content creators, it operates **100% free o
 * **AI-Powered Synthesis** — Condenses headlines into structured, executive-level summaries using a resilient LLM model fallback chain (Gemini 3.5/2.5 series) to prevent API rate/quota limitations.
 * **Programmatic Branding Graphic** — Uses Pillow to render a custom, high-engagement slate-indigo vector network graphic card dynamically displaying the post's core headlines, custom branding, and credits.
 * **Jinja2 + HTMX Local Dashboard** — A premium glassmorphism command center for local review, manual draft edits, real-time visual graphic previews, and direct publishing.
+* **Stateful Monday Project Spotlight** — Spotlights a new GitHub repository (star-sorted) or resume project every Monday. Tracks history in a `showcased_projects` SQLite table (with automatic JSON state synchronization for stateless GitHub Actions runs) to ensure clean rotations and prevent back-to-back duplicate posts.
 * **Robust Compliance & Humanizer** — Scans drafts for robotic phrases, checks character boundaries for LinkedIn's API limits, and verifies that no credential or data scraping terms are included.
 
 ---
