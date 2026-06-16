@@ -3,7 +3,11 @@
 import random
 import openai
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, delete
+
 from app.config import Settings
+from app.models.showcased_project import ShowcasedProject
 from app.services.resume_service import RESUME_DATA, get_resume_context
 from app.services.llm_service import call_llm_with_fallback
 from app.utils.logging import logger
@@ -113,36 +117,98 @@ async def generate_draft(news_items: list[dict], settings: Settings) -> str:
 
 
 async def generate_monday_project_spotlight(
-    projects: list[dict], settings: Settings
+    projects: list[dict], settings: Settings, db: AsyncSession = None
 ) -> str:
     """Generate a LinkedIn post spotlighting one project from GitHub or Resume."""
     resume_context = get_resume_context()
 
-    # Determine which project to showcase
+    selected = None
+    project_type = "github" if projects else "resume"
+
+    if not projects:
+        projects = RESUME_DATA.get("projects", [])
+
     if projects:
-        # Use first GitHub repository (most popular/star-sorted)
-        # Select randomly from top 3 if available to rotate, or just first
-        selected = random.choice(projects[:3]) if len(projects) >= 3 else projects[0]
-        project_info = (
-            f"Repository Name: {selected.get('name')}\n"
-            f"GitHub URL: {selected.get('html_url')}\n"
-            f"Description: {selected.get('description') or 'No description'}\n"
-            f"Primary Language: {selected.get('language') or 'Unknown'}\n"
-            f"Topics: {', '.join(selected.get('topics', []))}"
-        )
-    else:
-        # Fallback to resume projects
-        resume_projects = RESUME_DATA.get("projects", [])
-        if resume_projects:
-            selected = random.choice(resume_projects)
+        # If database session is provided, implement stateful rotation
+        if db is not None:
+            try:
+                # 1. Query showcased projects from database
+                stmt = select(ShowcasedProject.project_name)
+                result = await db.execute(stmt)
+                showcased_names = set(result.scalars().all())
+
+                # 2. Filter unshowcased projects
+                unshowcased = [p for p in projects if p.get("name") not in showcased_names]
+
+                if not unshowcased:
+                    # 3. All projects have been showcased! Reset history.
+                    # Find the most recently showcased project to avoid back-to-back repeats
+                    last_stmt = select(ShowcasedProject.project_name).order_by(ShowcasedProject.showcased_at.desc()).limit(1)
+                    last_result = await db.execute(last_stmt)
+                    last_showcased = last_result.scalar_one_or_none()
+
+                    # Reset/delete all records in the table
+                    await db.execute(delete(ShowcasedProject))
+                    await db.commit()
+
+                    # Exclude the last showcased project from the immediate choice if we have other options
+                    pool = [p for p in projects if p.get("name") != last_showcased]
+                    if not pool:
+                        pool = projects  # Fallback if only 1 project exists overall
+                    
+                    # For GitHub projects, maintain star order (pool[0]); for resume projects, pick pool[0]
+                    selected = pool[0]
+                    logger.info(
+                        "Showcase cycle reset",
+                        extra={"last_showcased": last_showcased, "new_choice": selected.get("name")}
+                    )
+                else:
+                    # Pick the next unshowcased project
+                    # Since projects is already sorted (GitHub repos by stars), unshowcased[0] picks the next highest priority
+                    selected = unshowcased[0]
+
+                # 4. Mark the selected project as showcased
+                if selected:
+                    new_showcase = ShowcasedProject(
+                        project_name=selected.get("name"),
+                        project_type=project_type
+                    )
+                    db.add(new_showcase)
+                    await db.commit()
+
+            except Exception as e:
+                logger.exception("Error during stateful project rotation. Falling back to random selection.", extra={"error": str(e)})
+                # Fallback to stateless logic in case of database errors
+                selected = None
+
+        # If database is not provided, or if selection failed, fallback to stateless logic
+        if not selected:
+            if project_type == "github":
+                # Select randomly from top 3 if available to rotate, or just first
+                selected = random.choice(projects[:3]) if len(projects) >= 3 else projects[0]
+            else:
+                selected = random.choice(projects) if projects else None
+
+    # Format project_info for prompt
+    if selected:
+        if project_type == "github":
+            project_info = (
+                f"Repository Name: {selected.get('name')}\n"
+                f"GitHub URL: {selected.get('html_url')}\n"
+                f"Description: {selected.get('description') or 'No description'}\n"
+                f"Primary Language: {selected.get('language') or 'Unknown'}\n"
+                f"Topics: {', '.join(selected.get('topics', []))}"
+            )
+        else:
             project_info = (
                 f"Project Name: {selected.get('name')}\n"
                 f"Dates: {selected.get('dates')}\n"
                 f"Accomplishments:\n"
                 + "\n".join(f"- {a}" for a in selected.get("accomplishments", []))
             )
-        else:
-            project_info = "No specific project details available. Write a general spotlight post about learning data pipeline engineering."
+    else:
+        project_info = "No specific project details available. Write a general spotlight post about learning data pipeline engineering."
+
 
     prompt = MONDAY_SPOTLIGHT_PROMPT.format(
         resume_context=resume_context, project_info=project_info

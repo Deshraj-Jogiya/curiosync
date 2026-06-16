@@ -83,7 +83,7 @@ async def run_daily_pipeline(
             else:
                 steps["github_fetch"] = "skipped — no github username configured"
 
-            draft_text = await generate_monday_project_spotlight(repos, settings)
+            draft_text = await generate_monday_project_spotlight(repos, settings, db=session)
             steps["generate_draft"] = f"generated Monday spotlight ({len(draft_text.split())} words)"
 
             compliance = check_compliance(draft_text, [])

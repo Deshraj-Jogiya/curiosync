@@ -156,3 +156,66 @@ async def test_scheduler_run_on_monday(
     assert "github_fetch" in result["steps"]
     assert "generate_draft" in result["steps"]
     assert "news" not in result["steps"].get("fetch_news", "")
+
+
+@pytest.mark.asyncio
+@patch("app.services.summarizer_service.call_llm_with_fallback")
+async def test_monday_project_spotlight_stateful_rotation(mock_llm, test_db):
+    """Test stateful rotation of Monday projects and prevention of back-to-back repeats on cycle reset."""
+    from app.models.showcased_project import ShowcasedProject
+    from sqlalchemy import select
+
+    mock_llm.return_value = "Mocked project spotlight draft content"
+
+    settings = Settings(
+        secret_key="test",
+        linkedin_client_id="id",
+        linkedin_client_secret="sec",
+        openai_api_key="key",
+        fernet_key="On9Xt3DeuvikAzn4c-yVjMCAyVAJJXGvKAh6rOstuUU=",
+    )
+
+    repos = [
+        {"name": "repoA", "html_url": "http://gh/repoA", "description": "Desc A", "language": "Python"},
+        {"name": "repoB", "html_url": "http://gh/repoB", "description": "Desc B", "language": "Python"},
+        {"name": "repoC", "html_url": "http://gh/repoC", "description": "Desc C", "language": "Python"},
+    ]
+
+    # 1st week: repoA should be chosen (first of the unshowcased, star-sorted list)
+    with patch("app.services.summarizer_service.get_resume_context", return_value="Resume"):
+        draft = await generate_monday_project_spotlight(repos, settings, db=test_db)
+        assert draft == "Mocked project spotlight draft content"
+
+        # Verify repoA in db
+        stmt = select(ShowcasedProject.project_name)
+        res = await test_db.execute(stmt)
+        names = res.scalars().all()
+        assert "repoA" in names
+        assert len(names) == 1
+
+        # 2nd week: repoB should be chosen
+        await generate_monday_project_spotlight(repos, settings, db=test_db)
+        res = await test_db.execute(stmt)
+        names = res.scalars().all()
+        assert "repoB" in names
+        assert len(names) == 2
+
+        # 3rd week: repoC should be chosen
+        await generate_monday_project_spotlight(repos, settings, db=test_db)
+        res = await test_db.execute(stmt)
+        names = res.scalars().all()
+        assert "repoC" in names
+        assert len(names) == 3
+
+        # 4th week: all are showcased. Cycle reset should trigger.
+        # repoC was the last showcased, so the reset pool will exclude repoC.
+        # Since the pool is [repoA, repoB], it will choose repoA (first element of the pool).
+        await generate_monday_project_spotlight(repos, settings, db=test_db)
+        res = await test_db.execute(stmt)
+        names = res.scalars().all()
+
+        # Verify that repoC is NOT in the database (since we reset, and we picked repoA, so only repoA is now in showcased list)
+        assert "repoA" in names
+        assert "repoC" not in names
+        assert len(names) == 1
+
