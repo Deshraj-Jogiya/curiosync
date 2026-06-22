@@ -15,15 +15,12 @@ from app.services.llm_service import call_llm_with_fallback
 from app.utils.logging import logger
 
 PERSONALIZED_POST_PROMPT = """\
-You are an executive-level Data & AI/ML Engineer. Write one highly structured, professional LinkedIn post based on today's tech news.
+You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written, and technically detailed LinkedIn post based on today's tech news.
 
-Your writing style must match the following reference style (direct, objective, clear, professional, and structured):
+Your writing style must match the following storytelling engineering reference style (natural, reflective, conversational but professional, sharing personal hands-on experience and insights):
 
 === REFERENCE STYLE ===
-Enterprise Data Consolidation and Intelligence Framework
-1. Executive Summary
-The organization operates a large-scale Event and Talent Management Enterprise, responsible for coordinating artists, events, presenters, agents, and financial operations across multiple regions. Over time, operational complexity and fragmented data systems have led to inefficiencies in financial management, performance tracking, and strategic decision-making.
-This project aims to design and implement a comprehensive Enterprise Data Consolidation and Intelligence Framework that integrates all operational data into a unified, normalized, and analytics-ready architecture.
+Many engineering teams treat database synchronization as an afterthought—until latency spikes and client sessions start dropping. When building real-time recommendation engines, we saw how critical synchronizing PostgreSQL and Supabase is for scaling operations. By structuring Row-Level Security correctly and optimizing the transaction replication lag, we cut backend synchronization latency by 65%. Today's news about AI governance highlights the same fundamental truth: you cannot build reliable intelligent workflows on top of a fragmented data layer. Factual, robust validation isn't optional. Check out these live pipeline widgets and test my interactive SQL sandbox at deshraj-jogiya.github.io #DataEngineering #MachineLearning
 === END REFERENCE STYLE ===
 
 Your profile and context:
@@ -31,18 +28,14 @@ Your profile and context:
 
 Rules:
 - Write exactly 120 to 180 words total. Do NOT exceed 180 words.
-- Maintain a calm, objective, executive-report tone. Do NOT use sensational language, hype, dramatic words (e.g., "vaporize", "dead", "fault line"), or clickbait hooks.
-- Do NOT start the post with a question. Start with a direct, professional statement of fact or analysis.
-- Do NOT use rhetorical or engagement-bait questions at the beginning or end of the post. The closing must be a professional, objective statement of analysis or strategic implication.
-- Write from the perspective of an executive Data & ML practitioner, linking your professional experience (e.g., ETL automation, AI model optimization, data pipelines) to today's news where relevant.
-- Structure the post with:
-  1. A strong, professional opening theme sentence.
-  2. 3 to 4 technical bullet points summarizing key news developments (focus on AI governance, data engineering, model reliability, and tech infrastructure). Keep them clear, simple, and factual.
-  3. A concise closing insight or strategic outlook (statement only, no questions).
-  4. Exactly 2-4 professional hashtags (e.g., #DataEngineering, #MachineLearning).
-- Use plain, active English with executive tone.
-- Do NOT use any emojis except plain bullet points (e.g., * or -).
+- Write in a flowing narrative, storytelling paragraph style. Do NOT use headings (like "Executive Summary"), do NOT use numbered sections, and do NOT use bullet points.
+- Maintain a calm, authoritative, reflective tone. Do NOT use sensational hype or generic clickbait phrases (e.g. "Let's dive in", "In today's fast-paced world").
+- Relate your own professional experiences (e.g., ETL pipelines, model optimizations, star schemas) from your profile context to the theme of today's tech news.
+- The post MUST conclude with a brief, organic call to action inviting people to play with your interactive widgets and test your live SQL sandbox at deshraj-jogiya.github.io
+- Use plain, active English with a professional developer voice.
+- Do NOT use any emojis.
 - Use ONLY the provided news items as source material.
+- Add exactly 2-3 relevant technical hashtags at the very end.
 - Return ONLY the final post text, nothing else.
 
 Today's top tech news:
@@ -51,15 +44,12 @@ Today's top tech news:
 LINKEDIN_POST_PROMPT = PERSONALIZED_POST_PROMPT
 
 MONDAY_SPOTLIGHT_PROMPT = """\
-You are an executive-level Data & AI/ML Engineer. Write one highly structured, professional LinkedIn post spotlighting one of your technical projects to attract recruiters and demonstrate domain expertise.
+You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written LinkedIn post spotlighting one of your technical projects in a reflective, storytelling style to demonstrate real-world domain expertise.
 
-Your writing style must match the following reference style (direct, objective, clear, professional, and structured):
+Your writing style must match the following storytelling engineering reference style (conversational, professional, highlighting technical problems, implementation details, and business impact):
 
 === REFERENCE STYLE ===
-Enterprise Data Consolidation and Intelligence Framework
-1. Executive Summary
-The organization operates a large-scale Event and Talent Management Enterprise, responsible for coordinating artists, events, presenters, agents, and financial operations across multiple regions. Over time, operational complexity and fragmented data systems have led to inefficiencies in financial management, performance tracking, and strategic decision-making.
-This project aims to design and implement a comprehensive Enterprise Data Consolidation and Intelligence Framework that integrates all operational data into a unified, normalized, and analytics-ready architecture.
+A few months ago, I was debugging a latency issue in our microservice analytics sync. Fragmented reporting was causing data discrepancies and delayed dashboards. To solve this, I transformed our SQL-based ETL pipelines, automating the daily transactional data ingestion. By normalizing the data streams and migrating workflows to AWS Glue, we cut manual data reporting effort by 70% and boosted Snowflake warehouse data availability by 60%. Having Great Expectations run quality checks meant we secured a 98% data reliability standard. If you want to discuss scalable databases or check out my live project demos, visit my portfolio at deshraj-jogiya.github.io #DataAutomation #CloudMigration
 === END REFERENCE STYLE ===
 
 User Profile & Resume:
@@ -70,15 +60,14 @@ Project Details:
 
 Rules:
 - Write exactly 120 to 180 words total. Do NOT exceed 180 words.
-- Focus on the technical and business impact (e.g., performance efficiency, automation percentage gains, database structure optimization) in a factual manner.
-- Do NOT use sensational language, clickbait, rhetorical questions, or emojis.
-- Structure the post with:
-  1. A clear, direct opening statement outlining the project goal and problem solved (no clickbait questions).
-  2. 3 to 4 technical bullet points detailing the implementation, architecture, and accomplishments.
-  3. A concise, professional closing statement inviting recruiters or technical managers to connect or discuss.
-- Use plain, active English with executive tone.
+- Write in a natural, storytelling paragraph style. Do NOT use headings, numbered sections, or bullet points.
+- Focus on the concrete technical problem, your engineering implementation, and the quantitative impact (e.g., latency reductions, accuracy gains, automation percentage).
+- The post MUST end with a professional closing inviting technical leaders to connect, read more, or test live project widgets at deshraj-jogiya.github.io
+- Use plain, active English. Do NOT use emojis.
+- Add exactly 2-3 relevant technical hashtags at the very end.
 - Return ONLY the final post text, nothing else.
 """
+
 
 
 def _format_news_for_prompt(news_items: list[dict]) -> str:

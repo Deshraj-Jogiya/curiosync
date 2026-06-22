@@ -85,10 +85,10 @@ async def generate(
         user_id = request.session.get("user_id", 1)
         image_url = None
         try:
-            from app.services.image_service import parse_draft_for_image, generate_linkedin_image
-            title, bullets = parse_draft_for_image(draft_text)
+            from app.services.image_service import generate_graphic_metadata, generate_linkedin_image
+            metadata = await generate_graphic_metadata(draft_text, settings)
             subtitle = "Monday Project Spotlight" if ("spotlight" in draft_text.lower() or "project" in draft_text.lower()) else "Enterprise AI & Data Strategy"
-            temp_path = generate_linkedin_image(title, bullets, subtitle)
+            temp_path = generate_linkedin_image(metadata, subtitle=subtitle)
             os.makedirs("app/static/generated", exist_ok=True)
             static_path = f"app/static/generated/draft_{user_id}.png"
             if os.path.exists(static_path):
@@ -181,10 +181,10 @@ async def rewrite(
         user_id = request.session.get("user_id", 1)
         image_url = None
         try:
-            from app.services.image_service import parse_draft_for_image, generate_linkedin_image
-            title, bullets = parse_draft_for_image(rewritten)
+            from app.services.image_service import generate_graphic_metadata, generate_linkedin_image
+            metadata = await generate_graphic_metadata(rewritten, settings)
             subtitle = "Monday Project Spotlight" if ("spotlight" in rewritten.lower() or "project" in rewritten.lower()) else "Enterprise AI & Data Strategy"
-            temp_path = generate_linkedin_image(title, bullets, subtitle)
+            temp_path = generate_linkedin_image(metadata, subtitle=subtitle)
             os.makedirs("app/static/generated", exist_ok=True)
             static_path = f"app/static/generated/draft_{user_id}.png"
             if os.path.exists(static_path):

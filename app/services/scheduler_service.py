@@ -143,10 +143,10 @@ async def run_daily_pipeline(
         # Generate custom high-engagement graphic on the fly
         image_path = None
         try:
-            from app.services.image_service import parse_draft_for_image, generate_linkedin_image
-            title, bullets = parse_draft_for_image(draft_text)
+            from app.services.image_service import generate_graphic_metadata, generate_linkedin_image
+            metadata = await generate_graphic_metadata(draft_text, settings)
             subtitle = "Monday Project Spotlight" if is_monday else "Enterprise AI & Data Strategy"
-            image_path = generate_linkedin_image(title, bullets, subtitle)
+            image_path = generate_linkedin_image(metadata, subtitle=subtitle)
             logger.info("Generated temp graphic for scheduled publication: %s", image_path)
         except Exception as img_err:
             logger.error("Failed to generate publication graphic in daily pipeline: %s", img_err)
