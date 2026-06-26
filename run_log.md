@@ -12,6 +12,11 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-06-20 18:07:32 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (123 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
 | 2026-06-21 18:15:43 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (138 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
 | 2026-06-22 20:00:38 | **SUCCESS** | duplicate_check: passed, token_check: passed, github_fetch: fetched 22 repos, generate_draft: generated Monday spotlight (130 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
-| 2026-06-23 19:06:26 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (146 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
-| 2026-06-24 18:29:04 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (158 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
-| 2026-06-25 19:03:39 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (112 words), compliance_check: issues: ['Too short: 112 words (minimum 120)'], humanize: applied, publish: success, record_post: published |
+| 2026-06-26 10:57:28 | **SUCCESS** | mock_step: completed |
+| 2026-06-26 10:57:29 | **FAILED** | some_step: failed |
+| 2026-06-26 10:58:08 | **SUCCESS** | mock_step: completed |
+| 2026-06-26 10:58:09 | **FAILED** | some_step: failed |
+| 2026-06-26 10:58:30 | **SUCCESS** | mock_step: completed |
+| 2026-06-26 10:58:31 | **FAILED** | some_step: failed |
+| 2026-06-26 10:58:55 | **SUCCESS** | mock_step: completed |
+| 2026-06-26 10:58:56 | **FAILED** | some_step: failed |
