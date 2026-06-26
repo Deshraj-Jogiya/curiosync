@@ -28,8 +28,6 @@ Your writing style must match the following storytelling engineering structure:
 
 🤖 **Automated Pipeline:** This post was fully compiled and published by my automated, self-hosted serverless data pipeline project.
 
-💬 **Test my career chatbot right here:** Invite readers to test your automated pipeline's interactive chatbot by leaving a question in the comment section below. Explain what the chatbot can answer (e.g., asking about your skills, project experience, or tech stack) and provide 1-2 concrete, brief example questions (e.g., "What is Deshraj's experience with Supabase?" or "Ask about my Python projects"). State that the chatbot will reply directly, explaining professionally that it is configured with a playground limit of two queries per visitor to ensure fair access.
-
 🌐 **Visit my live portfolio:** deshraj-jogiya.github.io to play with the interactive SQL sandbox.
 
 ✉️ **Hiring? Let's connect:** State that you are currently seeking opportunities across the broader data engineering, machine learning, and analytics engineering landscape. Frame this as an eye-catching invitation for hiring managers and recruiters looking for a systems engineer ready to join.
@@ -47,8 +45,6 @@ Your writing style must match the following storytelling engineering structure:
 If you have ever had an AI agent crash in production because the underlying data layer lagged, you know that raw model capability is only half the battle. Stress-testing agents under heavy loads requires a rock-solid, low-latency sync. Solving this class of synchronization bottlenecks has been a central focus of my engineering work, spanning five years of building real-time data systems and my graduate research at Arizona State University. When optimizing recommendation pipelines, our PostgreSQL databases could not replicate fast enough to keep up with model queries. By restructuring our **Supabase synchronization layers** and resolving row-level security issues, we brought data latency down by **65%**. Ensuring backend databases can handle rapid real-time updates is the ultimate foundation for scalable AI.
 
 🤖 **Automated Pipeline:** This post was fully compiled and published by my automated, self-hosted serverless data pipeline project.
-
-💬 **Test my career chatbot right here:** Want to know what programming languages I prefer, or query my past work? Leave a question in the comments below (e.g., "What is Deshraj's experience with Supabase?") and my pipeline's interactive responder agent will reply to you directly! To ensure fair access, the chatbot is configured with a playground limit of two queries per visitor.
 
 🌐 **Visit my live portfolio:** deshraj-jogiya.github.io to play with the interactive SQL sandbox.
 

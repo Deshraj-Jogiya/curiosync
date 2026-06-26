@@ -38,3 +38,5 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-06-26 12:19:07 | **FAILED** | some_step: failed |
 | 2026-06-26 12:25:18 | **SUCCESS** | mock_step: completed |
 | 2026-06-26 12:25:19 | **FAILED** | some_step: failed |
+| 2026-06-26 12:37:05 | **SUCCESS** | mock_step: completed |
+| 2026-06-26 12:37:06 | **FAILED** | some_step: failed |

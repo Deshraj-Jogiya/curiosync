@@ -13,7 +13,6 @@ Designed for engineering leaders and content creators, it operates **100% free o
 * **AI-Powered Synthesis & Storytelling** — Condenses headlines into structured, senior-level narrative summaries that organically connect today's tech topics to your personal database sync and PostgreSQL accomplishments, referencing your graduate studies at Arizona State University and five years of experience.
 * **Programmatic Diagram Graphic** — Uses Pillow to dynamically analyze post context and render a custom, high-engagement technical diagram (flowchart, comparison grid, or systems architecture map) complete with your branding and credentials.
 * **Jinja2 + HTMX Local Dashboard** — A premium glassmorphism command center for local review, manual draft edits, real-time visual graphic previews, and direct publishing.
-* **Interactive Comment Chatbot Playground** — Automatically scans and replies to comments under your published posts using a career chatbot. Integrates with Supabase visitor tables to track interactions and enforce a playground rate limit of two queries per visitor to prevent API abuse.
 * **Robust Compliance & Humanizer** — Scans drafts for robotic phrases, checks character boundaries for LinkedIn's API limits, and verifies that no credential or data scraping terms are included.
 
 ---
@@ -36,19 +35,13 @@ graph TD
     subgraph Local Control
         J[Jinja2 + HTMX Web UI] -->|Direct Manual Edits| G
     end
-    
-    subgraph Interactive Playground
-        K[LinkedIn Comments API] --> L[Comment Agent Service]
-        L -->|Checks rate limits| M[Supabase DB]
-        L -->|Generates chatbot replies| E
-    end
 ```
 
 | Component | Technology |
 |---|---|
 | **Language & Framework** | Python 3.11+, FastAPI |
 | **Frontend Integration** | Jinja2 Templates, HTMX, Vanilla CSS (Glassmorphism) |
-| **Database & Sync** | SQLite (local database), Supabase PostgreSQL (comment agent tracking) |
+| **Database** | SQLite (async via aiosqlite), SQLAlchemy 2.0 ORM |
 | **Asset Engine** | Pillow (PIL) for diagram/infographic generation |
 | **Security & OAuth** | Cryptography (Fernet symmetric encryption), LinkedIn OAuth 2.0 |
 | **Quality Verification** | pytest, pytest-asyncio (74/74 test cases verified) |
@@ -79,14 +72,10 @@ Generate your Fernet encryption key:
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-### 3. Start the Web App & Comment Agent
+### 3. Start the Web App
 Run the local FastAPI server using Uvicorn:
 ```bash
 uvicorn app.main:app --reload
-```
-To run the automated comment responder agent to scan and reply to comments:
-```bash
-python run_comment_agent.py
 ```
 Open **[http://localhost:8000](http://localhost:8000)** to connect your LinkedIn profile, fetch today's headlines, customize your posts, and see your graphic previews in real time.
 
