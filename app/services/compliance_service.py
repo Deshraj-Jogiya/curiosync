@@ -94,12 +94,12 @@ def check_compliance(text: str, sources: list[dict]) -> dict:
     """
     issues: list[str] = []
 
-    # Word count check (120-180)
+    # Word count check (150-320)
     word_count = len(text.split())
-    if word_count < 120:
-        issues.append(f"Too short: {word_count} words (minimum 120)")
-    elif word_count > 180:
-        issues.append(f"Too long: {word_count} words (maximum 180)")
+    if word_count < 150:
+        issues.append(f"Too short: {word_count} words (minimum 150)")
+    elif word_count > 320:
+        issues.append(f"Too long: {word_count} words (maximum 320)")
 
     # Character limit (LinkedIn max ~3000)
     if len(text) > 3000:

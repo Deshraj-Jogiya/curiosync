@@ -49,25 +49,25 @@ class TestValidateDraftLength:
         assert count == 100
 
     def test_too_long(self):
-        text = " ".join(["word"] * 200)
+        text = " ".join(["word"] * 400)
         valid, count = validate_draft_length(text)
         assert valid is False
-        assert count == 200
+        assert count == 400
 
     def test_lower_boundary(self):
-        text = " ".join(["word"] * 120)
+        text = " ".join(["word"] * 150)
         valid, _ = validate_draft_length(text)
         assert valid is True
 
     def test_upper_boundary(self):
-        text = " ".join(["word"] * 180)
+        text = " ".join(["word"] * 300)
         valid, _ = validate_draft_length(text)
         assert valid is True
 
 
 class TestPromptTemplate:
     def test_prompt_contains_key_instructions(self):
-        assert "120 to 180 words" in LINKEDIN_POST_PROMPT
+        assert "180 to 280 words" in LINKEDIN_POST_PROMPT
         assert "ONLY the provided news items" in LINKEDIN_POST_PROMPT
         assert "professional" in LINKEDIN_POST_PROMPT.lower()
         assert "bullet" in LINKEDIN_POST_PROMPT.lower()

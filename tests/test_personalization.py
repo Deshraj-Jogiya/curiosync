@@ -181,8 +181,14 @@ async def test_monday_project_spotlight_stateful_rotation(mock_llm, test_db):
         {"name": "repoC", "html_url": "http://gh/repoC", "description": "Desc C", "language": "Python"},
     ]
 
+    # Clear showcased projects first for test isolation
+    from sqlalchemy import delete
+    await test_db.execute(delete(ShowcasedProject))
+    await test_db.commit()
+
     # 1st week: repoA should be chosen (first of the unshowcased, star-sorted list)
-    with patch("app.services.summarizer_service.get_resume_context", return_value="Resume"):
+    with patch("app.services.summarizer_service.get_resume_context", return_value="Resume"), \
+         patch("os.path.exists", return_value=False):
         draft = await generate_monday_project_spotlight(repos, settings, db=test_db)
         assert draft == "Mocked project spotlight draft content"
 

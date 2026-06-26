@@ -69,7 +69,7 @@ class TestCheckCompliance:
         assert any("short" in issue.lower() for issue in result["issues"])
 
     def test_too_long_fails(self):
-        text = " ".join(["word"] * 200)
+        text = " ".join(["word"] * 400)
         result = check_compliance(text, [])
         assert result["passed"] is False
         assert any("long" in issue.lower() for issue in result["issues"])

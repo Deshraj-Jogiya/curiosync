@@ -17,53 +17,67 @@ from app.utils.logging import logger
 PERSONALIZED_POST_PROMPT = """\
 You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written, and technically detailed LinkedIn post based on today's tech news.
 
-Your writing style must match the following storytelling engineering reference style (short, readable paragraphs separated by double line breaks, starting with a strong hook, sharing personal technical reflections):
+Your writing style must match the following storytelling engineering structure:
 
-=== REFERENCE STYLE ===
-Many engineering teams treat database synchronization as an afterthought. Then latency spikes to 10 seconds, client sessions drop, and everyone is scrambling.
+=== REQUIRED STRUCTURE ===
+1. A brief summary of the top worthy technical news (covering Tech, Data, AI-ML, Robotics, or other fields related to your work profile) formatted as 2-3 clean, easy-to-read bulleted pointers. Do NOT use any emojis, hyphens as bullet points (use standard unicode bullet points like •), or unicode styling like bold text (e.g. 𝘁𝗵𝗶𝘀).
+2. A transition to a storytelling section that connects this news to your own work (referencing your Arizona State University Master's degree, 4.0 GPA, and 5 years of experience in data engineering/ML). Clearly establish a direct connection: what you built (e.g. ETL pipelines, model optimizations, databases), what you achieved (e.g. latency reductions, accuracy gains), and how that makes sense in the context of the real-world news developments.
+3. A transparent pipeline statement: "This post was fully compiled and published by my automated, self-hosted serverless data pipeline project."
+4. A Call to Action inviting readers to visit your live portfolio and interact with the SQL sandbox and chatbot assistant at deshraj-jogiya.github.io
+5. A professional closing asking about available job opportunities and inviting recruiters/hiring managers to connect.
+=== END REQUIRED STRUCTURE ===
 
-When building real-time recommendation engines, we saw how critical synchronizing PostgreSQL and Supabase is for scaling operations. By structuring Row-Level Security correctly and optimizing the transaction replication lag, we cut backend synchronization latency by 65%. 
+=== REFERENCE POST TEMPLATE ===
+Today's top developments in AI and data engineering highlight two major updates:
+• OpenAI released new guidelines for real-time model evaluations to measure latency under load.
+• NVIDIA announced hardware-level optimizations for vector storage clusters to reduce retrieval times.
 
-Today's news about AI governance highlights the same fundamental truth: you cannot build reliable intelligent workflows on top of a fragmented data layer. Factual, robust validation isn't optional.
+Seeing these advancements in model efficiency reminds me of my time building machine learning recommendation workflows. In my work optimizing LLM processing pipelines, I focused heavily on backend latency, restructuring PostgreSQL and Supabase synchronization layers to cut synchronization delay by 65%. In a world where real-time evaluation is crucial, having highly reliable, synchronized data replication is the foundation of any scalable AI system.
 
-Test my interactive SQL sandbox and check out these live pipeline widgets at deshraj-jogiya.github.io #DataEngineering #MachineLearning
-=== END REFERENCE STYLE ===
+This post was fully compiled and published by my automated, self-hosted serverless data pipeline project. I invite you to visit my live portfolio at deshraj-jogiya.github.io to test my interactive SQL sandbox and query my career chatbot directly. I am currently seeking new opportunities as a Data Engineer or ML Engineer and would love to connect with engineering leaders and hiring teams. #DataEngineering #MachineLearning
+=== END REFERENCE POST TEMPLATE ===
 
 Your profile and context:
 {resume_context}
 
 Rules:
-- Write exactly 120 to 180 words total. Do NOT exceed 180 words.
-- Write in a natural, storytelling voice using short paragraphs (1-3 sentences each) separated by double line breaks for readability.
-- Start with a compelling, punchy opening sentence (hook) that draws the reader in.
-- Do NOT use numbered lists, bullet points, or section headings.
-- Maintain a calm, authoritative, reflective tone. Do NOT use sensational hype or generic clickbait phrases (e.g. "Let's dive in", "In today's fast-paced world").
-- Relate your own professional experiences (e.g., ETL pipelines, model optimizations, star schemas) from your profile context to the theme of today's tech news.
-- The post MUST conclude with an organic call to action inviting people to play with your interactive widgets and test your live SQL sandbox at deshraj-jogiya.github.io
-- Use plain, active English with a professional developer voice. Do NOT use any emojis.
+- Write in a natural, storytelling voice using short paragraphs (2-4 sentences each) separated by double line breaks for readability.
+- Write exactly 180 to 280 words total. Do NOT exceed 280 words.
+- Do NOT use emojis.
+- Do NOT use special/alien characters (e.g. bold unicode text). Use standard plain text only.
+- Keep the length decent to keep viewers engaged throughout without being overly verbose or ambiguous.
 - Use ONLY the provided news items as source material.
 - Add exactly 2-3 relevant technical hashtags at the very end.
 - Return ONLY the final post text, nothing else.
 
 Today's top tech news:
-{news_items}"""
+{news_items}
+"""
 
 LINKEDIN_POST_PROMPT = PERSONALIZED_POST_PROMPT
 
 MONDAY_SPOTLIGHT_PROMPT = """\
-You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written LinkedIn post spotlighting one of your technical projects in a reflective, storytelling style to demonstrate real-world domain expertise.
+You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written LinkedIn post spotlighting one of your technical projects in a reflective, storytelling style.
 
-Your writing style must match the following storytelling engineering reference style (short, highly readable paragraphs separated by double line breaks, starting with a compelling hook, highlighting technical problems, implementation details, and business impact):
+Your writing style must match the following storytelling engineering structure:
 
-=== REFERENCE STYLE ===
-Geospatial data is notoriously messy. When daily land cover datasets are fragmented across multiple states, tracking carbon emissions quickly turns into a bottleneck.
+=== REQUIRED STRUCTURE ===
+1. A brief hook and summary of the engineering context or industry relevance of the project formatted as 2-3 easy-to-read bulleted pointers (using •). Do NOT use emojis or bold unicode text.
+2. A storytelling section highlighting the concrete technical problem you tackled, your implementation details (referencing your Arizona State University IT Master's, 4.0 GPA, or 5 years of experience), and the quantitative achievements or results (e.g., latency cuts, accuracy improvements).
+3. A transparent pipeline statement: "This post was fully compiled and published by my automated, self-hosted serverless data pipeline project."
+4. A Call to Action inviting readers to visit your live portfolio and interact with the SQL sandbox and chatbot assistant at deshraj-jogiya.github.io
+5. A professional closing asking about available job opportunities and inviting recruiters/hiring managers to connect.
+=== END REQUIRED STRUCTURE ===
 
-To solve this, I engineered a Python ETL pipeline that automated the ingestion and transformation of massive state-level datasets into a centralized SQL database. By integrating Linear Regression and Random Forest models, we began forecasting CO2 trends based on land-use changes like urban expansion and forest loss.
+=== REFERENCE POST TEMPLATE ===
+Managing geospatial data in environmental analytics comes with unique challenges:
+• Land cover datasets are fragmented across multiple states, causing severe processing bottlenecks.
+• High latency in raster transformations delays downstream carbon emission forecasting.
 
-This automation saved 10 engineering hours weekly and achieved a 90% forecasting accuracy. Deploying an interactive ArcGIS Dashboard reduced our anomaly detection time by 15%, turning raw spatial data into rapid, actionable insights.
+To solve this, I engineered a Python ETL pipeline to automate the ingestion and geospatial transformation of massive datasets into a centralized SQL database. By integrating Linear Regression and Random Forest models, we began forecasting carbon trends based on land-use changes with a 90% forecasting accuracy, saving 10 engineering hours weekly. In production, this showed how critical robust pipelines are for turning raw spatial data into rapid, actionable insights.
 
-If you want to discuss database architectures or check out my live project demos, visit my portfolio at deshraj-jogiya.github.io #DataAutomation #CloudMigration
-=== END REFERENCE STYLE ===
+This post was fully compiled and published by my automated, self-hosted serverless data pipeline project. I invite you to visit my live portfolio at deshraj-jogiya.github.io to test my interactive SQL sandbox and query my career chatbot directly. I am currently seeking new opportunities as a Data Engineer or ML Engineer and would love to connect with engineering leaders and hiring teams. #DataEngineering #MachineLearning
+=== END REFERENCE POST TEMPLATE ===
 
 User Profile & Resume:
 {resume_context}
@@ -72,13 +86,11 @@ Project Details:
 {project_info}
 
 Rules:
-- Write exactly 120 to 180 words total. Do NOT exceed 180 words.
-- Write in a natural, storytelling voice using short paragraphs (1-3 sentences each) separated by double line breaks for readability.
-- Start with a compelling, punchy opening sentence (hook) that draws the reader in.
-- Do NOT use headings, numbered sections, or bullet points.
-- Focus on the concrete technical problem, your engineering implementation, and the quantitative impact (e.g., latency reductions, accuracy gains, automation percentage).
-- The post MUST end with a professional closing inviting technical leaders to connect, read more, or test live project widgets at deshraj-jogiya.github.io
-- Use plain, active English. Do NOT use emojis.
+- Write in a natural, storytelling voice using short paragraphs separated by double line breaks.
+- Write exactly 180 to 280 words total. Do NOT exceed 280 words.
+- Do NOT use emojis.
+- Do NOT use special/alien characters (e.g. bold unicode text). Use standard plain text only.
+- Keep the length decent to keep viewers engaged.
 - Add exactly 2-3 relevant technical hashtags at the very end.
 - Return ONLY the final post text, nothing else.
 """
@@ -268,7 +280,7 @@ async def generate_monday_project_spotlight(
 
 
 def validate_draft_length(text: str) -> tuple[bool, int]:
-    """Check whether the draft falls within the 120–180 word target range."""
+    """Check whether the draft falls within the 150–300 word target range."""
     word_count = len(text.split())
-    valid = 120 <= word_count <= 180
+    valid = 150 <= word_count <= 300
     return valid, word_count

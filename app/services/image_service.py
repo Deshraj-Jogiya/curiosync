@@ -286,9 +286,11 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
         steps = metadata.get("steps", [])
         steps_count = len(steps)
         if steps_count > 0:
-            box_w = 280
-            box_h = 240
             total_w = 1000
+            # Dynamically size box_w based on steps_count to prevent overlap
+            box_w = min(280, int((total_w - 30 * (steps_count - 1)) / steps_count)) if steps_count > 1 else 280
+            box_w = max(140, box_w)
+            box_h = 240
             spacing = (total_w - (steps_count * box_w)) / (steps_count - 1) if steps_count > 1 else 0
             
             for i, step in enumerate(steps):
@@ -430,18 +432,43 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
         node_count = len(nodes)
         
         if node_count > 0:
-            box_w = 200
-            box_h = 100
             total_w = 980
+            content_h = 510 - content_y  # leaves some margin at bottom
             
-            # We place nodes horizontally
-            spacing = (total_w - (node_count * box_w)) / (node_count - 1) if node_count > 1 else 0
+            # Dynamically determine columns and rows
+            if node_count <= 4:
+                cols = node_count
+                rows = 1
+            elif node_count <= 8:
+                cols = math.ceil(node_count / 2)
+                rows = 2
+            else:
+                cols = math.ceil(node_count / 3)
+                rows = 3
+                
+            # Dynamically size the boxes to prevent overlap
+            box_w = min(200, int((total_w - 40 * (cols - 1)) / cols)) if cols > 1 else 200
+            box_w = max(120, box_w)
+            box_h = min(100, int((content_h - 30 * (rows - 1)) / rows)) if rows > 1 else 100
+            box_h = max(60, box_h)
+            
             node_positions = {}
             
-            y = content_y + 80
             for i, node in enumerate(nodes):
+                row = i // cols
+                col = i % cols
+                
+                # Number of nodes in this specific row
+                nodes_in_row = min(node_count - row * cols, cols)
+                
+                # Calculate horizontal spacing and start position for this row to center it
+                row_total_w = nodes_in_row * box_w
+                row_spacing = (total_w - row_total_w) / (nodes_in_row + 1)
+                
+                x = 110 + row_spacing + col * (box_w + row_spacing)
+                y = content_y + 20 + row * (box_h + 30)
+                
                 nid = node.get("id", f"node{i}")
-                x = 110 + i * (box_w + spacing)
                 node_positions[nid] = (x, y, x + box_w, y + box_h)
                 
                 # Draw node box
@@ -456,19 +483,21 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 
                 # Draw node label
                 label = node.get("label", nid)
-                l_lines = wrap_text(label, subtitle_font, box_w - 20, draw)
-                lh = len(l_lines) * 22
+                # Use smaller font if box is small
+                l_font = subtitle_font if box_w >= 160 else body_font
+                l_lines = wrap_text(label, l_font, box_w - 15, draw)
+                lh = len(l_lines) * 20
                 ly = y + (box_h - lh) / 2
                 for line in l_lines[:2]:
-                    l_bbox = draw.textbbox((0, 0), line, font=subtitle_font)
+                    l_bbox = draw.textbbox((0, 0), line, font=l_font)
                     lw = l_bbox[2] - l_bbox[0]
                     draw.text(
                         (x + (box_w - lw) / 2, ly),
                         line,
-                        font=subtitle_font,
+                        font=l_font,
                         fill=(255, 255, 255, 255)
                     )
-                    ly += 22
+                    ly += 20
 
             # Draw Connections
             connections = metadata.get("connections", [])
