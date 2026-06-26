@@ -2,6 +2,10 @@ import asyncio
 import sys
 import os
 
+# Reconfigure stdout to support UTF-8 print statements on Windows console
+if sys.platform.startswith('win'):
+    sys.stdout.reconfigure(encoding='utf-8')
+
 # Add project root to path
 sys.path.append(os.path.abspath(os.path.dirname(__file__) + "/.."))
 
