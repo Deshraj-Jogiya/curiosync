@@ -10,10 +10,10 @@ Designed for engineering leaders and content creators, it operates **100% free o
 
 * **Serverless Daily Automation** — Run completely free using a GitHub Actions cron schedule. Seeding an in-memory database at runtime enables stateless, host-independent executions.
 * **Smart Content Curation** — Fetches top stories across 6 major tech RSS streams (TechCrunch, Ars Technica, Wired, BBC Tech, etc.) and deduplicates near-identical articles using fuzzy title comparison (SequenceMatcher).
-* **AI-Powered Synthesis** — Condenses headlines into structured, executive-level summaries using a resilient LLM model fallback chain (Gemini 3.5/2.5 series) to prevent API rate/quota limitations.
-* **Programmatic Branding Graphic** — Uses Pillow to render a custom, high-engagement slate-indigo vector network graphic card dynamically displaying the post's core headlines, custom branding, and credits.
+* **AI-Powered Synthesis & Storytelling** — Condenses headlines into structured, senior-level narrative summaries that organically connect today's tech topics to your personal database sync and PostgreSQL accomplishments, referencing your graduate studies at Arizona State University and five years of experience.
+* **Programmatic Diagram Graphic** — Uses Pillow to dynamically analyze post context and render a custom, high-engagement technical diagram (flowchart, comparison grid, or systems architecture map) complete with your branding and credentials.
 * **Jinja2 + HTMX Local Dashboard** — A premium glassmorphism command center for local review, manual draft edits, real-time visual graphic previews, and direct publishing.
-* **Stateful Monday Project Spotlight** — Spotlights a new GitHub repository (star-sorted) or resume project every Monday. Tracks history in a `showcased_projects` SQLite table (with automatic JSON state synchronization for stateless GitHub Actions runs) to ensure clean rotations and prevent back-to-back duplicate posts.
+* **Interactive Comment Chatbot Playground** — Automatically scans and replies to comments under your published posts using a career chatbot. Integrates with Supabase visitor tables to track interactions and enforce a playground rate limit of two queries per visitor to prevent API abuse.
 * **Robust Compliance & Humanizer** — Scans drafts for robotic phrases, checks character boundaries for LinkedIn's API limits, and verifies that no credential or data scraping terms are included.
 
 ---
@@ -23,11 +23,10 @@ Designed for engineering leaders and content creators, it operates **100% free o
 ```mermaid
 graph TD
     A[RSS News Sources] --> B[CurioSync Engine]
-    C[GitHub Username] --> B
     B --> D[Deduplication & Credibility Filter]
     D --> E[Gemini API Fallback Chain]
-    E --> F[AI Executive Post Synthesis]
-    F --> G[Pillow Image Rendering Engine]
+    E --> F[AI Narrative Synthesis]
+    F --> G[Pillow Diagram Rendering Engine]
     G --> H[LinkedIn API Publishing]
     
     subgraph Cloud Automation
@@ -37,16 +36,22 @@ graph TD
     subgraph Local Control
         J[Jinja2 + HTMX Web UI] -->|Direct Manual Edits| G
     end
+    
+    subgraph Interactive Playground
+        K[LinkedIn Comments API] --> L[Comment Agent Service]
+        L -->|Checks rate limits| M[Supabase DB]
+        L -->|Generates chatbot replies| E
+    end
 ```
 
 | Component | Technology |
 |---|---|
 | **Language & Framework** | Python 3.11+, FastAPI |
 | **Frontend Integration** | Jinja2 Templates, HTMX, Vanilla CSS (Glassmorphism) |
-| **Database** | SQLite (async via aiosqlite), SQLAlchemy 2.0 ORM |
-| **Asset Engine** | Pillow (PIL) for image synthesis |
+| **Database & Sync** | SQLite (local database), Supabase PostgreSQL (comment agent tracking) |
+| **Asset Engine** | Pillow (PIL) for diagram/infographic generation |
 | **Security & OAuth** | Cryptography (Fernet symmetric encryption), LinkedIn OAuth 2.0 |
-| **Quality Verification** | pytest, pytest-asyncio (73/73 test cases verified) |
+| **Quality Verification** | pytest, pytest-asyncio (74/74 test cases verified) |
 
 ---
 
@@ -74,10 +79,14 @@ Generate your Fernet encryption key:
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
 
-### 3. Start the Web App
+### 3. Start the Web App & Comment Agent
 Run the local FastAPI server using Uvicorn:
 ```bash
 uvicorn app.main:app --reload
+```
+To run the automated comment responder agent to scan and reply to comments:
+```bash
+python run_comment_agent.py
 ```
 Open **[http://localhost:8000](http://localhost:8000)** to connect your LinkedIn profile, fetch today's headlines, customize your posts, and see your graphic previews in real time.
 
@@ -96,7 +105,6 @@ You do not need to host a database or keep your personal computer turned on. Run
    * `LINKEDIN_SUB_URN` (Pasted Sub URN)
    * `LINKEDIN_ACCESS_TOKEN` (Pasted token)
    * `GEMINI_API_KEY` (Your Google AI Studio API Key)
-   * `GITHUB_USERNAME` (Your GitHub Username, for Monday Spotlight posts)
 3. **Trigger workflow:**
    The action is configured in `.github/workflows/daily_post.yml` to run daily at **17:00 UTC (10:00 AM MST / America/Phoenix timezone)**. You can also manually trigger it by clicking **Run workflow** under the repository's **Actions** tab.
 

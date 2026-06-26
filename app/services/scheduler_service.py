@@ -70,53 +70,33 @@ async def run_daily_pipeline(
             return {"status": "failed", "error": "LinkedIn token expired. Please re-authorize.", "steps": steps}
         steps["token_check"] = "passed"
 
-        # Determine if it's Monday
-        is_monday = date_for.weekday() == 0
-        sources_list = []
+        # Fetch news
+        news_items = await fetch_news(settings)
+        if not news_items:
+            steps["fetch_news"] = "failed — no items returned"
+            logger.error("Pipeline failed — no news items fetched")
+            await record_scheduler_run(session, run_type, "failed", "No news items", steps)
+            if own_session:
+                await session.commit()
+            return {"status": "failed", "error": "No tech news found for today.", "steps": steps}
+        steps["fetch_news"] = f"fetched {len(news_items)} items"
 
-        if is_monday:
-            logger.info("Monday detected - executing Project Spotlight pipeline")
-            repos = []
-            if settings.github_username:
-                repos = await fetch_github_projects(settings.github_username)
-                steps["github_fetch"] = f"fetched {len(repos)} repos"
-            else:
-                steps["github_fetch"] = "skipped — no github username configured"
+        # Deduplicate
+        deduped = deduplicate_news(news_items)
+        steps["deduplication"] = f"{len(news_items)} -> {len(deduped)} items"
 
-            draft_text = await generate_monday_project_spotlight(repos, settings, db=session)
-            steps["generate_draft"] = f"generated Monday spotlight ({len(draft_text.split())} words)"
+        # Save news to DB
+        await save_news_items(session, deduped, date_for)
+        steps["save_news"] = f"saved {len(deduped)} items"
 
-            compliance = check_compliance(draft_text, [])
-            steps["compliance_check"] = "passed" if compliance["passed"] else f"issues: {compliance['issues']}"
-        else:
-            # 3. Fetch news
-            news_items = await fetch_news(settings)
-            if not news_items:
-                steps["fetch_news"] = "failed — no items returned"
-                logger.error("Pipeline failed — no news items fetched")
-                await record_scheduler_run(session, run_type, "failed", "No news items", steps)
-                if own_session:
-                    await session.commit()
-                return {"status": "failed", "error": "No tech news found for today.", "steps": steps}
-            steps["fetch_news"] = f"fetched {len(news_items)} items"
+        # Generate draft
+        draft_text = await generate_draft(deduped, settings)
+        steps["generate_draft"] = f"generated ({len(draft_text.split())} words)"
 
-            # 4. Deduplicate
-            deduped = deduplicate_news(news_items)
-            steps["deduplication"] = f"{len(news_items)} -> {len(deduped)} items"
-
-            # 5. Save news to DB
-            await save_news_items(session, deduped, date_for)
-            steps["save_news"] = f"saved {len(deduped)} items"
-
-            # 6. Generate draft
-            draft_text = await generate_draft(deduped, settings)
-            steps["generate_draft"] = f"generated ({len(draft_text.split())} words)"
-
-            # 7. Compliance check
-            compliance = check_compliance(draft_text, deduped)
-            steps["compliance_check"] = "passed" if compliance["passed"] else f"issues: {compliance['issues']}"
-            sources_list = [{"title": i["title"], "source_name": i["source_name"]} for i in deduped]
-
+        # Compliance check
+        compliance = check_compliance(draft_text, deduped)
+        steps["compliance_check"] = "passed" if compliance["passed"] else f"issues: {compliance['issues']}"
+        sources_list = [{"title": i["title"], "source_name": i["source_name"]} for i in deduped]
         # 8. Humanize draft
         draft_text = humanize_draft(draft_text)
         steps["humanize"] = "applied"
@@ -145,7 +125,7 @@ async def run_daily_pipeline(
         try:
             from app.services.image_service import generate_graphic_metadata, generate_linkedin_image
             metadata = await generate_graphic_metadata(draft_text, settings)
-            subtitle = "Monday Project Spotlight" if is_monday else "Enterprise AI & Data Strategy"
+            subtitle = "Enterprise AI & Data Strategy"
             image_path = generate_linkedin_image(metadata, subtitle=subtitle)
             logger.info("Generated temp graphic for scheduled publication: %s", image_path)
         except Exception as img_err:

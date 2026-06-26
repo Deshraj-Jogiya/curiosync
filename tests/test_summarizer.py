@@ -67,9 +67,9 @@ class TestValidateDraftLength:
 
 class TestPromptTemplate:
     def test_prompt_contains_key_instructions(self):
-        assert "180 to 280 words" in LINKEDIN_POST_PROMPT
+        assert "220 to 320 words" in LINKEDIN_POST_PROMPT
         assert "ONLY the provided news items" in LINKEDIN_POST_PROMPT
-        assert "professional" in LINKEDIN_POST_PROMPT.lower()
+        assert "senior" in LINKEDIN_POST_PROMPT.lower()
         assert "bullet" in LINKEDIN_POST_PROMPT.lower()
         assert "hashtag" in LINKEDIN_POST_PROMPT.lower()
 
