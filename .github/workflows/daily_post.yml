@@ -2,8 +2,8 @@ name: Daily LinkedIn Publisher & TIL Generator
 
 on:
   schedule:
-    # Run daily at 17:00 UTC (10:00 AM MST / America/Phoenix timezone)
-    - cron: '0 17 * * *'
+    # Run daily at 13:00 UTC (6:00 AM MST / America/Phoenix timezone)
+    - cron: '0 13 * * *'
   workflow_dispatch:
     # Allows manual triggering from the GitHub Actions tab
 
