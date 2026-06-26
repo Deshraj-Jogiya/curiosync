@@ -1,6 +1,7 @@
 """LinkedIn Comment Monitoring & Auto-Response Service (Pointers 4 & 5)."""
 
 import os
+import re
 import datetime
 import urllib.parse
 import httpx
