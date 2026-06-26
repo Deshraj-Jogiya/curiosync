@@ -95,7 +95,7 @@ You do not need to host a database or keep your personal computer turned on. Run
    * `LINKEDIN_ACCESS_TOKEN` (Pasted token)
    * `GEMINI_API_KEY` (Your Google AI Studio API Key)
 3. **Trigger workflow:**
-   The action is configured in `.github/workflows/daily_post.yml` to run daily at **17:00 UTC (10:00 AM MST / America/Phoenix timezone)**. You can also manually trigger it by clicking **Run workflow** under the repository's **Actions** tab.
+   The action is configured in `.github/workflows/daily_post.yml` to run daily at **13:00 UTC (6:00 AM MST / America/Phoenix timezone)**. You can also manually trigger it by clicking **Run workflow** under the repository's **Actions** tab.
 
 > [!IMPORTANT]
 > **Token Expiry Notice:**
