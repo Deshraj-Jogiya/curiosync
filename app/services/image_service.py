@@ -256,13 +256,13 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
         body_font = ImageFont.load_default()
         desc_font = ImageFont.load_default()
 
-    # Draw Main Glassmorphism Container Card
+    # Draw Main Glassmorphism Container Card - reduced opacity to let background show through
     draw.rounded_rectangle(
         [(60, 40), (1140, 588)],
         radius=16,
-        fill=(15, 23, 42, 200),
-        outline=(255, 255, 255, 25),
-        width=1
+        fill=(15, 23, 42, 70),
+        outline=(accent_color[0], accent_color[1], accent_color[2], 60),
+        width=2
     )
 
     # Render Header Title
@@ -304,12 +304,12 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 x = 100 + i * (box_w + spacing)
                 y = content_y + 20
                 
-                # Step container box
+                # Step container box - themed color fill and outline
                 draw.rounded_rectangle(
                     [(x, y), (x + box_w, y + box_h)],
                     radius=12,
-                    fill=(30, 41, 59, 120),
-                    outline=(255, 255, 255, 15),
+                    fill=(accent_color[0], accent_color[1], accent_color[2], 25),
+                    outline=(accent_color[0], accent_color[1], accent_color[2], 90),
                     width=1
                 )
                 
@@ -399,8 +399,8 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
             draw.rounded_rectangle(
                 [(tx, row_y + 2), (tx + table_w, row_y + row_h - 2)],
                 radius=4,
-                fill=(30, 41, 59, bg_opacity),
-                outline=(255, 255, 255, 10),
+                fill=(accent_color[0], accent_color[1], accent_color[2], int(bg_opacity * 0.4)),
+                outline=(accent_color[0], accent_color[1], accent_color[2], 30),
                 width=1
             )
             
@@ -478,12 +478,12 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 nid = node.get("id", f"node{i}")
                 node_positions[nid] = (x, y, x + box_w, y + box_h)
                 
-                # Draw node box
+                # Draw node box - themed color fill and outline
                 border_color = colors[i % len(colors)]
                 draw.rounded_rectangle(
                     [(x, y), (x + box_w, y + box_h)],
                     radius=10,
-                    fill=(30, 41, 59, 150),
+                    fill=(border_color[0], border_color[1], border_color[2], 25),
                     outline=border_color,
                     width=2
                 )
@@ -531,8 +531,8 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                             x2 = p2[0] + (p2[2] - p2[0]) / 2
                             y2 = p2[1] + (p2[3] - p2[1]) / 2
                             
-                        # Draw line with arrow
-                        _draw_arrow(draw, x1, y1, x2, y2, (148, 163, 184, 180), width=3)
+                        # Draw line with arrow - themed accent color for connections
+                        _draw_arrow(draw, x1, y1, x2, y2, (accent_color[0], accent_color[1], accent_color[2], 180), width=3)
 
     # Render Footer Branding
     footer_text = "AUTOMATED PIPELINE  |  DESHRAJ RAMESHKUMAR JOGIYA  |  PORTFOLIO: deshraj-jogiya.github.io"
