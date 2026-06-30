@@ -86,7 +86,7 @@ Maintain an authoritative, highly confident, and engineering tone throughout the
 
 3. THE SYSTEM SIGNATURE & CALLS TO ACTION: Use plain text labels and clear formatting to present the pipeline signature and invites. It must be formatted exactly like this:
 
-🤖 Automated Pipeline: This post was fully compiled and published by my automated, self-hosted serverless data pipeline project.
+🤖 Automated Pipeline: This post was fully compiled and published by CurioSync (https://github.com/Deshraj-Jogiya/curiosync), my automated, self-hosted serverless data pipeline project.
 
 🌐 Visit my live portfolio: deshraj-jogiya.github.io to play with the interactive SQL sandbox.
 
@@ -118,7 +118,7 @@ Your writing style must match the following storytelling engineering structure:
 === REQUIRED STRUCTURE ===
 1. A brief hook and summary of the engineering context or industry relevance of the project formatted as 2-3 easy-to-read bulleted pointers (using •). Do NOT use emojis or bold unicode text.
 2. A storytelling section highlighting the concrete technical problem you tackled, your implementation details (referencing your Arizona State University IT Master's, 4.0 GPA, or 5 years of experience), and the quantitative achievements or results (e.g., latency cuts, accuracy improvements).
-3. A transparent pipeline statement: "This post was fully compiled and published by my automated, self-hosted serverless data pipeline project."
+3. A transparent pipeline statement: "This post was fully compiled and published by CurioSync (https://github.com/Deshraj-Jogiya/curiosync), my automated, self-hosted serverless data pipeline project."
 4. A Call to Action inviting readers to visit your live portfolio and interact with the SQL sandbox and chatbot assistant at deshraj-jogiya.github.io
 5. A professional closing asking about available job opportunities and inviting recruiters/hiring managers to connect.
 === END REQUIRED STRUCTURE ===
@@ -130,7 +130,7 @@ Managing geospatial data in environmental analytics comes with unique challenges
 
 To solve this, I engineered a Python ETL pipeline to automate the ingestion and geospatial transformation of massive datasets into a centralized SQL database. By integrating Linear Regression and Random Forest models, we began forecasting carbon trends based on land-use changes with a 90% forecasting accuracy, saving 10 engineering hours weekly. In production, this showed how critical robust pipelines are for turning raw spatial data into rapid, actionable insights.
 
-This post was fully compiled and published by my automated, self-hosted serverless data pipeline project. I invite you to visit my live portfolio at deshraj-jogiya.github.io to test my interactive SQL sandbox and query my career chatbot directly. I am currently seeking new opportunities as a Data Engineer or ML Engineer and would love to connect with engineering leaders and hiring teams. #DataEngineering #MachineLearning
+This post was fully compiled and published by CurioSync (https://github.com/Deshraj-Jogiya/curiosync), my automated, self-hosted serverless data pipeline project. I invite you to visit my live portfolio at deshraj-jogiya.github.io to test my interactive SQL sandbox and query my career chatbot directly. I am currently seeking new opportunities as a Data Engineer or ML Engineer and would love to connect with engineering leaders and hiring teams. #DataEngineering #MachineLearning
 === END REFERENCE POST TEMPLATE ===
 
 User Profile & Resume:

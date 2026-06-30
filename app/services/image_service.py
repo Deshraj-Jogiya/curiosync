@@ -535,7 +535,7 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                         _draw_arrow(draw, x1, y1, x2, y2, (accent_color[0], accent_color[1], accent_color[2], 180), width=3)
 
     # Render Footer Branding
-    footer_text = "AUTOMATED PIPELINE  |  DESHRAJ RAMESHKUMAR JOGIYA  |  PORTFOLIO: deshraj-jogiya.github.io"
+    footer_text = "AUTOMATED PIPELINE: CURIOSYNC  |  DESHRAJ RAMESHKUMAR JOGIYA  |  PORTFOLIO: deshraj-jogiya.github.io"
     draw.line([(100, 525), (1100, 525)], fill=(71, 85, 105, 120), width=1)
     draw.text((100, 542), footer_text, font=footer_font, fill=(148, 163, 184, 255))
 
