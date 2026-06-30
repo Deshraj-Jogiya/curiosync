@@ -205,8 +205,11 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
     diag_type = metadata.get("type", "flowchart").lower()
     title = metadata.get("title", "Technical Architecture Overview")
 
-    # Use title as seed for color selection
-    hasher = hashlib.md5(title.encode('utf-8', errors='ignore'))
+    # Use title + current date as seed for color selection to ensure variety daily
+    from datetime import datetime
+    date_str = datetime.now().strftime("%Y-%m-%d")
+    seed_str = f"{title}_{date_str}"
+    hasher = hashlib.md5(seed_str.encode('utf-8', errors='ignore'))
     seed_int = int(hasher.hexdigest(), 16)
     rng = random.Random(seed_int)
 
@@ -216,6 +219,10 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
         ((9, 28, 20), (6, 78, 59), (16, 185, 129), [(52, 211, 153), (20, 184, 166), (14, 165, 233)]),   # emerald-forest
         ((17, 24, 39), (88, 28, 135), (236, 72, 153), [(168, 85, 247), (249, 115, 22), (6, 182, 212)]), # cyberpunk-pink
         ((8, 51, 68), (23, 37, 84), (6, 182, 212), [(59, 130, 246), (139, 92, 246), (110, 231, 183)]),  # oceanic-teal
+        ((15, 23, 42), (67, 20, 30), (239, 68, 68), [(244, 63, 94), (251, 146, 60), (253, 224, 71)]),   # dark-crimson
+        ((15, 23, 42), (120, 53, 4), (245, 158, 11), [(251, 191, 36), (249, 115, 22), (239, 68, 68)]),   # amber-sunset
+        ((15, 23, 42), (40, 30, 10), (212, 175, 55), [(245, 222, 179), (218, 165, 32), (184, 134, 11)]),  # royal-gold
+        ((15, 23, 42), (58, 12, 105), (168, 85, 247), [(192, 132, 252), (129, 140, 248), (244, 63, 94)]), # electric-purple
     ]
     theme = rng.choice(themes)
     bg_start, bg_end, accent_color, colors = theme

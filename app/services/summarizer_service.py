@@ -14,6 +14,62 @@ from app.services.resume_service import RESUME_DATA, get_resume_context
 from app.services.llm_service import call_llm_with_fallback
 from app.utils.logging import logger
 
+FEATURABLE_TOPICS = [
+    {
+        "type": "experience",
+        "company": "Objectways Technologies LLC",
+        "role": "Teleoperation Data Collection Associate",
+        "dates": "May 2026 - Present",
+        "highlight": "collating and validating 10,000+ high-quality teleoperation data samples for AI/ML model training using Python-based workflows, improving dataset accuracy and consistency by 20%, and developing scalable data pipelines using Python, Scala, and Kubernetes to process large datasets, reducing processing time by 30%."
+    },
+    {
+        "type": "experience",
+        "company": "Technoid LLC",
+        "role": "Applied Machine Learning Engineer",
+        "dates": "Dec 2025 - May 2026",
+        "highlight": "optimizing GPT-4o mini models for resume analysis/tailoring using OpenAI APIs, SQL, and PostgreSQL, improving recommendation accuracy by 25%, and establishing Supabase data sync with row-level security (RLS) fixes, reducing sync latency by 65% for real-time operations."
+    },
+    {
+        "type": "experience",
+        "company": "ElevateMe Bootcamp",
+        "role": "Data Analytics & Machine Learning Fellow Trainee",
+        "dates": "Jan 2025 - Mar 2026",
+        "highlight": "conducting customer segmentation using K-Means clustering and PCA for dimensionality reduction, mapping results in Power BI to capture 92% of variance, and launching classification models that increased campaign click-through rates by 12%."
+    },
+    {
+        "type": "experience",
+        "company": "Zifatech Solutions LLC",
+        "role": "Data Analyst",
+        "dates": "Jun 2025 - Dec 2025",
+        "highlight": "migrating legacy database workflows to AWS Glue and S3, increasing data availability by 60%, streamlining integration with Snowflake and Power BI, and transforming SQL/Python ETL pipelines to automate sales insights reporting (70% manual effort reduction) using Great Expectations QA validation."
+    },
+    {
+        "type": "experience",
+        "company": "Arizona State University",
+        "role": "Data Engineer & Machine Learning Research Assistant",
+        "dates": "Sep 2024 - Jun 2025",
+        "highlight": "building a real-time streaming data pipeline utilizing Node.js and MongoDB (ensuring 99.9% uptime for 5,000 concurrent users), developing a personalized content recommendation engine that boosted click-through rates by 12%, and designing an NLP chatbot that analyzed user pain points."
+    },
+    {
+        "type": "project",
+        "name": "Multi-State Land Use Emissions Analysis",
+        "dates": "Apr 2025 - Nov 2025",
+        "highlight": "engineering a Python ETL pipeline for daily land cover datasets from 5 U.S. states, automating carbon emissions inventory compilation with geospatial data transformations, saving 10 hours weekly, and building Linear Regression/Random Forest models to forecast CO2 trends with 90% accuracy."
+    },
+    {
+        "type": "project",
+        "name": "AI-ML Data Science Simulation Project",
+        "dates": "Apr 2024 - Jun 2024",
+        "highlight": "creating a scalable data automation system using Python for daily sales data ingestion across 5 state branches, centralizing inventory data via SQL, and training Linear Regression/Random Forest models to achieve 90% forecast accuracy and cut stock-outs by 15%."
+    },
+    {
+        "type": "project",
+        "name": "Extending STEM across ASL",
+        "dates": "Apr 2023 - Mar 2024",
+        "highlight": "pioneering an inclusive Python platform using TensorFlow and Keras that enabled 7 STEM concepts for ASL-proficient students, creating a custom sign recognition algorithm that cut gesture redundancy and boosted learning efficiency by 30%."
+    }
+]
+
 PERSONALIZED_POST_PROMPT = """\
 You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written, and technically detailed LinkedIn post based on today's tech news.
 
@@ -22,7 +78,11 @@ Your writing style must match the following storytelling engineering structure:
 === REQUIRED STRUCTURE ===
 1. TODAY'S TECH HIGHLIGHTS: Introduce the news with a clean, capitalized plain text header, accompanied by a relevant emoji (e.g., 🚀, 💻). Underneath, write a brief summary of the top worthy technical news formatted as 2-3 bulleted pointers (using •). Tastefully use emojis to make the bullet points visually appealing. Do NOT use markdown bold (e.g., **text**) or unicode bold alphanumeric characters (e.g., 𝗯𝗼𝗹𝗱) anywhere. Write all text as standard plain text only.
 
-2. THE PERSONAL REFLECTION: Introduce a plain text section header with a relevant emoji (e.g., 🔍, ⚙️) highlighting a specific technical challenge (e.g., model latency, sync bottlenecks, scale issues) related to the news. Tell a cohesive, focused story about one deep engineering accomplishment (such as optimizing your PostgreSQL and Supabase synchronization layer) to keep the narrative engaging. Maintain an authoritative, highly confident, and engineering tone throughout the post; avoid casual or blogger-style phrasing. Frame your credentials and experience with strong authority (e.g., "Solving this class of synchronization bottlenecks has been a central focus of my engineering work, spanning five years of building real-time data systems and my graduate research at Arizona State University..."). Clearly establish a direct connection: what you built (referencing accomplishments across one or more projects, such as real-time synchronization, databases, or model optimization), what you achieved (e.g. latency reductions, accuracy gains), and how that makes sense in the context of the real-world news developments. Do NOT use markdown bold asterisks or unicode bold characters anywhere. Use standard plain text only.
+2. THE PERSONAL REFLECTION: Introduce a plain text section header with a relevant emoji (e.g., 🔍, ⚙️) highlighting a specific technical challenge (e.g., scale, data pipelines, model precision, data latency, etc.) related to the news.
+You MUST tell a cohesive, focused story specifically about this engineering experience from your career:
+{featured_accomplishment}
+
+Maintain an authoritative, highly confident, and engineering tone throughout the post; avoid casual or blogger-style phrasing. Frame your credentials and experience with strong authority (e.g., referencing your graduate research at Arizona State University, 5 years of systems experience, or specific technical achievements). Clearly establish a direct connection: how the engineering challenges of today's tech news relate to what you built, what you achieved, and the engineering lessons learned. Do NOT use markdown bold asterisks or unicode bold characters anywhere. Use standard plain text only.
 
 3. THE SYSTEM SIGNATURE & CALLS TO ACTION: Use plain text labels and clear formatting to present the pipeline signature and invites. It must be formatted exactly like this:
 
@@ -32,24 +92,6 @@ Your writing style must match the following storytelling engineering structure:
 
 ✉️ Hiring? Let's connect: State that you are currently seeking opportunities across the broader data engineering, machine learning, and analytics engineering landscape. Frame this as an eye-catching invitation for hiring managers and recruiters looking for a systems engineer ready to join.
 === END REQUIRED STRUCTURE ===
-
-=== REFERENCE POST TEMPLATE ===
-🚀 TODAY'S TECH HIGHLIGHTS
-
-• Patronus AI secured 50M USD to build digital environments designed to stress-test AI agents against real-world failures.
-
-• Netris raised 15M USD from a16z to accelerate AI neocloud deployment by automating network switch operations.
-
-🔍 THE DATA SYNC BOTTLENECK IN AGENTIC SYSTEMS
-
-If you have ever had an AI agent crash in production because the underlying data layer lagged, you know that raw model capability is only half the battle. Stress-testing agents under heavy loads requires a rock-solid, low-latency sync. Solving this class of synchronization bottlenecks has been a central focus of my engineering work, spanning five years of building real-time data systems and my graduate research at Arizona State University. When optimizing recommendation pipelines, our PostgreSQL databases could not replicate fast enough to keep up with model queries. By restructuring our Supabase synchronization layers and resolving row-level security issues, we brought data latency down by 65%. Ensuring backend databases can handle rapid real-time updates is the ultimate foundation for scalable AI.
-
-🤖 Automated Pipeline: This post was fully compiled and published by my automated, self-hosted serverless data pipeline project.
-
-🌐 Visit my live portfolio: deshraj-jogiya.github.io to play with the interactive SQL sandbox.
-
-✉️ Hiring? Let's connect: I am currently seeking opportunities across the broader data engineering, machine learning, and analytics engineering landscape and am ready to join. If you are looking for an engineer to build scalable systems, let's chat! #DataEngineering #MachineLearning #CloudInfrastructure
-=== END REFERENCE POST TEMPLATE ===
 
 Your profile and context:
 {resume_context}
@@ -106,8 +148,6 @@ Rules:
 - Add exactly 2-3 relevant technical hashtags at the very end.
 - Return ONLY the final post text, nothing else.
 """
-""
-
 
 
 def _format_news_for_prompt(news_items: list[dict]) -> str:
@@ -124,10 +164,32 @@ def _format_news_for_prompt(news_items: list[dict]) -> str:
 
 async def generate_draft(news_items: list[dict], settings: Settings) -> str:
     """Generate a personalized LinkedIn post draft from today's news."""
+    from datetime import datetime
+
+    # Select featured topic using deterministic rotation based on the day of the year
+    day_of_year = int(datetime.utcnow().strftime("%j"))
+    topic_idx = day_of_year % len(FEATURABLE_TOPICS)
+    topic = FEATURABLE_TOPICS[topic_idx]
+
+    if topic["type"] == "experience":
+        featured_accomplishment = (
+            f"During my time as a {topic['role']} at {topic['company']} ({topic['dates']}), "
+            f"I focused on {topic['highlight']}."
+        )
+    else:
+        featured_accomplishment = (
+            f"In my project '{topic['name']}' ({topic['dates']}), "
+            f"I focused on {topic['highlight']}."
+        )
+
+    logger.info("Selected featured topic for daily post: %s", featured_accomplishment)
+
     formatted = _format_news_for_prompt(news_items)
     resume_context = get_resume_context()
     prompt = PERSONALIZED_POST_PROMPT.format(
-        resume_context=resume_context, news_items=formatted
+        resume_context=resume_context,
+        news_items=formatted,
+        featured_accomplishment=featured_accomplishment
     )
 
     logger.info(
