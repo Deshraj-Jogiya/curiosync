@@ -183,6 +183,10 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
     import random
     import hashlib
 
+    # Helper function for manual color blending to avoid Pillow RGBA conversion issues
+    def blend_color(fg, bg, alpha):
+        return tuple(int(b + (f - b) * alpha) for f, b in zip(fg, bg))
+
     # 1. Backwards Compatibility check
     if isinstance(metadata, str):
         title_str = metadata
@@ -256,12 +260,20 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
         body_font = ImageFont.load_default()
         desc_font = ImageFont.load_default()
 
-    # Draw Main Glassmorphism Container Card - reduced opacity to let background show through
+    # Draw Main Glassmorphism Container Card - blended with background gradient
+    card_center_bg = (
+        int(bg_start[0] + (bg_end[0] - bg_start[0]) * 0.5),
+        int(bg_start[1] + (bg_end[1] - bg_start[1]) * 0.5),
+        int(bg_start[2] + (bg_end[2] - bg_start[2]) * 0.5)
+    )
+    card_fill = blend_color((15, 23, 42), card_center_bg, 0.70)
+    card_border = blend_color(accent_color, card_fill, 0.35)
+    
     draw.rounded_rectangle(
         [(60, 40), (1140, 588)],
         radius=16,
-        fill=(15, 23, 42, 70),
-        outline=(accent_color[0], accent_color[1], accent_color[2], 60),
+        fill=card_fill,
+        outline=card_border,
         width=2
     )
 
@@ -305,11 +317,13 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 y = content_y + 20
                 
                 # Step container box - themed color fill and outline
+                box_fill = blend_color(accent_color, card_fill, 0.12)
+                box_border = blend_color(accent_color, card_fill, 0.40)
                 draw.rounded_rectangle(
                     [(x, y), (x + box_w, y + box_h)],
                     radius=12,
-                    fill=(accent_color[0], accent_color[1], accent_color[2], 25),
-                    outline=(accent_color[0], accent_color[1], accent_color[2], 90),
+                    fill=box_fill,
+                    outline=box_border,
                     width=1
                 )
                 
@@ -369,11 +383,12 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
         tx = 110
         ty = content_y + 10
         
-        # Draw header row
+        # Draw header row - themed color fill and outline
+        header_fill = blend_color(accent_color, card_fill, 0.45)
         draw.rounded_rectangle(
             [(tx, ty), (tx + table_w, ty + row_h)],
             radius=6,
-            fill=(accent_color[0], accent_color[1], accent_color[2], 120),
+            fill=header_fill,
             outline=accent_color,
             width=1
         )
@@ -396,11 +411,14 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
             row_y = ty + row_h + r_idx * row_h
             bg_opacity = 50 if r_idx % 2 == 0 else 20
             
+            alpha_val = 0.12 if r_idx % 2 == 0 else 0.05
+            row_fill = blend_color(accent_color, card_fill, alpha_val)
+            row_border = blend_color(accent_color, card_fill, 0.15)
             draw.rounded_rectangle(
                 [(tx, row_y + 2), (tx + table_w, row_y + row_h - 2)],
                 radius=4,
-                fill=(accent_color[0], accent_color[1], accent_color[2], int(bg_opacity * 0.4)),
-                outline=(accent_color[0], accent_color[1], accent_color[2], 30),
+                fill=row_fill,
+                outline=row_border,
                 width=1
             )
             
@@ -480,11 +498,13 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 
                 # Draw node box - themed color fill and outline
                 border_color = colors[i % len(colors)]
+                node_fill = blend_color(border_color, card_fill, 0.12)
+                node_border = blend_color(border_color, card_fill, 0.70)
                 draw.rounded_rectangle(
                     [(x, y), (x + box_w, y + box_h)],
                     radius=10,
-                    fill=(border_color[0], border_color[1], border_color[2], 25),
-                    outline=border_color,
+                    fill=node_fill,
+                    outline=node_border,
                     width=2
                 )
                 

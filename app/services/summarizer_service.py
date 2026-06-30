@@ -173,13 +173,13 @@ async def generate_draft(news_items: list[dict], settings: Settings) -> str:
 
     if topic["type"] == "experience":
         featured_accomplishment = (
-            f"During my time as a {topic['role']} at {topic['company']} ({topic['dates']}), "
-            f"I focused on {topic['highlight']}."
+            f"During my time working as a {topic['role']} at {topic['company']} from {topic['dates']}, "
+            f"I was responsible for {topic['highlight']}"
         )
     else:
         featured_accomplishment = (
-            f"In my project '{topic['name']}' ({topic['dates']}), "
-            f"I focused on {topic['highlight']}."
+            f"In my project focusing on {topic['name']} from {topic['dates']}, "
+            f"I was responsible for {topic['highlight']}"
         )
 
     logger.info("Selected featured topic for daily post: %s", featured_accomplishment)
