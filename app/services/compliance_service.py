@@ -44,6 +44,9 @@ _REPLACEMENTS: dict[str, str] = {
 
 def clean_special_characters(text: str) -> str:
     """Normalize curly quotes, dashes, and fix unicode replacement character bugs."""
+    # Remove null bytes and other ASCII control characters (except \n, \r, \t)
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", text)
+
     # Normalize common curly punctuation to straight ascii
     replacements = {
         "’": "'",

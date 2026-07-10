@@ -56,3 +56,5 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-07-08 15:27:58 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (331 words), compliance_check: issues: ['Too long: 331 words (maximum 320)'], humanize: applied, publish: success, record_post: published |
 | 2026-07-09 16:00:07 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (305 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
 | 2026-07-10 15:33:22 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (339 words), compliance_check: issues: ['Too long: 339 words (maximum 320)'], humanize: applied, publish: success, record_post: published |
+| 2026-07-10 23:03:59 | **SUCCESS** | mock_step: completed |
+| 2026-07-10 23:04:00 | **FAILED** | some_step: failed |
