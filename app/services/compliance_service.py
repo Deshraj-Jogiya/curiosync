@@ -63,6 +63,12 @@ def clean_special_characters(text: str) -> str:
     # e.g., "OpenAIs" -> "OpenAI's"
     text = re.sub(r"(\w)[\ufffd\u2019\u2018\u201b\u0092](\w)", r"\1'\2", text)
 
+    # Convert markdown links [label](url) to plain text "label (url)" to prevent LinkedIn parser from truncating the post
+    text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 (\2)", text)
+
+    # Convert any other remaining square brackets to parentheses to avoid triggering LinkedIn's parser
+    text = text.replace("[", "(").replace("]", ")")
+
     # Remove any other stray unicode replacement characters
     text = text.replace("\ufffd", "")
 

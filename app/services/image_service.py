@@ -535,15 +535,23 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                         p1 = node_positions[n_from]
                         p2 = node_positions[n_to]
                         
-                        # Compute center edge connection points
-                        # If p1 is to the left of p2
+                        # Compute center edge connection points based on relative box positions
+                        # If p1 is strictly to the left of p2
                         if p1[2] < p2[0]:
                             x1, y1 = p1[2], p1[1] + (p1[3] - p1[1]) / 2
                             x2, y2 = p2[0], p2[1] + (p2[3] - p2[1]) / 2
-                        # If p1 is above p2
+                        # If p1 is strictly to the right of p2
+                        elif p1[0] > p2[2]:
+                            x1, y1 = p1[0], p1[1] + (p1[3] - p1[1]) / 2
+                            x2, y2 = p2[2], p2[1] + (p2[3] - p2[1]) / 2
+                        # If p1 is strictly above p2
                         elif p1[3] < p2[1]:
                             x1, y1 = p1[0] + (p1[2] - p1[0]) / 2, p1[3]
                             x2, y2 = p2[0] + (p2[2] - p2[0]) / 2, p2[1]
+                        # If p1 is strictly below p2
+                        elif p1[1] > p2[3]:
+                            x1, y1 = p1[0] + (p1[2] - p1[0]) / 2, p1[1]
+                            x2, y2 = p2[0] + (p2[2] - p2[0]) / 2, p2[3]
                         else:
                             # Default center-to-center line with margins
                             x1 = p1[0] + (p1[2] - p1[0]) / 2

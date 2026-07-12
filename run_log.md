@@ -60,3 +60,5 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-07-10 23:04:00 | **FAILED** | some_step: failed |
 | 2026-07-11 14:24:25 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (253 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
 | 2026-07-12 14:27:37 | **SUCCESS** | duplicate_check: passed, token_check: passed, fetch_news: fetched 15 items, deduplication: 15 -> 15 items, save_news: saved 15 items, generate_draft: generated (276 words), compliance_check: passed, humanize: applied, publish: success, record_post: published |
+| 2026-07-12 20:39:39 | **SUCCESS** | mock_step: completed |
+| 2026-07-12 20:39:41 | **FAILED** | some_step: failed |
