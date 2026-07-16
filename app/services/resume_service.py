@@ -174,6 +174,60 @@ RESUME_DATA = {
                 "Synthesized feedback from 50+ STEM students to identify key areas to improve lesson design, achieving a user satisfaction score of 4.6/5, based on post-lesson surveys.",
             ],
         },
+        {
+            "name": "Stay Aware of Branch",
+            "dates": "Jul 2023 - Dec 2023",
+            "accomplishments": [
+                "Developed an application that links parents and schools through the React Native Android framework.",
+                "Improved communication between parents and teachers, leading to a 40% boost in parent involvement.",
+                "Implementing features such as integrated progress reports and attendance monitoring decreased the 25% administrative workload.",
+            ],
+        },
+        {
+            "name": "Chef at Gathering",
+            "dates": "Nov 2022 - Mar 2023",
+            "accomplishments": [
+                "Developed a React app easing event organization and professional catering arrangements.",
+                "Streamlined event management processes, resulting in a 50% reduction in coordination time.",
+                "Curated chefs to showcase specialties, leading to a 20% increase in chef bookings.",
+            ],
+        },
+        {
+            "name": "City Forums",
+            "dates": "Jun 2022 - Oct 2022",
+            "accomplishments": [
+                "Created an online forum using CodeIgniter 3, promoting community engagement and event sharing.",
+                "Increased user base by 50% within the first three months through targeted marketing strategies.",
+                "Established a thriving online marketplace generating $10,000 in revenue through classified advertisements and event listings.",
+            ],
+        },
+        {
+            "name": "Make It Short",
+            "dates": "Jan 2022 - Apr 2022",
+            "accomplishments": [
+                "Integrated Link Shortening and view tracking into a CodeIgniter 4 app, resulting in 10,000+ shortened URLs.",
+                "Achieved a 15% increase in user engagement by implementing gamification elements.",
+                "Generated $500 in revenue through redeemable points earned by users.",
+            ],
+        },
+        {
+            "name": "Get your Token",
+            "dates": "Jul 2021 - Dec 2021",
+            "accomplishments": [
+                "Published a front-end marketplace and administrative panel for NFT cryptocurrency transactions by reducing the time by 20%.",
+                "Facilitated the creation and purchase of Penky tokens, resulting in 1,000+ transactions within the first month.",
+                "Collaborated with stakeholders to meet project requirements, resulting in a 90% satisfaction rate among users and developers.",
+            ],
+        },
+        {
+            "name": "Solid Object Detection and Identification using Image Processing",
+            "dates": "May 2020 - Dec 2020",
+            "accomplishments": [
+                "Developed a robust shape detection and identification algorithm using Python, PyTorch, and OpenCV, achieving a classification accuracy of 99.20%.",
+                "Implemented traditional contour-based geometry feature extraction alongside a CNN classifier, refining shape recognition with a 33% increase in traditional visualization capabilities.",
+                "Evaluated the model over a dataset of 10,000 images, predicting bounding-box regression with a high-precision Mean IoU of 0.90.",
+            ],
+        },
     ],
 }
 
