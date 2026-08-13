@@ -42,6 +42,7 @@ async def call_llm_with_fallback(
     client = openai.AsyncOpenAI(
         api_key=settings.openai_api_key,
         base_url=api_base,
+        timeout=45.0,
     )
 
     last_error = None
@@ -52,6 +53,7 @@ async def call_llm_with_fallback(
                 model=model,
                 messages=messages,
                 temperature=temperature,
+                timeout=45.0,
             )
             logger.info("LLM call succeeded with model: %s", model)
             return response.choices[0].message.content.strip()

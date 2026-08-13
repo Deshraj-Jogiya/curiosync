@@ -23,9 +23,17 @@ async def main():
     date_for = today_phoenix()
     
     async with async_session() as session:
-        # Get the first user
-        res = await session.execute(select(User))
-        user = res.scalars().first()
+        # Get the latest user with an active token
+        from app.models.token import OAuthToken
+        tok_res = await session.execute(select(OAuthToken).order_by(OAuthToken.created_at.desc()))
+        latest_tok = tok_res.scalars().first()
+        if latest_tok:
+            user_res = await session.execute(select(User).where(User.id == latest_tok.user_id))
+            user = user_res.scalar_one_or_none()
+        else:
+            res = await session.execute(select(User).order_by(User.id.desc()))
+            user = res.scalars().first()
+            
         if not user:
             print("ERROR: No user found in database.")
             return
