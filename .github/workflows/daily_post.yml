@@ -47,7 +47,7 @@ jobs:
         SECRET_KEY: "github-actions-dummy-secret-key-placeholder"
         LINKEDIN_CLIENT_ID: "github-actions-dummy-client-id-placeholder"
         LINKEDIN_CLIENT_SECRET: "github-actions-dummy-client-secret-placeholder"
-        FERNET_KEY: "On9Xt3DeuvikAzn4c-yVjMCAyVAJJXGvKAh6rOstuUU="
+        FERNET_KEY: ${{ secrets.FERNET_KEY }}
         DATABASE_URL: "sqlite+aiosqlite:///:memory:"
         
         # Real credentials and settings configured in GitHub Repository Secrets
