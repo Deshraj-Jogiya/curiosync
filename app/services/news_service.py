@@ -15,7 +15,7 @@ RSS_FEEDS: dict[str, str] = {
     "Ars Technica": "https://feeds.arstechnica.com/arstechnica/index",
     "The Verge": "https://www.theverge.com/rss/index.xml",
     "Wired": "https://www.wired.com/feed/rss",
-    "Reuters Tech": "https://www.rssboard.org/rss-specification",
+    "Engadget": "https://www.engadget.com/rss.xml",
     "BBC Tech": "http://feeds.bbci.co.uk/news/technology/rss.xml",
 }
 
@@ -25,7 +25,7 @@ SOURCE_CREDIBILITY: dict[str, float] = {
     "Wired": 1.0,
     "BBC Tech": 1.0,
     "The Verge": 0.8,
-    "Reuters Tech": 0.8,
+    "Engadget": 0.8,
 }
 
 
