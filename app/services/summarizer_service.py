@@ -82,7 +82,7 @@ Your writing style must match the following storytelling engineering structure:
 You MUST tell a cohesive, focused story specifically about this engineering experience from your career:
 {featured_accomplishment}
 
-Maintain an authoritative, highly confident, and engineering tone throughout the post; avoid casual or blogger-style phrasing. Frame your credentials and experience with strong authority (e.g., referencing your graduate research at Arizona State University, your systems engineering background, or specific technical achievements). Clearly establish a direct connection: how the engineering challenges of today's tech news relate to what you built, what you achieved, and the engineering lessons learned. Do NOT use markdown bold asterisks or unicode bold characters anywhere. Use standard plain text only.
+Maintain an authoritative, highly confident, and engineering tone throughout the post; avoid casual or blogger-style phrasing. Frame your credentials and experience with strong authority (e.g., referencing your graduate research at Arizona State University, 3+ years of systems experience, or specific technical achievements). Clearly establish a direct connection: how the engineering challenges of today's tech news relate to what you built, what you achieved, and the engineering lessons learned. Do NOT use markdown bold asterisks or unicode bold characters anywhere. Use standard plain text only.
 
 3. SYSTEM SIGNATURE & CALLS TO ACTION: Do NOT write any header or label for this section. Transition directly after the reflection paragraph using double line breaks. The signature block must be formatted exactly like this:
 
@@ -117,7 +117,7 @@ Your writing style must match the following storytelling engineering structure:
 
 === REQUIRED STRUCTURE ===
 1. A brief hook and summary of the engineering context or industry relevance of the project formatted as 2-3 easy-to-read bulleted pointers (using •). Do NOT use emojis or bold unicode text.
-2. A storytelling section highlighting the concrete technical problem you tackled, your implementation details (referencing your Arizona State University IT Master's, 4.0 GPA, or your systems engineering background), and the quantitative achievements or results (e.g., latency cuts, accuracy improvements).
+2. A storytelling section highlighting the concrete technical problem you tackled, your implementation details (referencing your Arizona State University IT Master's, 4.0 GPA, or 3+ years of experience), and the quantitative achievements or results (e.g., latency cuts, accuracy improvements).
 3. A transparent pipeline statement: "This post was fully compiled and published by CurioSync. Project repository: github.com/Deshraj-Jogiya/curiosync."
 4. A Call to Action inviting readers to visit your live portfolio and interact with the SQL sandbox and chatbot assistant at deshraj-jogiya.github.io
 5. A professional closing asking about available job opportunities and inviting recruiters/hiring managers to connect.

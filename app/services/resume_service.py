@@ -2,9 +2,9 @@
 
 RESUME_DATA = {
     "summary": (
-        "Research-focused data/ML engineer delivering ETL automation (70% efficiency gains), "
-        "AI model optimization (25% accuracy boosts), and cloud data pipelines across research "
-        "and industry roles. Expertise in "
+        "Research-focused data/ML engineer with over three years of extensive experience "
+        "delivering ETL automation (70% efficiency gains), AI model optimization (25% accuracy boosts), "
+        "and cloud data pipelines across research and industry roles. Expertise in "
         "Python/SQL/PostgreSQL, OpenAI APIs, Supabase/AWS/Snowflake, and ML techniques from "
         "K-Means clustering to NLP systems. ASU research alum and IBM certified, "
         "currently engineering real-time ML solutions at Technoid LLC."
