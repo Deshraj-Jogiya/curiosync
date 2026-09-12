@@ -2,9 +2,9 @@
 
 RESUME_DATA = {
     "summary": (
-        "Research-focused data/ML engineer with over three years of extensive experience "
-        "delivering ETL automation (70% efficiency gains), AI model optimization (25% accuracy boosts), "
-        "and cloud data pipelines across research and industry roles. Expertise in "
+        "Research-focused data/ML engineer delivering ETL automation (70% efficiency gains), "
+        "AI model optimization (25% accuracy boosts), and cloud data pipelines across research "
+        "and industry roles. Expertise in "
         "Python/SQL/PostgreSQL, OpenAI APIs, Supabase/AWS/Snowflake, and ML techniques from "
         "K-Means clustering to NLP systems. ASU research alum and IBM certified, "
         "currently engineering real-time ML solutions at Technoid LLC."
@@ -135,15 +135,6 @@ RESUME_DATA = {
         },
     ],
     "projects": [
-        {
-            "name": "ElevateMe Bootcamp: Customer Segmentation & Marketing Intelligence",
-            "dates": "Jan 2025 - Mar 2026",
-            "accomplishments": [
-                "Led customer segmentation using K-Means clustering and PCA for dimensionality reduction, visualized results in Power BI, and identified six segments that captured 92% of data variance.",
-                "Led marketing intelligence strategy using classification models and Power BI analytics, increasing campaign click-through rates by 12%.",
-                "Deployed interactive Power BI dashboards to visualize KPIs and financial trends, improving executive insight and reporting efficiency.",
-            ],
-        },
         {
             "name": "Multi-State Land Use Emissions Analysis",
             "dates": "Apr 2025 - Nov 2025",
