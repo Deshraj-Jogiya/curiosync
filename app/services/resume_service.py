@@ -2,7 +2,7 @@
 
 RESUME_DATA = {
     "summary": (
-        "Research-focused data/ML engineer with over five years of extensive experience "
+        "Research-focused data/ML engineer with over three years of extensive experience "
         "delivering ETL automation (70% efficiency gains), AI model optimization (25% accuracy boosts), "
         "and cloud data pipelines across research and industry roles. Expertise in "
         "Python/SQL/PostgreSQL, OpenAI APIs, Supabase/AWS/Snowflake, and ML techniques from "
@@ -13,14 +13,14 @@ RESUME_DATA = {
         {
             "institution": "Arizona State University",
             "degree": "Master of Science, Information Technology",
-            "dates": "Aug 2022 - May 2024",
+            "dates": "Aug 2022 - Jul 2024",
             "gpa": "4.0/4.0",
             "location": "Tempe, AZ",
         },
         {
             "institution": "Institute of Advanced Research",
             "degree": "Bachelor of Technology, Computer Engineering",
-            "dates": "Aug 2017 - May 2021",
+            "dates": "Aug 2017 - Jul 2021",
             "gpa": "7.8/10",
             "location": "Gandhinagar, GJ",
         },
@@ -70,7 +70,7 @@ RESUME_DATA = {
             "company": "Objectways Technologies LLC",
             "role": "Teleoperation Data Collection Associate",
             "location": "Tempe, Arizona",
-            "dates": "May 2026 - Present",
+            "dates": "May 2026 - Present (Part-Time)",
             "accomplishments": [
                 "Collected and validated 10,000+ high-quality teleoperation data samples for AI/ML model training using Python-based workflows, improving dataset accuracy and consistency by 20%.",
                 "Developed and maintained scalable data pipelines using Python, Scala, and Kubernetes to process and organize large datasets, reducing data processing time by 30% and enhancing system efficiency.",
@@ -81,7 +81,7 @@ RESUME_DATA = {
             "company": "Technoid LLC",
             "role": "Applied Machine Learning Engineer",
             "location": "Piscataway, New Jersey",
-            "dates": "Dec 2025 - May 2026",
+            "dates": "Dec 2025 - May 2026 (Contract)",
             "accomplishments": [
                 "Optimized GPT-4o mini models for resume analysis/tailoring using OpenAI APIs, SQL, and PostgreSQL, improving recommendation accuracy by 25%.",
                 "Established Supabase data sync with RLS fixes and PostgreSQL backend, reducing data sync latency by 65% for real-time operations.",
@@ -89,22 +89,10 @@ RESUME_DATA = {
             ],
         },
         {
-            "company": "ElevateMe Bootcamp",
-            "role": "Data Analytics & Machine Learning Fellow Trainee",
-            "location": "Columbus, Ohio",
-            "dates": "Jan 2025 - Mar 2026",
-            "accomplishments": [
-                "Analyzed company financial and operational data with Python and Excel, identifying 4 key revenue-impacting trends that guided department-level strategic actions.",
-                "Deployed interactive Power BI dashboards to visualize KPIs and financial trends, improving executive insight and reporting efficiency.",
-                "Led customer segmentation using K-Means clustering and PCA for dimensionality reduction, visualized results in Power BI, and identified six segments that captured 92% of data variance.",
-                "Led marketing intelligence strategy using classification models and Power BI analytics, increasing campaign click-through rates by 12%.",
-            ],
-        },
-        {
             "company": "Zifatech Solutions LLC",
             "role": "Data Analyst",
             "location": "Milwaukee, Wisconsin",
-            "dates": "Jun 2025 - Dec 2025",
+            "dates": "Jun 2025 - Dec 2025 (Contract)",
             "accomplishments": [
                 "Transformed SQL/Python-based ETL pipelines to automate sales insights reporting, reducing manual effort by 70% and improving data refresh consistency.",
                 "Migrated legacy data workflows to AWS Glue and S3, increasing data availability by 60% and streamlining integration with Snowflake and Power BI.",
@@ -147,6 +135,15 @@ RESUME_DATA = {
         },
     ],
     "projects": [
+        {
+            "name": "ElevateMe Bootcamp: Customer Segmentation & Marketing Intelligence",
+            "dates": "Jan 2025 - Mar 2026",
+            "accomplishments": [
+                "Led customer segmentation using K-Means clustering and PCA for dimensionality reduction, visualized results in Power BI, and identified six segments that captured 92% of data variance.",
+                "Led marketing intelligence strategy using classification models and Power BI analytics, increasing campaign click-through rates by 12%.",
+                "Deployed interactive Power BI dashboards to visualize KPIs and financial trends, improving executive insight and reporting efficiency.",
+            ],
+        },
         {
             "name": "Multi-State Land Use Emissions Analysis",
             "dates": "Apr 2025 - Nov 2025",
