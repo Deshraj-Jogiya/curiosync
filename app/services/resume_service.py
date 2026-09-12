@@ -211,7 +211,7 @@ RESUME_DATA = {
             "name": "Solid Object Detection and Identification using Image Processing",
             "dates": "May 2020 - Dec 2020",
             "accomplishments": [
-                "Developed a robust shape detection and identification algorithm using Python, PyTorch, and OpenCV, achieving a classification accuracy of 99.20%.",
+                "Developed a robust shape detection and identification algorithm using Python, PyTorch, and OpenCV, achieving a classification accuracy of 98.97%.",
                 "Implemented traditional contour-based geometry feature extraction alongside a CNN classifier, refining shape recognition with a 33% increase in traditional visualization capabilities.",
                 "Evaluated the model over a dataset of 10,000 images, predicting bounding-box regression with a high-precision Mean IoU of 0.90.",
             ],
