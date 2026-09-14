@@ -10,7 +10,7 @@ Designed for engineering leaders and content creators, it operates **100% free o
 
 * **Serverless Daily Automation** — Run completely free using a GitHub Actions cron schedule. Seeding an in-memory database at runtime enables stateless, host-independent executions.
 * **Smart Content Curation** — Fetches top stories across 6 major tech RSS streams (TechCrunch, Ars Technica, Wired, BBC Tech, etc.) and deduplicates near-identical articles using fuzzy title comparison (SequenceMatcher).
-* **AI-Powered Synthesis & Storytelling** — Condenses headlines into structured, senior-level narrative summaries that organically connect today's tech topics to your personal database sync and PostgreSQL accomplishments, referencing your graduate studies at Arizona State University and five years of experience.
+* **AI-Powered Synthesis & Storytelling** — Condenses headlines into structured, senior-level narrative summaries that organically connect today's tech topics to your personal database sync and PostgreSQL accomplishments, referencing your graduate studies at Arizona State University and 3+ years of experience.
 * **Programmatic Diagram Graphic** — Uses Pillow to dynamically analyze post context and render a custom, high-engagement technical diagram (flowchart, comparison grid, or systems architecture map) complete with your branding and credentials.
 * **Jinja2 + HTMX Local Dashboard** — A premium glassmorphism command center for local review, manual draft edits, real-time visual graphic previews, and direct publishing.
 * **Robust Compliance & Humanizer** — Scans drafts for robotic phrases, checks character boundaries for LinkedIn's API limits, and verifies that no credential or data scraping terms are included.
@@ -44,7 +44,7 @@ graph TD
 | **Database** | SQLite (async via aiosqlite), SQLAlchemy 2.0 ORM |
 | **Asset Engine** | Pillow (PIL) for diagram/infographic generation |
 | **Security & OAuth** | Cryptography (Fernet symmetric encryption), LinkedIn OAuth 2.0 |
-| **Quality Verification** | pytest, pytest-asyncio (74/74 test cases verified) |
+| **Quality Verification** | pytest, pytest-asyncio (75/77 test cases passing; the other 2 fail on pydantic/mock-timeout version mismatches unrelated to app logic) |
 
 ---
 

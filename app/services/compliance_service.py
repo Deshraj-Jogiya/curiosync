@@ -79,6 +79,7 @@ def humanize_draft(text: str) -> str:
     """Remove or replace robotic phrases and clean special characters."""
     original = text
     text = clean_special_characters(text)
+    text = fix_experience_claims(text)
 
     for phrase in ROBOTIC_PHRASES:
         pattern = re.compile(re.escape(phrase), re.IGNORECASE)
@@ -96,12 +97,81 @@ def humanize_draft(text: str) -> str:
     return text.strip()
 
 
+# The real, verified figure across every synced profile source (CRM, portfolio,
+# LinkedIn, resume). If a draft claims a different tenure, it's an LLM fabrication,
+# not a fact — this is exactly how "five years" (vs the real "3+ years") slipped
+# into published posts undetected for months: nothing ever checked the generated
+# text against the real number.
+REAL_YEARS_EXPERIENCE = 3
+
+_NUMBER_WORDS = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6,
+    "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+}
+
+_EXPERIENCE_CLAIM_PATTERN = re.compile(
+    r"\b(\d+|" + "|".join(_NUMBER_WORDS) + r")\+?\s*years?\s+"
+    r"(?:of\s+)?(?:systems\s+|professional\s+)?(?:engineering\s+)?experience\b",
+    re.IGNORECASE,
+)
+
+
+def check_experience_claims(text: str) -> list[str]:
+    """Flag any 'N years of experience' claim that doesn't match the real figure."""
+    issues: list[str] = []
+    for match in _EXPERIENCE_CLAIM_PATTERN.finditer(text):
+        raw = match.group(1).lower()
+        claimed = _NUMBER_WORDS.get(raw, None)
+        if claimed is None:
+            try:
+                claimed = int(raw)
+            except ValueError:
+                continue
+        if claimed != REAL_YEARS_EXPERIENCE:
+            issues.append(
+                f"Claims '{match.group(0)}' — real figure is "
+                f"{REAL_YEARS_EXPERIENCE}+ years, not {claimed}"
+            )
+    return issues
+
+
+def fix_experience_claims(text: str) -> str:
+    """Mechanically correct any wrong 'N years of experience' claim in place.
+
+    check_experience_claims only detects the problem; this actually fixes it so a
+    bad claim never reaches LinkedIn, regardless of what the LLM generated. Runs
+    unconditionally (not just when a mismatch is found) since it's a cheap no-op
+    on already-correct text.
+    """
+
+    def _replace(match: re.Match) -> str:
+        raw = match.group(1).lower()
+        claimed = _NUMBER_WORDS.get(raw, None)
+        if claimed is None:
+            try:
+                claimed = int(raw)
+            except ValueError:
+                return match.group(0)
+        if claimed == REAL_YEARS_EXPERIENCE:
+            return match.group(0)
+        logger.warning(
+            "Correcting fabricated experience claim in draft: '%s' -> '%s+ years of experience'",
+            match.group(0),
+            REAL_YEARS_EXPERIENCE,
+        )
+        return f"{REAL_YEARS_EXPERIENCE}+ years of experience"
+
+    return _EXPERIENCE_CLAIM_PATTERN.sub(_replace, text)
+
+
 def check_compliance(text: str, sources: list[dict]) -> dict:
     """Validate a draft against LinkedIn and content-quality rules.
 
     Returns {"passed": bool, "issues": list[str]}.
     """
     issues: list[str] = []
+
+    issues.extend(check_experience_claims(text))
 
     # Word count check (150-320)
     word_count = len(text.split())

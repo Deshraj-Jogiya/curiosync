@@ -89,9 +89,15 @@ async def run_daily_pipeline(
         await save_news_items(session, deduped, date_for)
         steps["save_news"] = f"saved {len(deduped)} items"
 
-        # Generate draft
-        draft_text = await generate_draft(deduped, settings)
-        steps["generate_draft"] = f"generated ({len(draft_text.split())} words)"
+        # Generate draft — rotate to the project-spotlight format on Mondays so the
+        # feed isn't 100% "today's news, forced into my resume" every single day.
+        if date_for.weekday() == 0:
+            github_projects = await fetch_github_projects(settings.github_username)
+            draft_text = await generate_monday_project_spotlight(github_projects, settings, db=session)
+            steps["generate_draft"] = f"generated Monday spotlight ({len(draft_text.split())} words)"
+        else:
+            draft_text = await generate_draft(deduped, settings)
+            steps["generate_draft"] = f"generated ({len(draft_text.split())} words)"
 
         # Compliance check
         compliance = check_compliance(draft_text, deduped)
