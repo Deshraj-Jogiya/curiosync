@@ -90,7 +90,7 @@ RESUME_DATA = {
         },
         {
             "company": "Zifatech Solutions LLC",
-            "role": "Data Analyst",
+            "role": "Data Analyst / Data Engineer",
             "location": "Milwaukee, Wisconsin",
             "dates": "Jun 2025 - Dec 2025 (Contract)",
             "accomplishments": [
@@ -113,7 +113,7 @@ RESUME_DATA = {
         },
         {
             "company": "Jetson Infinity",
-            "role": "AI-ML Analyst Apprentice",
+            "role": "AI/ML Engineering Apprentice",
             "location": "Austin, Texas",
             "dates": "Jul 2024 - Aug 2024",
             "accomplishments": [
