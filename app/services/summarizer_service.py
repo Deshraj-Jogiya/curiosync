@@ -31,10 +31,10 @@ FEATURABLE_TOPICS = [
     },
     {
         "type": "experience",
-        "company": "ElevateMe Bootcamp",
-        "role": "Data Analytics & Machine Learning Fellow Trainee",
-        "dates": "Jan 2025 - Mar 2026",
-        "highlight": "conducting customer segmentation using K-Means clustering and PCA for dimensionality reduction, mapping results in Power BI to capture 92% of variance, and launching classification models that increased campaign click-through rates by 12%."
+        "company": "Kronic Keys",
+        "role": "Data Analyst",
+        "dates": "Aug 2021 - Mar 2022",
+        "highlight": "cleaning and preparing large datasets (500k+ rows) for accurate sales and customer behavior insights, building SQL queries and Tableau dashboards that improved sales reporting efficiency by 30%, and maintaining Tableau dashboards visualizing key sales performance indicators that helped drive a 12% increase in customer acquisition."
     },
     {
         "type": "experience",
@@ -67,6 +67,24 @@ FEATURABLE_TOPICS = [
         "name": "Extending STEM across ASL",
         "dates": "Apr 2023 - Mar 2024",
         "highlight": "pioneering an inclusive Python platform using TensorFlow and Keras that enabled 7 STEM concepts for ASL-proficient students, creating a custom sign recognition algorithm that cut gesture redundancy and boosted learning efficiency by 30%."
+    },
+    {
+        "type": "project",
+        "name": "ArcGIS Commute Insights",
+        "dates": "Sep 2026",
+        "highlight": "geocoding home and company addresses via the live ArcGIS World Geocoding Service to rank companies by real great-circle distance, and fetching/decoding real Mapbox Vector Tile data from Esri's World Basemap service -- discovering the real tile URL template by reading the actual basemap style JSON after an initial guessed URL returned a genuine 404."
+    },
+    {
+        "type": "project",
+        "name": "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning",
+        "dates": "Apr 2025 - Sep 2026",
+        "highlight": "LoRA fine-tuning Qwen2.5-0.5B-Instruct on a real Databricks Dolly-15k subset using a free Google Colab T4 GPU, producing a real declining loss curve over 3 epochs and an honest before/after comparison on held-out prompts -- some prompts showed clear improvement, others converged to identical output, exactly as expected from a light LoRA fine-tune."
+    },
+    {
+        "type": "project",
+        "name": "AI Model Observability & Fairness Audits",
+        "dates": "Nov 2025 - Feb 2026",
+        "highlight": "auditing production ML models for feature drift (Kolmogorov-Smirnov test, Population Stability Index) and demographic fairness (EU AI Act, US FTC compliance), visualized in a real, published interactive Tableau dashboard with a log-scale drift-trend chart and a live subgroup fairness comparison over 30,000 simulated inference records."
     }
 ]
 
