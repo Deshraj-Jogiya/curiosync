@@ -3,6 +3,19 @@
 import httpx
 from app.utils.logging import logger
 
+# Repos that are public on GitHub but are team-authored work Deshraj can't claim
+# solo credit for. Same 5 projects excluded from RESUME_DATA["projects"] and from
+# the CRM/portfolio profiles for the same reason -- a spotlight post frames whatever
+# it picks as "your technical projects... your implementation details", so this list
+# must be kept in sync with that exclusion wherever project data is pulled from.
+CONFIDENTIAL_REPO_NAMES = {
+    "chef-at-gathering",
+    "stay-aware-of-branch",
+    "get-your-token",
+    "city-forums",
+    "make-it-short",
+}
+
 
 async def fetch_github_projects(username: str) -> list[dict]:
     """Fetch public repositories for a given GitHub username.
@@ -46,6 +59,9 @@ async def fetch_github_projects(username: str) -> list[dict]:
             for repo in repos:
                 # Filter out forks
                 if repo.get("fork", False):
+                    continue
+                # Filter out team-authored repos -- see CONFIDENTIAL_REPO_NAMES above
+                if (repo.get("name") or "").lower() in CONFIDENTIAL_REPO_NAMES:
                     continue
                 results.append(
                     {

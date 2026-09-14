@@ -1,6 +1,11 @@
 """Tests for the compliance service."""
 
-from app.services.compliance_service import humanize_draft, check_compliance
+from app.services.compliance_service import (
+    humanize_draft,
+    check_compliance,
+    check_experience_claims,
+    fix_experience_claims,
+)
 
 
 class TestHumanizeDraft:
@@ -91,3 +96,52 @@ class TestCheckCompliance:
         result = check_compliance(text, [])
         assert result["passed"] is False
         assert any("character" in issue.lower() for issue in result["issues"])
+
+
+class TestExperienceClaims:
+    """Real bug: published posts kept saying 'five years' despite the real,
+    verified figure (3+ years) everywhere else in the synced profile. Nothing
+    ever checked generated text against the real number — these tests lock in
+    both the detector and the mechanical corrector that now do."""
+
+    def test_detects_spelled_out_wrong_claim(self):
+        text = "Drawing on over five years of systems experience, I tackled this."
+        issues = check_experience_claims(text)
+        assert len(issues) == 1
+        assert "5" in issues[0]
+
+    def test_detects_digit_wrong_claim(self):
+        text = "With 7+ years of experience in data engineering, I built this."
+        issues = check_experience_claims(text)
+        assert len(issues) == 1
+
+    def test_correct_claim_raises_no_issue(self):
+        text = "I bring 3+ years of experience building production systems."
+        assert check_experience_claims(text) == []
+
+    def test_spelled_out_correct_claim_raises_no_issue(self):
+        text = "With three years of experience, I approached this differently."
+        assert check_experience_claims(text) == []
+
+    def test_unrelated_year_mentions_are_not_flagged(self):
+        # "5 years" here describes a dataset's age, not Deshraj's own tenure —
+        # must not false-positive on every unrelated year mention in news content.
+        text = "The dataset spans 5 years of historical pricing data."
+        assert check_experience_claims(text) == []
+
+    def test_fix_corrects_wrong_claim_in_place(self):
+        text = "Over five years of systems experience taught me this lesson."
+        fixed = fix_experience_claims(text)
+        assert "five years" not in fixed.lower()
+        assert "3+ years of experience" in fixed
+        assert check_experience_claims(fixed) == []
+
+    def test_fix_leaves_correct_claim_untouched(self):
+        text = "I bring 3+ years of experience to this role."
+        assert fix_experience_claims(text) == text
+
+    def test_humanize_draft_applies_the_correction(self):
+        text = "Backed by 5 years of engineering experience, I led this project."
+        result = humanize_draft(text)
+        assert "5 years" not in result
+        assert "3+ years of experience" in result

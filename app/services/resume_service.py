@@ -411,7 +411,11 @@ def get_resume_context() -> str:
         for acc in exp["accomplishments"]:
             lines.append(f"  * {acc}")
     lines.append("\nACADEMIC / PERSONAL PROJECTS:")
-    for proj in RESUME_DATA["projects"]:
+    # Limit to the most recent projects, same reasoning as the experience cap above:
+    # dumping all 25 projects' full bullet lists (~6k tokens) into every prompt diluted
+    # the model's focus and plausibly contributed to it inventing figures (like "five
+    # years of experience") not actually present anywhere in this context.
+    for proj in RESUME_DATA["projects"][:6]:
         lines.append(f"- {proj['name']} ({proj['dates']})")
         for acc in proj["accomplishments"]:
             lines.append(f"  * {acc}")
