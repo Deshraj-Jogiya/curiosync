@@ -39,7 +39,7 @@ FEATURABLE_TOPICS = [
     {
         "type": "experience",
         "company": "Zifatech Solutions LLC",
-        "role": "Data Analyst",
+        "role": "Data Analyst / Data Engineer",
         "dates": "Jun 2025 - Dec 2025",
         "highlight": "migrating legacy database workflows to AWS Glue and S3, increasing data availability by 60%, streamlining integration with Snowflake and Power BI, and transforming SQL/Python ETL pipelines to automate sales insights reporting (70% manual effort reduction) using Great Expectations QA validation."
     },
