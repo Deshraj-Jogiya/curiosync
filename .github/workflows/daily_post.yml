@@ -20,6 +20,7 @@ jobs:
         path: curiosync
 
     - name: Checkout dev-root-affinity
+      id: checkout_til
       env:
         PAT_DEV_ROOT_AFFINITY: ${{ secrets.PAT_DEV_ROOT_AFFINITY }}
       if: ${{ env.PAT_DEV_ROOT_AFFINITY != '' }}
@@ -62,6 +63,7 @@ jobs:
       run: python -m github_cron
 
     - name: Commit and push run log
+      if: always()
       working-directory: curiosync
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -73,7 +75,8 @@ jobs:
     - name: Commit and push daily TIL
       env:
         PAT_DEV_ROOT_AFFINITY: ${{ secrets.PAT_DEV_ROOT_AFFINITY }}
-      if: ${{ env.PAT_DEV_ROOT_AFFINITY != '' }}
+      # always(): a LinkedIn failure in the step above must not stop an already-written TIL note from being committed
+      if: ${{ always() && env.PAT_DEV_ROOT_AFFINITY != '' }}
       continue-on-error: true
       working-directory: dev-root-affinity
       run: |
@@ -85,4 +88,18 @@ jobs:
         else
           git commit -m "Add daily TIL note [skip ci]"
           git push
+        fi
+
+    - name: Fail loudly if no TIL note could be written
+      # The checkout above is continue-on-error, so an expired PAT used to skip the TIL silently while the run still showed success.
+      if: always()
+      env:
+        CHECKOUT_OUTCOME: ${{ steps.checkout_til.outcome }}
+      run: |
+        if [ "$CHECKOUT_OUTCOME" != "success" ]; then
+          echo "::error::dev-root-affinity checkout failed (outcome: $CHECKOUT_OUTCOME). PAT_DEV_ROOT_AFFINITY is missing, expired, or lacks access, so no TIL note was written."
+          exit 1
+        fi
+        if ! ls dev-root-affinity/notes/til-$(date -u +%F)-*.md >/dev/null 2>&1; then
+          echo "::warning::No TIL note dated $(date -u +%F) was written to dev-root-affinity/notes."
         fi
