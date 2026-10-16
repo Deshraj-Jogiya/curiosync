@@ -49,6 +49,18 @@ def wrap_text(text, font, max_width, draw):
         lines.append(" ".join(current_line))
     return lines
 
+
+def clip_lines(lines, max_lines, font, max_width, draw):
+    """Keep at most max_lines; when text is cut, end the last kept line with an ellipsis so it never reads as a broken label."""
+    if len(lines) <= max_lines:
+        return lines
+    kept = lines[:max_lines]
+    last = kept[-1]
+    while last and draw.textbbox((0, 0), last + "…", font=font)[2] > max_width:
+        last = last[:-1]
+    kept[-1] = last.rstrip(" ,&(-") + "…"
+    return kept
+
 def parse_draft_for_image(text: str) -> tuple[str, list[str]]:
     """Parse draft text to extract a clean title and up to 3 bullet points for the graphic (fallback)."""
     lines = [line.strip() for line in text.splitlines() if line.strip()]
@@ -278,9 +290,9 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
     )
 
     # Render Header Title
-    title_lines = wrap_text(title, title_font, 750, draw)
+    title_lines = clip_lines(wrap_text(title, title_font, 750, draw), 2, title_font, 750, draw)
     y_cursor = 70
-    for line in title_lines[:2]:
+    for line in title_lines:
         draw.text((100, y_cursor), line, font=title_font, fill=(255, 255, 255, 255))
         y_cursor += 42
 
@@ -348,17 +360,17 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 
                 # Step title
                 step_title = step.get("title", "")
-                title_lines = wrap_text(step_title, subtitle_font, box_w - 40, draw)
+                title_lines = clip_lines(wrap_text(step_title, subtitle_font, box_w - 40, draw), 2, subtitle_font, box_w - 40, draw)
                 ty = y + 75
-                for line in title_lines[:2]:
+                for line in title_lines:
                     draw.text((x + 20, ty), line, font=subtitle_font, fill=(255, 255, 255, 255))
                     ty += 24
                 
                 # Step desc
                 step_desc = step.get("desc", "")
-                desc_lines = wrap_text(step_desc, desc_font, box_w - 40, draw)
+                desc_lines = clip_lines(wrap_text(step_desc, desc_font, box_w - 40, draw), 4, desc_font, box_w - 40, draw)
                 dy = ty + 10
-                for line in desc_lines[:4]:
+                for line in desc_lines:
                     draw.text((x + 20, dy), line, font=desc_font, fill=(148, 163, 184, 255))
                     dy += 20
                 
@@ -438,10 +450,10 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 else:
                     val_str = str(val)
                 
-                v_lines = wrap_text(val_str, current_font, col_w - 20, draw)
+                v_lines = clip_lines(wrap_text(val_str, current_font, col_w - 20, draw), 2, current_font, col_w - 20, draw)
                 v_h = len(v_lines) * 18
                 vy = row_y + (row_h - v_h) / 2
-                for line in v_lines[:2]:
+                for line in v_lines:
                     v_bbox = draw.textbbox((0, 0), line, font=current_font)
                     vw = v_bbox[2] - v_bbox[0]
                     draw.text(
@@ -511,11 +523,17 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                 # Draw node label
                 label = node.get("label", nid)
                 # Use smaller font if box is small
+                # Labels get up to 3 lines; a long label drops to the smaller font before anything is cut.
                 l_font = subtitle_font if box_w >= 160 else body_font
                 l_lines = wrap_text(label, l_font, box_w - 15, draw)
+                if len(l_lines) > 3 and l_font is not body_font:
+                    l_font = body_font
+                    l_lines = wrap_text(label, l_font, box_w - 15, draw)
+                max_l = max(1, min(3, int((box_h - 10) // 20)))
+                l_lines = clip_lines(l_lines, max_l, l_font, box_w - 15, draw)
                 lh = len(l_lines) * 20
                 ly = y + (box_h - lh) / 2
-                for line in l_lines[:2]:
+                for line in l_lines:
                     l_bbox = draw.textbbox((0, 0), line, font=l_font)
                     lw = l_bbox[2] - l_bbox[0]
                     draw.text(
@@ -535,35 +553,33 @@ def generate_linkedin_image(metadata, bullets=None, subtitle="Enterprise AI & Da
                         p1 = node_positions[n_from]
                         p2 = node_positions[n_to]
                         
-                        # Compute center edge connection points based on relative box positions
-                        # If p1 is strictly to the left of p2
-                        if p1[2] < p2[0]:
-                            x1, y1 = p1[2], p1[1] + (p1[3] - p1[1]) / 2
-                            x2, y2 = p2[0], p2[1] + (p2[3] - p2[1]) / 2
-                        # If p1 is strictly to the right of p2
-                        elif p1[0] > p2[2]:
-                            x1, y1 = p1[0], p1[1] + (p1[3] - p1[1]) / 2
-                            x2, y2 = p2[2], p2[1] + (p2[3] - p2[1]) / 2
-                        # If p1 is strictly above p2
-                        elif p1[3] < p2[1]:
-                            x1, y1 = p1[0] + (p1[2] - p1[0]) / 2, p1[3]
-                            x2, y2 = p2[0] + (p2[2] - p2[0]) / 2, p2[1]
-                        # If p1 is strictly below p2
-                        elif p1[1] > p2[3]:
-                            x1, y1 = p1[0] + (p1[2] - p1[0]) / 2, p1[1]
-                            x2, y2 = p2[0] + (p2[2] - p2[0]) / 2, p2[3]
+                        # Route around other boxes: neighbours in a row get a straight arrow; anything else goes over the row (same
+                        # row) or through the gap between rows (different rows), so no line crosses an unrelated box.
+                        color = (accent_color[0], accent_color[1], accent_color[2], 180)
+                        cx1, cx2 = (p1[0] + p1[2]) / 2, (p2[0] + p2[2]) / 2
+                        same_row = abs(p1[1] - p2[1]) < 1
+                        between = [q for q in node_positions.values()
+                                   if same_row and abs(q[1] - p1[1]) < 1 and min(cx1, cx2) < (q[0] + q[2]) / 2 < max(cx1, cx2)]
+                        if same_row and not between:
+                            mid_y = p1[1] + (p1[3] - p1[1]) / 2
+                            if p1[2] <= p2[0]:
+                                _draw_arrow(draw, p1[2], mid_y, p2[0], mid_y, color, width=3)
+                            else:
+                                _draw_arrow(draw, p1[0], mid_y, p2[2], mid_y, color, width=3)
+                        elif same_row:
+                            top = p1[1] - 14
+                            draw.line([(cx1, p1[1]), (cx1, top), (cx2, top)], fill=color, width=3)
+                            _draw_arrow(draw, cx2, top, cx2, p2[1], color, width=3)
                         else:
-                            # Default center-to-center line with margins
-                            x1 = p1[0] + (p1[2] - p1[0]) / 2
-                            y1 = p1[1] + (p1[3] - p1[1]) / 2
-                            x2 = p2[0] + (p2[2] - p2[0]) / 2
-                            y2 = p2[1] + (p2[3] - p2[1]) / 2
-                            
-                        # Draw line with arrow - themed accent color for connections
-                        _draw_arrow(draw, x1, y1, x2, y2, (accent_color[0], accent_color[1], accent_color[2], 180), width=3)
+                            upper, lower = (p1, p2) if p1[1] < p2[1] else (p2, p1)
+                            gap_y = (upper[3] + lower[1]) / 2
+                            y_start = p1[3] if p1 is upper else p1[1]
+                            y_end = p2[1] if p2 is lower else p2[3]
+                            draw.line([(cx1, y_start), (cx1, gap_y), (cx2, gap_y)], fill=color, width=3)
+                            _draw_arrow(draw, cx2, gap_y, cx2, y_end, color, width=3)
 
     # Render Footer Branding
-    footer_text = "AUTOMATED PIPELINE: CURIOSYNC  |  DESHRAJ RAMESHKUMAR JOGIYA  |  PORTFOLIO: deshraj-jogiya.github.io"
+    footer_text = "DESHRAJ RAMESHKUMAR JOGIYA  |  PORTFOLIO: deshraj-jogiya.github.io"
     draw.line([(100, 525), (1100, 525)], fill=(71, 85, 105, 120), width=1)
     draw.text((100, 542), footer_text, font=footer_font, fill=(148, 163, 184, 255))
 
