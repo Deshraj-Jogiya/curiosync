@@ -49,7 +49,7 @@ async def main():
             
         print(f"Triggering pipeline for user: {user.name} (ID: {user.id})")
         # Run daily pipeline.
-        result = await run_daily_pipeline(user_id=user.id, db=session, settings=settings, run_type="manual")
+        result = await run_daily_pipeline(user_id=user.id, db=session, settings=settings, run_type="manual", publish=True)
         
         # Explicitly commit the database session to persist the recorded post
         await session.commit()

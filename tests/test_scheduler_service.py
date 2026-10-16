@@ -1,11 +1,4 @@
-"""Tests for run_daily_pipeline's draft-format branching.
-
-generate_monday_project_spotlight existed, was fully built and tested, but was
-never actually invoked by the real daily pipeline -- every scheduled post used
-the news-hook format, every day, with no rotation. These tests lock in the fix:
-Mondays use the project-spotlight format, every other day uses the news-hook
-format, so the feed isn't 100% identical structure day after day.
-"""
+"""Tests for run_daily_pipeline: the weekly post schedule, profile loading, the draft-only default and blocking compliance."""
 
 from datetime import date
 from unittest.mock import AsyncMock, patch
@@ -36,73 +29,89 @@ async def _seed_user(test_db) -> int:
     return user.id
 
 
-def _patch_common(monday: date):
-    """Patch every scheduler_service dependency except draft generation itself."""
+def _patch_common(day: date):
+    """Patch every scheduler_service dependency except the ones a test overrides."""
     return [
         patch("app.services.scheduler_service.get_today_post", AsyncMock(return_value=None)),
         patch("app.services.scheduler_service.get_valid_token", AsyncMock(return_value="fake-token")),
         patch("app.services.scheduler_service.fetch_news", AsyncMock(return_value=[{"title": "x", "source_name": "y"}])),
         patch("app.services.scheduler_service.save_news_items", AsyncMock(return_value=None)),
-        patch("app.services.scheduler_service.check_compliance", lambda text, items: {"passed": True, "issues": []}),
+        patch("app.services.scheduler_service.check_compliance", lambda text, items: {"passed": True, "issues": [], "blocking": []}),
+        patch("app.services.scheduler_service.load_profile", AsyncMock(return_value={"title": "t"})),
         patch("app.services.scheduler_service.humanize_draft", lambda text: text),
         patch("app.services.scheduler_service.publish_post", AsyncMock(return_value={"success": True, "post_id": "123"})),
         patch("app.services.scheduler_service.record_post", AsyncMock(return_value=None)),
-        patch("app.services.scheduler_service.today_phoenix", lambda: monday),
+        patch("app.services.scheduler_service.today_phoenix", lambda: day),
         patch("app.services.image_service.generate_graphic_metadata", AsyncMock(return_value={})),
         patch("app.services.image_service.generate_linkedin_image", lambda *a, **k: None),
-        patch("app.services.scheduler_service.fetch_github_projects", AsyncMock(return_value=[])),
     ]
 
 
-@pytest.mark.asyncio
-async def test_monday_uses_project_spotlight(test_db):
-    """On a Monday, the pipeline must call the spotlight generator, not the news-hook one."""
+async def _run(test_db, day, publish=False, gen=None, **overrides):
     user_id = await _seed_user(test_db)
-    monday = date(2026, 9, 14)  # a real Monday
-    assert monday.weekday() == 0
-
-    patches = _patch_common(monday)
-    with patch(
-        "app.services.scheduler_service.generate_monday_project_spotlight",
-        AsyncMock(return_value="spotlight draft"),
-    ) as mock_spotlight, patch(
-        "app.services.scheduler_service.generate_draft", AsyncMock(return_value="news draft")
-    ) as mock_news_draft:
+    gen = gen or AsyncMock(return_value=("draft text", "Some Project"))
+    patches = _patch_common(day) + [patch("app.services.scheduler_service.generate_post", gen)]
+    patches += [patch(f"app.services.scheduler_service.{k}", v) for k, v in overrides.items()]
+    for p in patches:
+        p.start()
+    try:
+        result = await run_daily_pipeline(user_id=user_id, db=test_db, settings=_settings(), run_type="manual", publish=publish)
+    finally:
         for p in patches:
-            p.start()
-        try:
-            result = await run_daily_pipeline(user_id=user_id, db=test_db, settings=_settings(), run_type="manual")
-        finally:
-            for p in patches:
-                p.stop()
-
-    assert result["status"] == "success"
-    mock_spotlight.assert_awaited_once()
-    mock_news_draft.assert_not_awaited()
+            p.stop()
+    return result, gen
 
 
 @pytest.mark.asyncio
-async def test_non_monday_uses_news_hook_draft(test_db):
-    """On any other day, the pipeline must keep using the existing news-hook generator."""
-    user_id = await _seed_user(test_db)
-    tuesday = date(2026, 9, 15)
-    assert tuesday.weekday() == 1
+async def test_monday_drafts_project_spotlight_without_publishing(test_db):
+    result, gen = await _run(test_db, date(2026, 9, 14))
+    assert result["status"] == "drafted"
+    assert result["format"] == "project_spotlight"
+    assert result["draft"] == "draft text"
+    assert gen.await_args.args[0] == "project_spotlight"
 
-    patches = _patch_common(tuesday)
-    with patch(
-        "app.services.scheduler_service.generate_monday_project_spotlight",
-        AsyncMock(return_value="spotlight draft"),
-    ) as mock_spotlight, patch(
-        "app.services.scheduler_service.generate_draft", AsyncMock(return_value="news draft")
-    ) as mock_news_draft:
-        for p in patches:
-            p.start()
-        try:
-            result = await run_daily_pipeline(user_id=user_id, db=test_db, settings=_settings(), run_type="manual")
-        finally:
-            for p in patches:
-                p.stop()
 
+@pytest.mark.asyncio
+async def test_draft_mode_never_calls_linkedin(test_db):
+    publish = AsyncMock(return_value={"success": True, "post_id": "1"})
+    result, _ = await _run(test_db, date(2026, 9, 16), publish_post=publish)
+    assert result["status"] == "drafted"
+    publish.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_wednesday_is_news_take(test_db):
+    _, gen = await _run(test_db, date(2026, 9, 16))
+    assert gen.await_args.args[0] == "news_take"
+
+
+@pytest.mark.asyncio
+async def test_off_day_drafts_nothing(test_db):
+    gen = AsyncMock()
+    result, _ = await _run(test_db, date(2026, 9, 15), gen=gen)  # a Tuesday
+    assert result["status"] == "skipped"
+    gen.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_explicit_publish_posts(test_db):
+    result, _ = await _run(test_db, date(2026, 9, 18), publish=True)
     assert result["status"] == "success"
-    mock_news_draft.assert_awaited_once()
-    mock_spotlight.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_profile_unavailable_fails_without_drafting(test_db):
+    from app.services.profile_source import ProfileUnavailable
+
+    gen = AsyncMock()
+    result, _ = await _run(test_db, date(2026, 9, 14), gen=gen, load_profile=AsyncMock(side_effect=ProfileUnavailable("down")))
+    assert result["status"] == "failed"
+    gen.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_blocking_compliance_issue_stops_the_draft(test_db):
+    blocked = {"passed": False, "issues": ["x"], "blocking": ["Contains a link or domain name"]}
+    result, _ = await _run(test_db, date(2026, 9, 14), check_compliance=lambda t, i: blocked)
+    assert result["status"] == "failed"
+    assert "blocked" in result["error"].lower()

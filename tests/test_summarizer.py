@@ -4,11 +4,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from datetime import date
+
 from app.services.summarizer_service import (
-    LINKEDIN_POST_PROMPT,
     _format_news_for_prompt,
+    build_prompt,
+    pick_item,
+    post_format_for,
+    roles_from_title,
     validate_draft_length,
 )
+from tests.sample_profile import SAMPLE_PROFILE
 
 
 class TestFormatNewsForPrompt:
@@ -65,13 +71,50 @@ class TestValidateDraftLength:
         assert valid is True
 
 
-class TestPromptTemplate:
-    def test_prompt_contains_key_instructions(self):
-        assert "220 to 320 words" in LINKEDIN_POST_PROMPT
-        assert "ONLY the provided news items" in LINKEDIN_POST_PROMPT
-        assert "senior" in LINKEDIN_POST_PROMPT.lower()
-        assert "bullet" in LINKEDIN_POST_PROMPT.lower()
-        assert "hashtag" in LINKEDIN_POST_PROMPT.lower()
+class TestSchedule:
+    def test_three_posts_a_week(self):
+        week = [post_format_for(date(2026, 11, 16 + i)) for i in range(7)]  # Mon 16 Nov .. Sun 22 Nov
+        assert week == ["project_spotlight", None, "news_take", None, "lesson", None, None]
 
-    def test_prompt_has_placeholder(self):
-        assert "{news_items}" in LINKEDIN_POST_PROMPT
+    def test_consecutive_weeks_feature_different_projects(self):
+        a = pick_item(SAMPLE_PROFILE, "project_spotlight", date(2026, 11, 16))
+        b = pick_item(SAMPLE_PROFILE, "project_spotlight", date(2026, 11, 23))
+        assert a["title"] != b["title"]
+
+    def test_team_and_self_projects_never_featured(self):
+        titles = {pick_item(SAMPLE_PROFILE, fmt, date(2026, 1, 5) + __import__("datetime").timedelta(weeks=w))["title"]
+                  for w in range(20) for fmt in ("project_spotlight", "lesson")}
+        assert "Chef at Gathering" not in titles
+        assert not any(t.startswith("CurioSync") for t in titles)
+
+
+class TestPromptTemplate:
+    def _prompt(self, fmt, news=None):
+        item = pick_item(SAMPLE_PROFILE, fmt, date(2026, 11, 16))
+        return build_prompt(fmt, SAMPLE_PROFILE, item, news)
+
+    def test_title_comes_from_profile_not_senior(self):
+        prompt = self._prompt("project_spotlight")
+        assert "a Data Engineer & Machine Learning Engineer" in prompt
+        assert "Never call yourself senior" in prompt
+        assert "Senior Data" not in prompt
+
+    def test_no_links_or_automation_signature(self):
+        prompt = self._prompt("lesson")
+        assert "No links" in prompt
+        assert "github.com" not in prompt and "github.io" not in prompt
+        assert "fully compiled" not in prompt
+
+    def test_facts_come_from_profile(self):
+        item = pick_item(SAMPLE_PROFILE, "project_spotlight", date(2026, 11, 16))
+        prompt = self._prompt("project_spotlight")
+        assert "Do not invent numbers" in prompt
+        assert item["facts"][0] in prompt
+        assert "<strong>" not in self._prompt("news_take", [])
+
+    def test_news_only_in_news_take(self, mock_news_items):
+        assert "NEWS:" in self._prompt("news_take", mock_news_items[:3])
+        assert "NEWS:" not in self._prompt("project_spotlight")
+
+    def test_roles_from_title(self):
+        assert roles_from_title("Data Engineer & Machine Learning Engineer") == "Data Engineer and Machine Learning Engineer"

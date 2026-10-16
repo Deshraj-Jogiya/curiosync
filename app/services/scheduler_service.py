@@ -17,8 +17,8 @@ from app.services.deduplication_service import deduplicate_news
 from app.services.linkedin_service import publish_post
 from app.services.news_service import fetch_news, save_news_items
 from app.services.post_history_service import get_today_post, record_post
-from app.services.summarizer_service import generate_draft, generate_monday_project_spotlight
-from app.services.github_service import fetch_github_projects
+from app.services.profile_source import ProfileUnavailable, load_profile
+from app.services.summarizer_service import generate_post, post_format_for
 from app.utils.logging import logger
 from app.utils.timezone import now_phoenix, today_phoenix
 
@@ -28,11 +28,16 @@ async def run_daily_pipeline(
     db: AsyncSession | None = None,
     settings: Settings | None = None,
     run_type: str = "scheduled",
+    publish: bool = False,
 ) -> dict:
-    """Orchestrate the full daily post pipeline.
+    """Orchestrate the daily post pipeline.
 
     When called from the scheduler (no db/settings args), opens its own session.
     When called from a route (db/settings provided), uses the provided session.
+
+    publish=False (the default) stops after the draft and its graphic are made and returns them with status "drafted", so a person
+    approves each post before it goes out; LinkedIn's API terms do not allow unattended automated posting. Only a caller acting on a
+    person's explicit click (the web app's Run now button, or the approved publish job) passes publish=True.
     """
     settings = settings or get_settings()
     own_session = db is None
@@ -70,42 +75,55 @@ async def run_daily_pipeline(
             return {"status": "failed", "error": "LinkedIn token expired. Please re-authorize.", "steps": steps}
         steps["token_check"] = "passed"
 
-        # Fetch news
-        news_items = await fetch_news(settings)
-        if not news_items:
-            steps["fetch_news"] = "failed — no items returned"
-            logger.error("Pipeline failed — no news items fetched")
-            await record_scheduler_run(session, run_type, "failed", "No news items", steps)
+        fmt = post_format_for(date_for)
+        if fmt is None:
+            steps["schedule"] = f"no post scheduled on {date_for:%A}"
+            await record_scheduler_run(session, run_type, "skipped", None, steps)
             if own_session:
                 await session.commit()
-            return {"status": "failed", "error": "No tech news found for today.", "steps": steps}
-        steps["fetch_news"] = f"fetched {len(news_items)} items"
+            return {"status": "skipped", "reason": f"No post is scheduled on {date_for:%A}.", "steps": steps}
+        steps["schedule"] = fmt
 
-        # Deduplicate
-        deduped = deduplicate_news(news_items)
-        steps["deduplication"] = f"{len(news_items)} -> {len(deduped)} items"
+        try:
+            profile = await load_profile()
+        except ProfileUnavailable as exc:
+            steps["profile"] = f"failed — {exc}"
+            await record_scheduler_run(session, run_type, "failed", str(exc), steps)
+            if own_session:
+                await session.commit()
+            return {"status": "failed", "error": f"Profile unavailable, no post drafted: {exc}", "steps": steps}
+        steps["profile"] = "loaded"
 
-        # Save news to DB
-        await save_news_items(session, deduped, date_for)
-        steps["save_news"] = f"saved {len(deduped)} items"
+        deduped: list[dict] = []
+        if fmt == "news_take":
+            news_items = await fetch_news(settings)
+            if not news_items:
+                steps["fetch_news"] = "failed — no items returned"
+                logger.error("Pipeline failed — no news items fetched")
+                await record_scheduler_run(session, run_type, "failed", "No news items", steps)
+                if own_session:
+                    await session.commit()
+                return {"status": "failed", "error": "No tech news found for today.", "steps": steps}
+            steps["fetch_news"] = f"fetched {len(news_items)} items"
+            deduped = deduplicate_news(news_items)
+            steps["deduplication"] = f"{len(news_items)} -> {len(deduped)} items"
+            await save_news_items(session, deduped, date_for)
+            steps["save_news"] = f"saved {len(deduped)} items"
 
-        # Generate draft — rotate to the project-spotlight format on Mondays so the
-        # feed isn't 100% "today's news, forced into my resume" every single day.
-        if date_for.weekday() == 0:
-            github_projects = await fetch_github_projects(settings.github_username)
-            draft_text = await generate_monday_project_spotlight(github_projects, settings, db=session)
-            steps["generate_draft"] = f"generated Monday spotlight ({len(draft_text.split())} words)"
-        else:
-            draft_text = await generate_draft(deduped, settings)
-            steps["generate_draft"] = f"generated ({len(draft_text.split())} words)"
+        draft_text, subject = await generate_post(fmt, profile, settings, date_for, deduped)
+        steps["generate_draft"] = f"{fmt} about {subject} ({len(draft_text.split())} words)"
 
-        # Compliance check
-        compliance = check_compliance(draft_text, deduped)
-        steps["compliance_check"] = "passed" if compliance["passed"] else f"issues: {compliance['issues']}"
-        sources_list = [{"title": i["title"], "source_name": i["source_name"]} for i in deduped]
-        # 8. Humanize draft
+        # Humanize first (it also strips links and corrects tenure claims), then check the text that would actually go out.
         draft_text = humanize_draft(draft_text)
         steps["humanize"] = "applied"
+        compliance = check_compliance(draft_text, deduped)
+        steps["compliance_check"] = "passed" if compliance["passed"] else f"issues: {compliance['issues']}"
+        if compliance["blocking"]:
+            await record_scheduler_run(session, run_type, "failed", "Blocked by compliance", steps)
+            if own_session:
+                await session.commit()
+            return {"status": "failed", "error": f"Draft blocked: {compliance['blocking']}", "steps": steps}
+        sources_list = [{"title": i["title"], "source_name": i["source_name"]} for i in deduped]
 
         # Save draft to DB
         draft = Draft(
@@ -121,7 +139,7 @@ async def run_daily_pipeline(
         session.add(draft)
         await session.flush()
 
-        # 9. Publish to LinkedIn
+        # Publish to LinkedIn
         user_result = await session.execute(select(User).where(User.id == user_id))
         user = user_result.scalars().first()
         author_urn = f"urn:li:person:{user.linkedin_sub}" if user else ""
@@ -136,6 +154,20 @@ async def run_daily_pipeline(
             logger.info("Generated temp graphic for scheduled publication: %s", image_path)
         except Exception as img_err:
             logger.error("Failed to generate publication graphic in daily pipeline: %s", img_err)
+
+        if not publish:
+            await record_scheduler_run(session, run_type, "drafted", None, steps)
+            if own_session:
+                await session.commit()
+            return {
+                "status": "drafted",
+                "format": fmt,
+                "subject": subject,
+                "draft": draft_text,
+                "image_path": image_path,
+                "compliance": compliance,
+                "steps": steps,
+            }
 
         try:
             result = await publish_post(access_token, author_urn, draft_text, settings, image_path)

@@ -1,6 +1,6 @@
 # ⚡ CurioSync: Serverless Tech News & LinkedIn Publisher
 
-CurioSync is a production-ready, self-hosted Python/FastAPI automation system that curates the day's top tech stories, programmatically renders high-engagement visual branding card graphics, and automatically publishes a refined summary post to LinkedIn.
+CurioSync is a production-ready, self-hosted Python/FastAPI automation system that curates the day's top tech stories, programmatically renders high-engagement visual branding card graphics, and drafts LinkedIn posts that are published only after the owner approves each one.
 
 Designed for engineering leaders and content creators, it operates **100% free of hosting costs** using a stateless GitHub Actions runner and an in-memory SQLite database, eliminating the need to maintain a persistent 24/7 server.
 
@@ -8,12 +8,12 @@ Designed for engineering leaders and content creators, it operates **100% free o
 
 ## 🚀 Key Features
 
-* **Serverless Daily Automation** — Run completely free using a GitHub Actions cron schedule. Seeding an in-memory database at runtime enables stateless, host-independent executions.
+* **Serverless Drafting with Human Approval** — A free GitHub Actions schedule drafts three posts a week (Monday project breakdown, Wednesday news take, Friday engineering lesson); each waits on a required-reviewer environment and is posted only when approved, since LinkedIn's API terms do not allow unattended automated posting. An in-memory database keeps runs stateless.
 * **Smart Content Curation** — Fetches top stories across 6 major tech RSS streams (TechCrunch, Ars Technica, Wired, BBC Tech, etc.) and deduplicates near-identical articles using fuzzy title comparison (SequenceMatcher).
-* **AI-Powered Synthesis & Storytelling** — Condenses headlines into structured, senior-level narrative summaries that organically connect today's tech topics to your personal database sync and PostgreSQL accomplishments, referencing your graduate studies at Arizona State University and 3+ years of experience.
+* **Profile-Grounded Writing** — Every fact in a post comes from the live portfolio's `projects.json`, which is regenerated from the master profile, so posts never drift from the resume. Subjects rotate weekly; team projects are never featured as solo work.
 * **Programmatic Diagram Graphic** — Uses Pillow to dynamically analyze post context and render a custom, high-engagement technical diagram (flowchart, comparison grid, or systems architecture map) complete with your branding and credentials.
 * **Jinja2 + HTMX Local Dashboard** — A premium glassmorphism command center for local review, manual draft edits, real-time visual graphic previews, and direct publishing.
-* **Robust Compliance & Humanizer** — Scans drafts for robotic phrases, checks character boundaries for LinkedIn's API limits, and verifies that no credential or data scraping terms are included.
+* **Compliance & Humanizer** — Removes filler phrases and in-body links, corrects tenure claims, and blocks any draft with a link, a self-reference to automation, credential or scraping language, or text over LinkedIn's limit.
 
 ---
 
@@ -26,7 +26,8 @@ graph TD
     D --> E[Gemini API Fallback Chain]
     E --> F[AI Narrative Synthesis]
     F --> G[Pillow Diagram Rendering Engine]
-    G --> H[LinkedIn API Publishing]
+    G --> K[Owner approval in GitHub]
+    K --> H[LinkedIn API Publishing]
     
     subgraph Cloud Automation
         I[GitHub Actions Cron] -->|Sees environment secrets| B
@@ -44,7 +45,7 @@ graph TD
 | **Database** | SQLite (async via aiosqlite), SQLAlchemy 2.0 ORM |
 | **Asset Engine** | Pillow (PIL) for diagram/infographic generation |
 | **Security & OAuth** | Cryptography (Fernet symmetric encryption), LinkedIn OAuth 2.0 |
-| **Quality Verification** | pytest, pytest-asyncio (75/77 test cases passing; the other 2 fail on pydantic/mock-timeout version mismatches unrelated to app logic) |
+| **Quality Verification** | pytest, pytest-asyncio (102 tests) |
 
 ---
 
@@ -96,6 +97,8 @@ You do not need to host a database or keep your personal computer turned on. Run
    * `GEMINI_API_KEY` (Your Google AI Studio API Key)
 3. **Trigger workflow:**
    The action is configured in `.github/workflows/daily_post.yml` to run daily at **13:00 UTC (6:00 AM MST / America/Phoenix timezone)**. You can also manually trigger it by clicking **Run workflow** under the repository's **Actions** tab.
+4. **Create the approval environment:**
+   Under **Settings > Environments**, create `linkedin-publish` and add yourself as a required reviewer. Create it before the first run: a job that names a missing environment creates it without protection. On post days GitHub emails a review request; the draft text is on the run's summary page. Approve to post it unchanged, or reject to skip. Drafts older than 36 hours are not posted.
 
 > [!IMPORTANT]
 > **Token Expiry Notice:**

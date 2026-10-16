@@ -40,6 +40,7 @@ async def test_call_llm_with_fallback_success_first_try():
             model="gemini-3.5-flash",
             messages=[{"role": "user", "content": "hello"}],
             temperature=0.7,
+            timeout=45.0,
         )
 
 

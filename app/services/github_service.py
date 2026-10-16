@@ -4,10 +4,9 @@ import httpx
 from app.utils.logging import logger
 
 # Repos that are public on GitHub but are team-authored work Deshraj can't claim
-# solo credit for. Same 5 projects excluded from RESUME_DATA["projects"] and from
-# the CRM/portfolio profiles for the same reason -- a spotlight post frames whatever
-# it picks as "your technical projects... your implementation details", so this list
-# must be kept in sync with that exclusion wherever project data is pulled from.
+# solo credit for. The same 5 are excluded from the CRM/portfolio profiles, and
+# profile_source uses this set to keep them out of post subjects -- a post frames
+# whatever it features as the author's own work.
 CONFIDENTIAL_REPO_NAMES = {
     "chef-at-gathering",
     "stay-aware-of-branch",

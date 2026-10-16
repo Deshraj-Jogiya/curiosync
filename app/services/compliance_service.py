@@ -75,9 +75,24 @@ def clean_special_characters(text: str) -> str:
     return text
 
 
+# Links in the post body are reported to cut reach, and the portfolio and code are linked from the profile anyway. Domains are matched in
+# lowercase only so names like ASP.NET or Node.js are left alone.
+_URL_PATTERN = re.compile(r"(?:https?://|www\.)\S+")
+_DOMAIN_PATTERN = re.compile(r"\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|io|dev|org|ai|net|app|co|me)(?:/\S*)?(?![\w.])")
+_SELF_REFERENCE_PATTERN = re.compile(
+    r"curiosync|this post was (?:fully )?(?:compiled|generated|published|written|automated)|automated pipeline", re.IGNORECASE
+)
+
+
+def strip_links(text: str) -> str:
+    """Drop every line that carries a URL or bare domain; such lines are calls to action that read broken once the link is cut out."""
+    return "\n".join(line for line in text.splitlines() if not (_URL_PATTERN.search(line) or _DOMAIN_PATTERN.search(line)))
+
+
 def humanize_draft(text: str) -> str:
     """Remove or replace robotic phrases and clean special characters."""
     original = text
+    text = strip_links(text)
     text = clean_special_characters(text)
     text = fix_experience_claims(text)
 
@@ -167,11 +182,18 @@ def fix_experience_claims(text: str) -> str:
 def check_compliance(text: str, sources: list[dict]) -> dict:
     """Validate a draft against LinkedIn and content-quality rules.
 
-    Returns {"passed": bool, "issues": list[str]}.
+    Returns {"passed": bool, "issues": list[str], "blocking": list[str]}. Blocking issues stop the draft from being offered for publishing;
+    the rest (length) are shown to the reviewer as warnings.
     """
     issues: list[str] = []
+    blocking: list[str] = []
 
-    issues.extend(check_experience_claims(text))
+    blocking.extend(check_experience_claims(text))
+    if _URL_PATTERN.search(text) or _DOMAIN_PATTERN.search(text):
+        blocking.append("Contains a link or domain name")
+    if _SELF_REFERENCE_PATTERN.search(text):
+        blocking.append("Says the post was automated or names CurioSync")
+    issues.extend(blocking)
 
     # Word count check (150-320)
     word_count = len(text.split())
@@ -182,7 +204,8 @@ def check_compliance(text: str, sources: list[dict]) -> dict:
 
     # Character limit (LinkedIn max ~3000)
     if len(text) > 3000:
-        issues.append(f"Exceeds LinkedIn character limit: {len(text)} chars (max 3000)")
+        blocking.append(f"Exceeds LinkedIn character limit: {len(text)} chars (max 3000)")
+        issues.append(blocking[-1])
 
     # No credential collection language
     credential_patterns = [
@@ -194,7 +217,8 @@ def check_compliance(text: str, sources: list[dict]) -> dict:
     ]
     for pattern in credential_patterns:
         if re.search(pattern, text, re.IGNORECASE):
-            issues.append(f"Contains credential collection language: '{pattern}'")
+            blocking.append(f"Contains credential collection language: '{pattern}'")
+            issues.append(blocking[-1])
 
     # No scraping references
     scraping_patterns = [
@@ -204,11 +228,12 @@ def check_compliance(text: str, sources: list[dict]) -> dict:
     ]
     for pattern in scraping_patterns:
         if re.search(pattern, text, re.IGNORECASE):
-            issues.append("References web scraping — may violate LinkedIn ToS")
+            blocking.append("References web scraping — may violate LinkedIn ToS")
+            issues.append(blocking[-1])
 
     passed = len(issues) == 0
     logger.info(
         "Compliance check complete",
         extra={"passed": passed, "issue_count": len(issues), "word_count": word_count},
     )
-    return {"passed": passed, "issues": issues}
+    return {"passed": passed, "issues": issues, "blocking": blocking}

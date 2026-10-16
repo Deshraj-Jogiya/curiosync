@@ -1,171 +1,104 @@
-"""Draft generation service using OpenAI / Gemini with resume personalization."""
+"""Post drafting: three formats a week, every fact taken from the live profile (see profile_source)."""
 
-import json
-import os
-import random
-import openai
-
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from datetime import date
 
 from app.config import Settings
-from app.models.showcased_project import ShowcasedProject
-from app.services.resume_service import RESUME_DATA, get_resume_context
 from app.services.llm_service import call_llm_with_fallback
+from app.services.profile_source import featurable_items, format_item, load_profile, profile_context
 from app.utils.logging import logger
 
-FEATURABLE_TOPICS = [
-    {
-        "type": "experience",
-        "company": "Objectways Technologies LLC",
-        "role": "Teleoperation Data Collection Associate",
-        "dates": "May 2026 - Present",
-        "highlight": "collating and validating 10,000+ high-quality teleoperation data samples for AI/ML model training using Python-based workflows, improving dataset accuracy and consistency by 20%, and developing scalable data pipelines using Python, Scala, and Kubernetes to process large datasets, reducing processing time by 30%."
-    },
-    {
-        "type": "experience",
-        "company": "Technoid LLC",
-        "role": "Applied Machine Learning Engineer",
-        "dates": "Dec 2025 - May 2026",
-        "highlight": "optimizing GPT-4o mini models for resume analysis/tailoring using OpenAI APIs, SQL, and PostgreSQL, improving recommendation accuracy by 25%, and establishing Supabase data sync with row-level security (RLS) fixes, reducing sync latency by 65% for real-time operations."
-    },
-    {
-        "type": "experience",
-        "company": "Kronic Keys",
-        "role": "Data Analyst",
-        "dates": "Aug 2021 - Mar 2022",
-        "highlight": "cleaning and preparing large datasets (500k+ rows) for accurate sales and customer behavior insights, building SQL queries and Tableau dashboards that improved sales reporting efficiency by 30%, and maintaining Tableau dashboards visualizing key sales performance indicators that helped drive a 12% increase in customer acquisition."
-    },
-    {
-        "type": "experience",
-        "company": "Zifatech Solutions LLC",
-        "role": "Data Analyst / Data Engineer",
-        "dates": "Jun 2025 - Dec 2025",
-        "highlight": "migrating legacy database workflows to AWS Glue and S3, increasing data availability by 60%, streamlining integration with Snowflake and Power BI, and transforming SQL/Python ETL pipelines to automate sales insights reporting (70% manual effort reduction) using Great Expectations QA validation."
-    },
-    {
-        "type": "experience",
-        "company": "Arizona State University",
-        "role": "Data Engineer & Machine Learning Research Assistant",
-        "dates": "Sep 2024 - Jun 2025",
-        "highlight": "building a real-time streaming data pipeline utilizing Node.js and MongoDB (ensuring 99.9% uptime for 5,000 concurrent users), developing a personalized content recommendation engine that boosted click-through rates by 12%, and designing an NLP chatbot that analyzed user pain points."
-    },
-    {
-        "type": "project",
-        "name": "Multi-State Land Use Emissions Analysis",
-        "dates": "Apr 2025 - Nov 2025",
-        "highlight": "engineering a Python ETL pipeline for daily land cover datasets from 5 U.S. states, automating carbon emissions inventory compilation with geospatial data transformations, saving 10 hours weekly, and building Linear Regression/Random Forest models to forecast CO2 trends with 90% accuracy."
-    },
-    {
-        "type": "project",
-        "name": "AI-ML Data Science Simulation Project",
-        "dates": "Apr 2024 - Jun 2024",
-        "highlight": "creating a scalable data automation system using Python for daily sales data ingestion across 5 state branches, centralizing inventory data via SQL, and training Linear Regression/Random Forest models to achieve 90% forecast accuracy and cut stock-outs by 15%."
-    },
-    {
-        "type": "project",
-        "name": "Extending STEM across ASL",
-        "dates": "Apr 2023 - Mar 2024",
-        "highlight": "pioneering an inclusive Python platform using TensorFlow and Keras that enabled 7 STEM concepts for ASL-proficient students, creating a custom sign recognition algorithm that cut gesture redundancy and boosted learning efficiency by 30%."
-    },
-    {
-        "type": "project",
-        "name": "ArcGIS Commute Insights",
-        "dates": "Sep 2026",
-        "highlight": "geocoding home and company addresses via the live ArcGIS World Geocoding Service to rank companies by real great-circle distance, and fetching/decoding real Mapbox Vector Tile data from Esri's World Basemap service -- discovering the real tile URL template by reading the actual basemap style JSON after an initial guessed URL returned a genuine 404."
-    },
-    {
-        "type": "project",
-        "name": "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning",
-        "dates": "Apr 2025 - Sep 2026",
-        "highlight": "LoRA fine-tuning Qwen2.5-0.5B-Instruct on a real Databricks Dolly-15k subset using a free Google Colab T4 GPU, producing a real declining loss curve over 3 epochs and an honest before/after comparison on held-out prompts -- some prompts showed clear improvement, others converged to identical output, exactly as expected from a light LoRA fine-tune."
-    },
-    {
-        "type": "project",
-        "name": "AI Model Observability & Fairness Audits",
-        "dates": "Nov 2025 - Feb 2026",
-        "highlight": "auditing production ML models for feature drift (Kolmogorov-Smirnov test, Population Stability Index) and demographic fairness (EU AI Act, US FTC compliance), visualized in a real, published interactive Tableau dashboard with a log-scale drift-trend chart and a live subgroup fairness comparison over 30,000 simulated inference records."
-    }
-]
+# Weekday -> format. Three strong posts a week instead of seven templated ones; other days draft nothing (the TIL note still runs daily).
+POST_SCHEDULE = {0: "project_spotlight", 2: "news_take", 4: "lesson"}
 
-PERSONALIZED_POST_PROMPT = """\
-You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written, and technically detailed LinkedIn post based on today's tech news.
-
-Your writing style must match the following storytelling engineering structure:
-
-=== REQUIRED STRUCTURE ===
-1. TODAY'S TECH HIGHLIGHTS: Introduce the news with a clean, capitalized plain text header, accompanied by a relevant emoji (e.g., 🚀, 💻). Underneath, write a brief summary of the top worthy technical news formatted as 2-3 bulleted pointers (using •). Tastefully use emojis to make the bullet points visually appealing. Do NOT use markdown bold (e.g., **text**) or unicode bold alphanumeric characters (e.g., 𝗯𝗼𝗹𝗱) anywhere. Write all text as standard plain text only.
-
-2. TECHNICAL CHALLENGE HEADER: Introduce a custom, capitalized plain text header with a relevant emoji (e.g., "🔍 SYSTEMS ENGINEERING FOR PREDICTIVE MODELING" or "⚙️ THE INGESTION BOTTLENECK IN GEOSPATIAL PIPELINES") that highlights a specific technical challenge related to the news. Do NOT write literal labels like "THE PERSONAL REFLECTION" or "TECHNICAL CHALLENGE HEADER".
-You MUST tell a cohesive, focused story specifically about this engineering experience from your career:
-{featured_accomplishment}
-
-Maintain an authoritative, highly confident, and engineering tone throughout the post; avoid casual or blogger-style phrasing. Frame your credentials and experience with strong authority (e.g., referencing your graduate research at Arizona State University, 3+ years of systems experience, or specific technical achievements). Clearly establish a direct connection: how the engineering challenges of today's tech news relate to what you built, what you achieved, and the engineering lessons learned. Do NOT use markdown bold asterisks or unicode bold characters anywhere. Use standard plain text only.
-
-3. SYSTEM SIGNATURE & CALLS TO ACTION: Do NOT write any header or label for this section. Transition directly after the reflection paragraph using double line breaks. The signature block must be formatted exactly like this:
-
-🤖 Automated Pipeline: This post was fully compiled and published by CurioSync. Project repository: github.com/Deshraj-Jogiya/curiosync.
-
-🌐 Visit my live portfolio: deshraj-jogiya.github.io to play with the interactive SQL sandbox.
-
-✉️ Hiring? Let's connect: State that you are currently seeking opportunities across the broader data engineering, machine learning, and analytics engineering landscape. Frame this as an eye-catching invitation for hiring managers and recruiters looking for a systems engineer ready to join.
-=== END REQUIRED STRUCTURE ===
-
-Your profile and context:
-{resume_context}
+COMMON_RULES = """You are Deshraj Jogiya, a {title}, writing one LinkedIn post in the first person.
 
 Rules:
-- Write in a natural, storytelling voice using short paragraphs separated by double line breaks for readability.
-- Write exactly 220 to 320 words total. Do NOT exceed 320 words.
-- Keep the length decent to keep viewers engaged throughout without being overly verbose or ambiguous.
-- Use ONLY the provided news items as source material.
-- Add exactly 2-3 relevant technical hashtags at the very end.
-- Return ONLY the final post text, nothing else.
+- Plain text only: no markdown, no bold or italic unicode letters, no all-capital section headers, no emojis.
+- Open with a single hook line of under 15 words, specific to FEATURED, that states a concrete number, decision or opinion. Never open with
+  a generic statement about an industry, "In today's", or a question about "the world of".
+- Short paragraphs of one to three sentences, separated by blank lines.
+- Use only the facts in FEATURED and BACKGROUND{news_clause}. Do not invent numbers, tools, team sizes, incidents, failures, people or dates. If a fact is not given, leave it out.
+- BACKGROUND is context, not material: do not add a paragraph listing your years of experience, other jobs or other results. Stay on FEATURED.
+- Never call yourself senior, lead or principal.
+- Avoid filler words: game-changer, crucial, seamless, seamlessly, robust, rigorous, leverage, significant, cutting-edge, delve.
+- No links, URLs, domain names, repository names written as paths, or "link in comments".
+- Never say the post was generated, automated, scheduled or compiled by a tool.
+- {length} words, then 2 or 3 relevant hashtags on the last line.
+- Return only the post text.
 
-Today's top tech news:
-{news_items}
+BACKGROUND:
+{background}
+
+FEATURED:
+{featured}
 """
 
-LINKEDIN_POST_PROMPT = PERSONALIZED_POST_PROMPT
+FORMAT_TASKS = {
+    "project_spotlight": (
+        "170 to 260",
+        "Write a project breakdown of FEATURED: the problem it solves, two or three specific design decisions and why they were made, and "
+        "the measurable result. Close with one plain sentence saying you are open to {roles} roles.",
+    ),
+    "news_take": (
+        "150 to 230",
+        "Pick the ONE item from NEWS that matters most to people who build data pipelines or machine learning systems. Name its source, then "
+        "give your own view in two or three short paragraphs: what it changes in practice and what to watch out for. Connect it to one specific "
+        "thing from FEATURED that you actually did, in one paragraph. Close with a genuine question to readers.",
+    ),
+    "lesson": (
+        "150 to 230",
+        "Write one practical engineering lesson drawn from FEATURED. State the lesson in the hook, explain it with the concrete facts given, "
+        "and give readers one thing they can apply this week. Close with one plain sentence saying you are open to {roles} roles.",
+    ),
+}
 
-MONDAY_SPOTLIGHT_PROMPT = """\
-You are a Senior Data & AI/ML Engineer. Write one highly engaging, human-written LinkedIn post spotlighting one of your technical projects in a reflective, storytelling style.
 
-Your writing style must match the following storytelling engineering structure:
+def post_format_for(day: date) -> str | None:
+    return POST_SCHEDULE.get(day.weekday())
 
-=== REQUIRED STRUCTURE ===
-1. A brief hook and summary of the engineering context or industry relevance of the project formatted as 2-3 easy-to-read bulleted pointers (using •). Do NOT use emojis or bold unicode text.
-2. A storytelling section highlighting the concrete technical problem you tackled, your implementation details (referencing your Arizona State University IT Master's, 4.0 GPA, or 3+ years of experience), and the quantitative achievements or results (e.g., latency cuts, accuracy improvements).
-3. A transparent pipeline statement: "This post was fully compiled and published by CurioSync. Project repository: github.com/Deshraj-Jogiya/curiosync."
-4. A Call to Action inviting readers to visit your live portfolio and interact with the SQL sandbox and chatbot assistant at deshraj-jogiya.github.io
-5. A professional closing asking about available job opportunities and inviting recruiters/hiring managers to connect.
-=== END REQUIRED STRUCTURE ===
 
-=== REFERENCE POST TEMPLATE ===
-Managing geospatial data in environmental analytics comes with unique challenges:
-• Land cover datasets are fragmented across multiple states, causing severe processing bottlenecks.
-• High latency in raster transformations delays downstream carbon emission forecasting.
+def pick_item(profile: dict, fmt: str, day: date) -> dict:
+    """Rotate through subjects week by week so consecutive weeks feature different work."""
+    year, week, _ = day.isocalendar()
+    n = year * 53 + week
+    if fmt == "project_spotlight":
+        pool = featurable_items(profile, "project")
+    elif fmt == "news_take":
+        pool = featurable_items(profile, "experience")
+    else:
+        exp, proj = featurable_items(profile, "experience"), featurable_items(profile, "project")
+        pool = [x for pair in zip(exp, proj) for x in pair] + exp[len(proj):] + proj[len(exp):]
+    return pool[n % len(pool)]
 
-To solve this, I engineered a Python ETL pipeline to automate the ingestion and geospatial transformation of massive datasets into a centralized SQL database. By integrating Linear Regression and Random Forest models, we began forecasting carbon trends based on land-use changes with a 90% forecasting accuracy, saving 10 engineering hours weekly. In production, this showed how critical robust pipelines are for turning raw spatial data into rapid, actionable insights.
 
-This post was fully compiled and published by CurioSync. Project repository: github.com/Deshraj-Jogiya/curiosync. I invite you to visit my live portfolio at deshraj-jogiya.github.io to test my interactive SQL sandbox and query my career chatbot directly. I am currently seeking new opportunities as a Data Engineer or ML Engineer and would love to connect with engineering leaders and hiring teams. #DataEngineering #MachineLearning
-=== END REFERENCE POST TEMPLATE ===
+def roles_from_title(title: str) -> str:
+    parts = [p.strip() for p in title.replace(" and ", " & ").split("&") if p.strip()]
+    return " and ".join(parts) if parts else title
 
-User Profile & Resume:
-{resume_context}
 
-Project Details:
-{project_info}
+def build_prompt(fmt: str, profile: dict, item: dict, news_items: list[dict] | None = None) -> str:
+    length, task = FORMAT_TASKS[fmt]
+    prompt = COMMON_RULES.format(
+        title=profile["title"],
+        news_clause=" and NEWS" if fmt == "news_take" else "",
+        length=length,
+        background=profile_context(profile),
+        featured=format_item(item),
+    )
+    prompt += "\nTASK:\n" + task.format(roles=roles_from_title(profile["title"])) + "\n"
+    if fmt == "news_take":
+        prompt += "\nNEWS:\n" + _format_news_for_prompt(news_items or []) + "\n"
+    return prompt
 
-Rules:
-- Write in a natural, storytelling voice using short paragraphs separated by double line breaks.
-- Write exactly 180 to 280 words total. Do NOT exceed 280 words.
-- Do NOT use emojis.
-- Do NOT use special/alien characters (e.g. bold unicode text). Use standard plain text only.
-- Keep the length decent to keep viewers engaged.
-- Add exactly 2-3 relevant technical hashtags at the very end.
-- Return ONLY the final post text, nothing else.
-"""
+
+async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, news_items: list[dict] | None = None) -> tuple[str, str]:
+    """Return (post text, featured subject title)."""
+    item = pick_item(profile, fmt, day)
+    prompt = build_prompt(fmt, profile, item, news_items)
+    logger.info("Generating %s post about %s", fmt, item["title"])
+    text = await call_llm_with_fallback(messages=[{"role": "user", "content": prompt}], settings=settings, temperature=0.7)
+    logger.info("Draft generated", extra={"format": fmt, "word_count": len(text.split()), "char_count": len(text)})
+    return text, item["title"]
 
 
 def _format_news_for_prompt(news_items: list[dict]) -> str:
@@ -181,193 +114,9 @@ def _format_news_for_prompt(news_items: list[dict]) -> str:
 
 
 async def generate_draft(news_items: list[dict], settings: Settings) -> str:
-    """Generate a personalized LinkedIn post draft from today's news."""
-    from datetime import datetime
-
-    # Select featured topic using deterministic rotation based on the day of the year
-    day_of_year = int(datetime.utcnow().strftime("%j"))
-    topic_idx = day_of_year % len(FEATURABLE_TOPICS)
-    topic = FEATURABLE_TOPICS[topic_idx]
-
-    if topic["type"] == "experience":
-        featured_accomplishment = (
-            f"During my time working as a {topic['role']} at {topic['company']} from {topic['dates']}, "
-            f"I was responsible for {topic['highlight']}"
-        )
-    else:
-        featured_accomplishment = (
-            f"In my project focusing on {topic['name']} from {topic['dates']}, "
-            f"I was responsible for {topic['highlight']}"
-        )
-
-    logger.info("Selected featured topic for daily post: %s", featured_accomplishment)
-
-    formatted = _format_news_for_prompt(news_items)
-    resume_context = get_resume_context()
-    prompt = PERSONALIZED_POST_PROMPT.format(
-        resume_context=resume_context,
-        news_items=formatted,
-        featured_accomplishment=featured_accomplishment
-    )
-
-    logger.info(
-        "Generating draft via LLM",
-        extra={"model": settings.openai_model, "news_count": len(news_items)},
-    )
-
-    text = await call_llm_with_fallback(
-        messages=[{"role": "user", "content": prompt}],
-        settings=settings,
-        temperature=0.7,
-    )
-    logger.info(
-        "Draft generated",
-        extra={"word_count": len(text.split()), "char_count": len(text)},
-    )
-    return text
-
-
-async def generate_monday_project_spotlight(
-    projects: list[dict], settings: Settings, db: AsyncSession = None
-) -> str:
-    """Generate a LinkedIn post spotlighting one project from GitHub or Resume."""
-    resume_context = get_resume_context()
-
-    selected = None
-    project_type = "github" if projects else "resume"
-
-    if not projects:
-        projects = RESUME_DATA.get("projects", [])
-
-    if projects:
-        # If database session is provided, implement stateful rotation
-        if db is not None:
-            try:
-                JSON_BACKUP_PATH = "showcased_projects.json"
-
-                # 1. Seed the database from JSON file if the DB table is empty
-                # Check if DB table is empty
-                stmt = select(ShowcasedProject)
-                result = await db.execute(stmt)
-                db_records = result.scalars().all()
-
-                if not db_records and os.path.exists(JSON_BACKUP_PATH):
-                    try:
-                        with open(JSON_BACKUP_PATH, "r", encoding="utf-8") as f:
-                            saved_names = json.load(f)
-                        if isinstance(saved_names, list):
-                            for name in saved_names:
-                                db.add(ShowcasedProject(project_name=name, project_type=project_type))
-                            await db.commit()
-                    except Exception as json_err:
-                        logger.error("Failed to seed database from JSON backup file: %s", json_err)
-
-                # 2. Query showcased projects from database (now seeded if backup existed)
-                stmt = select(ShowcasedProject.project_name)
-                result = await db.execute(stmt)
-                showcased_names = set(result.scalars().all())
-
-                # 3. Filter unshowcased projects
-                unshowcased = [p for p in projects if p.get("name") not in showcased_names]
-
-                if not unshowcased:
-                    # 4. All projects have been showcased! Reset history.
-                    # Find the most recently showcased project to avoid back-to-back repeats
-                    last_stmt = select(ShowcasedProject.project_name).order_by(ShowcasedProject.showcased_at.desc()).limit(1)
-                    last_result = await db.execute(last_stmt)
-                    last_showcased = last_result.scalar_one_or_none()
-
-                    # Reset/delete all records in the table
-                    await db.execute(delete(ShowcasedProject))
-                    await db.commit()
-
-                    # Exclude the last showcased project from the immediate choice if we have other options
-                    pool = [p for p in projects if p.get("name") != last_showcased]
-                    if not pool:
-                        pool = projects  # Fallback if only 1 project exists overall
-                    
-                    # For GitHub projects, maintain star order (pool[0]); for resume projects, pick pool[0]
-                    selected = pool[0]
-                    logger.info(
-                        "Showcase cycle reset",
-                        extra={"last_showcased": last_showcased, "new_choice": selected.get("name")}
-                    )
-                else:
-                    # Pick the next unshowcased project
-                    # Since projects is already sorted (GitHub repos by stars), unshowcased[0] picks the next highest priority
-                    selected = unshowcased[0]
-
-                # 5. Mark the selected project as showcased
-                if selected:
-                    new_showcase = ShowcasedProject(
-                        project_name=selected.get("name"),
-                        project_type=project_type
-                    )
-                    db.add(new_showcase)
-                    await db.commit()
-
-                # 6. Export updated showcase list to JSON backup file
-                all_stmt = select(ShowcasedProject.project_name)
-                all_result = await db.execute(all_stmt)
-                updated_names = all_result.scalars().all()
-                try:
-                    with open(JSON_BACKUP_PATH, "w", encoding="utf-8") as f:
-                        json.dump(updated_names, f, indent=2)
-                except Exception as json_err:
-                    logger.error("Failed to write to JSON backup file: %s", json_err)
-
-            except Exception as e:
-                logger.exception("Error during stateful project rotation. Falling back to random selection.", extra={"error": str(e)})
-                # Fallback to stateless logic in case of database errors
-                selected = None
-
-        # If database is not provided, or if selection failed, fallback to stateless logic
-        if not selected:
-            if project_type == "github":
-                # Select randomly from top 3 if available to rotate, or just first
-                selected = random.choice(projects[:3]) if len(projects) >= 3 else projects[0]
-            else:
-                selected = random.choice(projects) if projects else None
-
-    # Format project_info for prompt
-    if selected:
-        if project_type == "github":
-            project_info = (
-                f"Repository Name: {selected.get('name')}\n"
-                f"GitHub URL: {selected.get('html_url')}\n"
-                f"Description: {selected.get('description') or 'No description'}\n"
-                f"Primary Language: {selected.get('language') or 'Unknown'}\n"
-                f"Topics: {', '.join(selected.get('topics', []))}"
-            )
-        else:
-            project_info = (
-                f"Project Name: {selected.get('name')}\n"
-                f"Dates: {selected.get('dates')}\n"
-                f"Accomplishments:\n"
-                + "\n".join(f"- {a}" for a in selected.get("accomplishments", []))
-            )
-    else:
-        project_info = "No specific project details available. Write a general spotlight post about learning data pipeline engineering."
-
-
-    prompt = MONDAY_SPOTLIGHT_PROMPT.format(
-        resume_context=resume_context, project_info=project_info
-    )
-
-    logger.info(
-        "Generating Monday Project Spotlight via LLM",
-        extra={"model": settings.openai_model},
-    )
-
-    text = await call_llm_with_fallback(
-        messages=[{"role": "user", "content": prompt}],
-        settings=settings,
-        temperature=0.7,
-    )
-    logger.info(
-        "Monday Spotlight generated",
-        extra={"word_count": len(text.split()), "char_count": len(text)},
-    )
+    """News-take draft for today, used by the web app's Generate button."""
+    profile = await load_profile()
+    text, _ = await generate_post("news_take", profile, settings, date.today(), news_items)
     return text
 
 

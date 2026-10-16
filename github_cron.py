@@ -1,13 +1,14 @@
-"""Standalone GitHub Actions cron runner script.
+"""Standalone GitHub Actions runner.
 
-Seeds an in-memory database with credentials from environment variables,
-and runs the daily publishing pipeline.
+`python -m github_cron draft` (scheduled): seeds an in-memory database from environment variables, drafts the day's post if one is
+scheduled, saves it to pending_post/ for review, and writes the TIL note. It never publishes.
+`python -m github_cron publish` (runs only after the owner approves the job in GitHub): posts the saved draft unchanged.
 """
 
 import asyncio
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from app.config import get_settings
 from app.database import init_db, async_session
@@ -126,10 +127,137 @@ Make the concept feel genuine, practical, and highly technical.
         logger.exception("Failed to generate or save daily TIL note: %s", exc)
 
 
-async def main():
-    logger.info("Initializing GitHub Actions Daily Post Cron Job")
+PENDING_DIR = "pending_post"
+# An approval that arrives later than this would post stale news, so the publish step refuses it.
+MAX_DRAFT_AGE_HOURS = 36
 
-    # Verify key environment variables are set
+
+def _set_output(name: str, value: str):
+    path = os.getenv("GITHUB_OUTPUT")
+    if path:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"{name}={value}\n")
+
+
+def _write_pending(result: dict):
+    """Save the approved-to-be draft for the publish job, and show it on the run page so it can be read before approving."""
+    import json
+    import shutil
+
+    os.makedirs(PENDING_DIR, exist_ok=True)
+    with open(os.path.join(PENDING_DIR, "post.txt"), "w", encoding="utf-8") as f:
+        f.write(result["draft"])
+    image = result.get("image_path")
+    if image and os.path.exists(image):
+        shutil.copy(image, os.path.join(PENDING_DIR, "image.png"))
+        os.remove(image)
+    meta = {
+        "created_at": datetime.now(timezone.utc).replace(tzinfo=None).isoformat(),
+        "format": result.get("format"),
+        "subject": result.get("subject"),
+        "warnings": result.get("compliance", {}).get("issues", []),
+    }
+    with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
+        json.dump(meta, f, indent=2)
+
+    summary = os.getenv("GITHUB_STEP_SUMMARY")
+    if summary:
+        warnings = "".join(f"- {w}\n" for w in meta["warnings"]) or "- none\n"
+        with open(summary, "a", encoding="utf-8") as f:
+            f.write(
+                f"## LinkedIn draft waiting for approval\n\n"
+                f"Format: {meta['format']} | Subject: {meta['subject']} | {len(result['draft'].split())} words\n\n"
+                f"Warnings:\n{warnings}\n"
+                f"Approve the **publish** job to post it exactly as below, or reject it to skip today. "
+                f"The graphic is in the `pending-post` artifact. Drafts older than {MAX_DRAFT_AGE_HOURS} hours are not posted.\n\n"
+                f"```text\n{result['draft']}\n```\n"
+            )
+
+
+async def _seed_user(access_token: str, raw_sub: str, settings) -> int:
+    encrypted_token = OAuthToken.encrypt_token(access_token, settings.fernet_key)
+    async with async_session() as session:
+        from sqlalchemy import delete, select
+
+        res = await session.execute(select(User).where(User.linkedin_sub == raw_sub))
+        user = res.scalars().first()
+        if user is None:
+            user = User(linkedin_sub=raw_sub, name="GitHub Actions Publisher", email="actions@github.local")
+            session.add(user)
+            await session.flush()
+        else:
+            logger.info("Found existing user in database, reusing user record.")
+
+        await session.execute(delete(OAuthToken).where(OAuthToken.user_id == user.id))
+        session.add(
+            OAuthToken(
+                user_id=user.id,
+                encrypted_access_token=encrypted_token,
+                token_type="Bearer",
+                expires_at=datetime.utcnow() + timedelta(days=60),
+                scopes="openid profile email w_member_social",
+            )
+        )
+        await session.commit()
+        logger.info("Database seeded with user (ID: %d) & encrypted token.", user.id)
+        return user.id
+
+
+async def run_draft(user_id: int, settings):
+    """Scheduled step: draft today's post (if one is scheduled) and write the TIL note. Never publishes."""
+    result = await run_daily_pipeline(user_id=user_id, run_type="github_actions_cron")
+    write_run_log(result)
+    if result.get("status") == "drafted":
+        _write_pending(result)
+        _set_output("has_draft", "true")
+    else:
+        _set_output("has_draft", "false")
+
+    await generate_and_save_til(settings)
+
+    if result.get("status") in ("drafted", "skipped"):
+        logger.info("Draft step finished: %s", result.get("status"))
+        sys.exit(0)
+        return
+    logger.error("Draft step failed! Error: %s", result.get("error"))
+    logger.error("Pipeline steps detail: %s", result.get("steps"))
+    sys.exit(1)
+
+
+async def run_publish(access_token: str, raw_sub: str, settings):
+    """Approved step: post the saved draft exactly as it was shown for approval."""
+    import json
+
+    from app.services.linkedin_service import publish_post
+
+    text_path, meta_path = os.path.join(PENDING_DIR, "post.txt"), os.path.join(PENDING_DIR, "meta.json")
+    if not (os.path.exists(text_path) and os.path.exists(meta_path)):
+        logger.error("No pending draft found in %s", PENDING_DIR)
+        sys.exit(1)
+        return
+    with open(text_path, encoding="utf-8") as f:
+        text = f.read()
+    with open(meta_path, encoding="utf-8") as f:
+        meta = json.load(f)
+
+    age = datetime.now(timezone.utc).replace(tzinfo=None) - datetime.fromisoformat(meta["created_at"])
+    if age > timedelta(hours=MAX_DRAFT_AGE_HOURS):
+        write_run_log({"status": "skipped", "steps": {"publish": f"draft is {age} old, not posted"}})
+        logger.warning("Draft is %s old; not posting stale content.", age)
+        sys.exit(0)
+        return
+
+    image = os.path.join(PENDING_DIR, "image.png")
+    result = await publish_post(access_token, f"urn:li:person:{raw_sub}", text, settings, image if os.path.exists(image) else None)
+    status = "success" if result.get("success") else "failed"
+    write_run_log({"status": status, "steps": {"publish": "approved and posted" if status == "success" else f"failed: {result.get('error', '')}",
+                                               "format": meta.get("format"), "subject": meta.get("subject")}})
+    sys.exit(0 if status == "success" else 1)
+
+
+async def main(mode: str = "draft"):
+    logger.info("Initializing GitHub Actions job (%s)", mode)
+
     access_token = os.getenv("LINKEDIN_ACCESS_TOKEN")
     sub_urn = os.getenv("LINKEDIN_SUB_URN")
     openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -142,88 +270,27 @@ async def main():
         logger.error("LINKEDIN_SUB_URN environment variable is not set!")
         sys.exit(1)
         return
-    if not openai_api_key:
+    if mode == "draft" and not openai_api_key:
         logger.error("OPENAI_API_KEY environment variable is not set!")
         sys.exit(1)
         return
 
-    # Normalize the URN to extract the raw sub ID
-    raw_sub = sub_urn
-    if raw_sub.startswith("urn:li:person:"):
-        raw_sub = raw_sub.replace("urn:li:person:", "")
-
-    # 1. Initialize the SQLite in-memory database
-    logger.info("Initializing in-memory database...")
-    await init_db()
-
-    # 2. Seed the database with the user and the encrypted access token
+    raw_sub = sub_urn.replace("urn:li:person:", "")
     settings = get_settings()
+
+    if mode == "publish":
+        await run_publish(access_token, raw_sub, settings)
+        return
+
+    await init_db()
     try:
-        encrypted_token = OAuthToken.encrypt_token(access_token, settings.fernet_key)
-    except Exception as exc:
+        user_id = await _seed_user(access_token, raw_sub, settings)
+    except Exception:
         logger.exception("Failed to encrypt access token using Fernet key!")
         sys.exit(1)
         return
-
-    async with async_session() as session:
-        # Check if user already exists to avoid IntegrityErrors
-        from sqlalchemy import select
-        res = await session.execute(select(User).where(User.linkedin_sub == raw_sub))
-        user = res.scalars().first()
-
-        if user is None:
-            user = User(
-                linkedin_sub=raw_sub,
-                name="GitHub Actions Publisher",
-                email="actions@github.local",
-            )
-            session.add(user)
-            await session.flush()
-        else:
-            logger.info("Found existing user in database, reusing user record.")
-
-        # Remove any existing tokens for this user to avoid conflicts
-        from sqlalchemy import delete
-        await session.execute(delete(OAuthToken).where(OAuthToken.user_id == user.id))
-
-        # Create token record
-        token_record = OAuthToken(
-            user_id=user.id,
-            encrypted_access_token=encrypted_token,
-            token_type="Bearer",
-            expires_at=datetime.utcnow() + timedelta(days=60),
-            scopes="openid profile email w_member_social",
-        )
-        session.add(token_record)
-        await session.commit()
-        
-        user_id = user.id
-        logger.info("Database seeded with user (ID: %d) & encrypted token.", user_id)
-
-    # 3. Run the standard pipeline
-    logger.info("Executing daily posting pipeline...")
-    result = await run_daily_pipeline(user_id=user_id, run_type="github_actions_cron")
-
-    # Write execution log entry
-    write_run_log(result)
-
-    # Generate and save daily TIL note to dev-root-affinity repository if available
-    await generate_and_save_til(settings)
-
-    # 4. Handle result
-    if result.get("status") == "success":
-        logger.info("GitHub Actions Daily Post Cron completed successfully!")
-        logger.info("Pipeline steps executed: %s", result.get("steps"))
-        sys.exit(0)
-    elif result.get("status") == "skipped":
-        logger.info("GitHub Actions Daily Post Cron skipped: %s", result.get("reason"))
-        sys.exit(0)
-    else:
-        logger.error("GitHub Actions Daily Post Cron failed! Error: %s", result.get("error"))
-        logger.error("Pipeline steps detail: %s", result.get("steps"))
-        sys.exit(1)
+    await run_draft(user_id, settings)
 
 
 if __name__ == "__main__":
-    # Ensure event loop policy or runner runs properly
-    asyncio.run(main())
+    asyncio.run(main(sys.argv[1] if len(sys.argv) > 1 else "draft"))

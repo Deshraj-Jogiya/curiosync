@@ -102,7 +102,7 @@ async def run_now(
 
     try:
         logger.info("Manual pipeline run triggered by user %s", user_id)
-        result = await run_daily_pipeline(user_id, db, settings, run_type="manual")
+        result = await run_daily_pipeline(user_id, db, settings, run_type="manual", publish=True)
 
         status = result.get("status", "unknown")
         if status == "success":
