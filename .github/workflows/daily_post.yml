@@ -20,14 +20,33 @@ jobs:
         path: curiosync
 
     - name: Check the TIL rest window
-      # No TIL notes during festival rest: Navratri (2026-10-11) through the day before Labh Pancham (2026-11-14).
-      # Dates are inclusive and compared in UTC; LinkedIn posting is not affected.
+      # Every year, no TIL notes from Sharad Navratri (Ashwin Shukla Pratipada) until Labh Pancham (Kartik Shukla Panchami); notes resume on
+      # Labh Pancham itself. Dates follow the Gujarati (amanta) panchang for Ahmedabad: sunrise tithi, Lahiri ayanamsa, computed with the Swiss
+      # Ephemeris and checked against Drik Panchang (2024-2027). LinkedIn posting is not affected. Extend the table before 2041.
       id: til_window
       run: |
         today=$(date -u +%F)
-        if [[ "$today" > "2026-10-10" && "$today" < "2026-11-14" ]]; then
+        case "${today:0:4}" in
+          2026) start=2026-10-11; resume=2026-11-14 ;;
+          2027) start=2027-09-30; resume=2027-11-03 ;;
+          2028) start=2028-09-19; resume=2028-10-22 ;;
+          2029) start=2029-10-08; resume=2029-11-10 ;;
+          2030) start=2030-09-28; resume=2030-10-31 ;;
+          2031) start=2031-10-17; resume=2031-11-19 ;;
+          2032) start=2032-10-05; resume=2032-11-08 ;;
+          2033) start=2033-09-24; resume=2033-10-28 ;;
+          2034) start=2034-10-13; resume=2034-11-16 ;;
+          2035) start=2035-10-02; resume=2035-11-05 ;;
+          2036) start=2036-09-20; resume=2036-10-24 ;;
+          2037) start=2037-10-09; resume=2037-11-12 ;;
+          2038) start=2038-09-29; resume=2038-11-01 ;;
+          2039) start=2039-10-18; resume=2039-11-20 ;;
+          2040) start=2040-10-07; resume=2040-11-09 ;;
+          *) start=""; resume=""; echo "::warning::No festival rest dates for ${today:0:4}; extend the table in daily_post.yml." ;;
+        esac
+        if [[ -n "$start" && ! "$today" < "$start" && "$today" < "$resume" ]]; then
           echo "enabled=false" >> "$GITHUB_OUTPUT"
-          echo "TIL rest window (Navratri to Labh Pancham): no note today ($today)."
+          echo "TIL rest window ($start to the day before $resume): no note today ($today)."
         else
           echo "enabled=true" >> "$GITHUB_OUTPUT"
         fi
