@@ -19,11 +19,24 @@ jobs:
       with:
         path: curiosync
 
+    - name: Check the TIL rest window
+      # No TIL notes during festival rest: Navratri (2026-10-11) through the day before Labh Pancham (2026-11-14).
+      # Dates are inclusive and compared in UTC; LinkedIn posting is not affected.
+      id: til_window
+      run: |
+        today=$(date -u +%F)
+        if [[ "$today" > "2026-10-10" && "$today" < "2026-11-14" ]]; then
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+          echo "TIL rest window (Navratri to Labh Pancham): no note today ($today)."
+        else
+          echo "enabled=true" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Checkout dev-root-affinity
       id: checkout_til
       env:
         PAT_DEV_ROOT_AFFINITY: ${{ secrets.PAT_DEV_ROOT_AFFINITY }}
-      if: ${{ env.PAT_DEV_ROOT_AFFINITY != '' }}
+      if: ${{ env.PAT_DEV_ROOT_AFFINITY != '' && steps.til_window.outputs.enabled == 'true' }}
       continue-on-error: true
       uses: actions/checkout@v4
       with:
@@ -76,7 +89,7 @@ jobs:
       env:
         PAT_DEV_ROOT_AFFINITY: ${{ secrets.PAT_DEV_ROOT_AFFINITY }}
       # always(): a LinkedIn failure in the step above must not stop an already-written TIL note from being committed
-      if: ${{ always() && env.PAT_DEV_ROOT_AFFINITY != '' }}
+      if: ${{ always() && env.PAT_DEV_ROOT_AFFINITY != '' && steps.til_window.outputs.enabled == 'true' }}
       continue-on-error: true
       working-directory: dev-root-affinity
       run: |
@@ -92,7 +105,7 @@ jobs:
 
     - name: Fail loudly if no TIL note could be written
       # The checkout above is continue-on-error, so an expired PAT used to skip the TIL silently while the run still showed success.
-      if: always()
+      if: ${{ always() && steps.til_window.outputs.enabled == 'true' }}
       env:
         CHECKOUT_OUTCOME: ${{ steps.checkout_til.outcome }}
       run: |
