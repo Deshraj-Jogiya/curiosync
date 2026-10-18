@@ -158,3 +158,4 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-10-16 12:32:33 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: lesson, profile: loaded, generate_draft: lesson about TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence (184 words), humanize: applied, compliance_check: passed |
 | 2026-10-16 17:13:57 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: lesson, profile: loaded, generate_draft: lesson about TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence (162 words), humanize: applied, compliance_check: passed |
 | 2026-10-17 16:11:30 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Saturday |
+| 2026-10-18 16:24:31 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Sunday |
