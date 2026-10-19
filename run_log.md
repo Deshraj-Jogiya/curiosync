@@ -159,3 +159,4 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-10-16 17:13:57 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: lesson, profile: loaded, generate_draft: lesson about TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence (162 words), humanize: applied, compliance_check: passed |
 | 2026-10-17 16:11:30 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Saturday |
 | 2026-10-18 16:24:31 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Sunday |
+| 2026-10-19 19:08:41 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: project_spotlight, profile: loaded, generate_draft: project_spotlight about AI-ML Data Science Simulation (127 words), humanize: applied, compliance_check: issues: ['Too short: 127 words (minimum 150)'] |
