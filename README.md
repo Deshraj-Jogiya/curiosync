@@ -1,6 +1,6 @@
 # CurioSync
 
-[![daily_post](https://github.com/Deshraj-Jogiya/curiosync/actions/workflows/daily_post.yml/badge.svg)](https://github.com/Deshraj-Jogiya/curiosync/actions/workflows/daily_post.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+[![ci](https://github.com/Deshraj-Jogiya/curiosync/actions/workflows/ci.yml/badge.svg)](https://github.com/Deshraj-Jogiya/curiosync/actions/workflows/ci.yml) [![daily_post](https://github.com/Deshraj-Jogiya/curiosync/actions/workflows/daily_post.yml/badge.svg)](https://github.com/Deshraj-Jogiya/curiosync/actions/workflows/daily_post.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
 
 A LinkedIn publishing pipeline that runs on GitHub Actions. Three times a week it drafts a post about my own work from the live portfolio
 data, checks every claim against those facts, renders an image from the project's own details, and publishes through the LinkedIn Posts
