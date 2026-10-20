@@ -156,6 +156,9 @@ def _write_pending(result: dict):
         "format": result.get("format"),
         "subject": result.get("subject"),
         "warnings": result.get("compliance", {}).get("issues", []),
+        "alt_text": result.get("alt_text"),
+        "visual": result.get("visual"),
+        "history_entry": result.get("history_entry"),
     }
     with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
@@ -248,8 +251,13 @@ async def run_publish(access_token: str, raw_sub: str, settings):
         return
 
     image = os.path.join(PENDING_DIR, "image.png")
-    result = await publish_post(access_token, f"urn:li:person:{raw_sub}", text, settings, image if os.path.exists(image) else None)
+    result = await publish_post(access_token, f"urn:li:person:{raw_sub}", text, settings, image if os.path.exists(image) else None,
+                                meta.get("alt_text"))
     status = "success" if result.get("success") else "failed"
+    if status == "success" and meta.get("history_entry"):
+        from app.services.post_plan import append_history
+
+        append_history(meta["history_entry"])
     write_run_log({"status": status, "steps": {"publish": "approved and posted" if status == "success" else f"failed: {result.get('error', '')}",
                                                "format": meta.get("format"), "subject": meta.get("subject")}})
     sys.exit(0 if status == "success" else 1)

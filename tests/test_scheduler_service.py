@@ -38,18 +38,20 @@ def _patch_common(day: date):
         patch("app.services.scheduler_service.save_news_items", AsyncMock(return_value=None)),
         patch("app.services.scheduler_service.check_compliance", lambda text, items: {"passed": True, "issues": [], "blocking": []}),
         patch("app.services.scheduler_service.load_profile", AsyncMock(return_value={"title": "t"})),
-        patch("app.services.scheduler_service.humanize_draft", lambda text: text),
+        patch("app.services.scheduler_service.load_history", lambda: []),
+        patch("app.services.scheduler_service.append_history", lambda entry: None),
+        patch("app.services.scheduler_service.build_visual", AsyncMock(return_value=(None, None, "none"))),
+        patch("app.services.scheduler_service.source_text", lambda *a: "facts"),
         patch("app.services.scheduler_service.publish_post", AsyncMock(return_value={"success": True, "post_id": "123"})),
         patch("app.services.scheduler_service.record_post", AsyncMock(return_value=None)),
         patch("app.services.scheduler_service.today_phoenix", lambda: day),
-        patch("app.services.image_service.generate_graphic_metadata", AsyncMock(return_value={})),
-        patch("app.services.image_service.generate_linkedin_image", lambda *a, **k: None),
     ]
 
 
 async def _run(test_db, day, publish=False, gen=None, **overrides):
     user_id = await _seed_user(test_db)
-    gen = gen or AsyncMock(return_value=("draft text", "Some Project"))
+    gen = gen or AsyncMock(side_effect=lambda fmt, *a, **k: {"text": "draft text", "subject": "Some Project", "format": fmt,
+                                                            "hook_type": "claim", "item": {}, "attempts": 4, "news": None})
     patches = _patch_common(day) + [patch("app.services.scheduler_service.generate_post", gen)]
     patches += [patch(f"app.services.scheduler_service.{k}", v) for k, v in overrides.items()]
     for p in patches:
@@ -80,9 +82,37 @@ async def test_draft_mode_never_calls_linkedin(test_db):
 
 
 @pytest.mark.asyncio
-async def test_wednesday_is_news_take(test_db):
-    _, gen = await _run(test_db, date(2026, 9, 16))
-    assert gen.await_args.args[0] == "news_take"
+async def test_wednesday_is_lesson_and_news_is_fetched_only_on_friday(test_db):
+    fetch = AsyncMock(return_value=[{"title": "x", "source_name": "y"}])
+    _, gen = await _run(test_db, date(2026, 9, 16), fetch_news=fetch)
+    assert gen.await_args.args[0] == "lesson"
+    fetch.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_friday_is_decision_and_survives_a_news_outage(test_db):
+    result, gen = await _run(test_db, date(2026, 9, 18), fetch_news=AsyncMock(side_effect=RuntimeError("feeds down")))
+    assert gen.await_args.args[0] == "decision"
+    assert result["status"] == "drafted"
+
+
+@pytest.mark.asyncio
+async def test_rejected_draft_skips_the_day(test_db):
+    from app.services.summarizer_service import DraftRejected
+
+    publish = AsyncMock()
+    result, _ = await _run(test_db, date(2026, 9, 14), publish=True, gen=AsyncMock(side_effect=DraftRejected(["number '45%' is not in the facts"])),
+                           publish_post=publish)
+    assert result["status"] == "skipped"
+    publish.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_successful_publish_is_recorded_in_history(test_db):
+    saved = []
+    result, _ = await _run(test_db, date(2026, 9, 14), publish=True, append_history=saved.append)
+    assert result["status"] == "success"
+    assert saved and saved[0]["subject"] == "Some Project" and saved[0]["hook_type"] == "claim"
 
 
 @pytest.mark.asyncio

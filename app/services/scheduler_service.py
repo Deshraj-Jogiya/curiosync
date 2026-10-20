@@ -12,13 +12,16 @@ from app.models.draft import Draft
 from app.models.user import User
 from app.models.scheduler_run import SchedulerRun
 from app.services.auth_service import get_valid_token
-from app.services.compliance_service import check_compliance, humanize_draft
+from app.services.compliance_service import check_compliance
 from app.services.deduplication_service import deduplicate_news
 from app.services.linkedin_service import publish_post
 from app.services.news_service import fetch_news, save_news_items
 from app.services.post_history_service import get_today_post, record_post
 from app.services.profile_source import ProfileUnavailable, load_profile
-from app.services.summarizer_service import generate_post, post_format_for
+from app.services.post_plan import append_history, load_history
+from app.services.post_rules import first_words
+from app.services.post_visual import build_visual
+from app.services.summarizer_service import DraftRejected, generate_post, post_format_for, source_text
 from app.utils.logging import logger
 from app.utils.timezone import now_phoenix, today_phoenix
 
@@ -95,29 +98,32 @@ async def run_daily_pipeline(
         steps["profile"] = "loaded"
 
         deduped: list[dict] = []
-        if fmt == "news_take":
-            news_items = await fetch_news(settings)
-            if not news_items:
-                steps["fetch_news"] = "failed — no items returned"
-                logger.error("Pipeline failed — no news items fetched")
-                await record_scheduler_run(session, run_type, "failed", "No news items", steps)
-                if own_session:
-                    await session.commit()
-                return {"status": "failed", "error": "No tech news found for today.", "steps": steps}
-            steps["fetch_news"] = f"fetched {len(news_items)} items"
-            deduped = deduplicate_news(news_items)
-            steps["deduplication"] = f"{len(news_items)} -> {len(deduped)} items"
-            await save_news_items(session, deduped, date_for)
-            steps["save_news"] = f"saved {len(deduped)} items"
+        if fmt == "decision":
+            # News is only a rare exception (see summarizer_service): fetch it on Fridays, and carry on without it if the fetch fails.
+            try:
+                news_items = await fetch_news(settings)
+                deduped = deduplicate_news(news_items) if news_items else []
+                steps["fetch_news"] = f"{len(deduped)} items"
+                if deduped:
+                    await save_news_items(session, deduped, date_for)
+            except Exception as exc:
+                steps["fetch_news"] = f"unavailable ({exc}); no news exception today"
 
-        draft_text, subject = await generate_post(fmt, profile, settings, date_for, deduped)
-        steps["generate_draft"] = f"{fmt} about {subject} ({len(draft_text.split())} words)"
+        history = load_history()
+        try:
+            post = await generate_post(fmt, profile, settings, date_for, deduped, history)
+        except DraftRejected as exc:
+            steps["generate_draft"] = f"rejected after rewrites: {exc.problems}"
+            await record_scheduler_run(session, run_type, "skipped", "Draft failed the post rules", steps)
+            if own_session:
+                await session.commit()
+            return {"status": "skipped", "reason": f"No draft passed the post rules: {exc.problems}", "steps": steps}
+        draft_text, subject, fmt = post["text"], post["subject"], post["format"]
+        steps["generate_draft"] = (f"{fmt} about {subject} (hook {post['hook_type']}, {len(draft_text)} chars, "
+                                   f"{post['attempts']} model calls)")
 
-        # Humanize first (it also strips links and corrects tenure claims), then check the text that would actually go out.
-        draft_text = humanize_draft(draft_text)
-        steps["humanize"] = "applied"
         compliance = check_compliance(draft_text, deduped)
-        steps["compliance_check"] = "passed" if compliance["passed"] else f"issues: {compliance['issues']}"
+        steps["compliance_check"] = "passed" if not compliance["blocking"] else f"blocked: {compliance['blocking']}"
         if compliance["blocking"]:
             await record_scheduler_run(session, run_type, "failed", "Blocked by compliance", steps)
             if own_session:
@@ -144,16 +150,21 @@ async def run_daily_pipeline(
         user = user_result.scalars().first()
         author_urn = f"urn:li:person:{user.linkedin_sub}" if user else ""
 
-        # Generate custom high-engagement graphic on the fly
-        image_path = None
+        image_path, alt_text, visual_kind = None, None, "none"
         try:
-            from app.services.image_service import generate_graphic_metadata, generate_linkedin_image
-            metadata = await generate_graphic_metadata(draft_text, settings)
-            subtitle = "Enterprise AI & Data Strategy"
-            image_path = generate_linkedin_image(metadata, subtitle=subtitle)
-            logger.info("Generated temp graphic for scheduled publication: %s", image_path)
+            image_path, alt_text, visual_kind = await build_visual(post["item"], settings, source_text(profile, post["item"], post["news"]))
         except Exception as img_err:
-            logger.error("Failed to generate publication graphic in daily pipeline: %s", img_err)
+            logger.error("Failed to build the post image: %s", img_err)
+        steps["visual"] = visual_kind
+
+        history_entry = {
+            "date": str(date_for),
+            "format": fmt,
+            "subject": subject,
+            "hook_type": post["hook_type"],
+            "opener_words": first_words(draft_text),
+            "text": draft_text,
+        }
 
         if not publish:
             await record_scheduler_run(session, run_type, "drafted", None, steps)
@@ -165,12 +176,15 @@ async def run_daily_pipeline(
                 "subject": subject,
                 "draft": draft_text,
                 "image_path": image_path,
+                "alt_text": alt_text,
+                "visual": visual_kind,
+                "history_entry": history_entry,
                 "compliance": compliance,
                 "steps": steps,
             }
 
         try:
-            result = await publish_post(access_token, author_urn, draft_text, settings, image_path)
+            result = await publish_post(access_token, author_urn, draft_text, settings, image_path, alt_text)
         finally:
             if image_path and os.path.exists(image_path):
                 try:
@@ -194,6 +208,8 @@ async def run_daily_pipeline(
             error=result.get("error"),
         )
         steps["record_post"] = post_status
+        if result["success"]:
+            append_history(history_entry)
 
         # 11. Record scheduler run
         final_status = "success" if result["success"] else "failed"

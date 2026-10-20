@@ -1,0 +1,68 @@
+{
+  "_about": "Owner-supplied facts about post subjects, merged onto the live profile. Keys match the start of a project name or role title (case-insensitive). context: one line saying what kind of work it was. simulated: true/false overrides auto-detection. solo: false only for team work. notes: the owner's own words on why he built it, the hardest decision, what he would change; posts may use only these for motivation or backstory. exclude: never post about it. min_year: subjects that ended before this year are not picked. Employer work (Technoid, Zifatech) is limited to the published profile bullets: the owner cannot disclose more.",
+  "_settings": {
+    "min_year": 2024
+  },
+  "Job Search CRM": {
+    "context": "My own job-search platform, deployed on a cloud VM and used daily in my real job search",
+    "simulated": false,
+    "notes": [
+      "I have been looking for a job for more than two years in a tough market, and new government rule changes kept forcing me to adapt, sometimes several times within a few days. It felt overwhelming.",
+      "I wanted something that would ease the search. When I looked for tools, most were fake, unfinished, unproductive or simply failed.",
+      "So I built it myself, aiming to solve most of those problems while keeping it mostly free for people who need it."
+    ]
+  },
+  "TalentVenue EventIntel": {
+    "context": "Capstone project for the ElevateMe Bootcamp data analytics certificate, built on the bootcamp's real business data",
+    "notes": [],
+    "simulated": false
+  },
+  "Job Market Lakehouse": {
+    "context": "Personal portfolio project",
+    "simulated": true,
+    "notes": [
+      "I built it to learn: to take my skills to the next level and understand how the whole system fits together, not just one piece.",
+      "With AI changing how everything gets done, I believe an engineer has to keep adapting and stay broad; if you can't keep up, nothing else is worth much."
+    ]
+  },
+  "Job Search dbt Warehouse": {
+    "context": "Personal portfolio project running against a live Databricks SQL warehouse",
+    "notes": [
+      "I built it to learn: to take my skills to the next level and understand how the whole system fits together, not just one piece.",
+      "With AI changing how everything gets done, I believe an engineer has to keep adapting and stay broad; if you can't keep up, nothing else is worth much."
+    ]
+  },
+  "AI Model Observability": {
+    "context": "Personal portfolio project on simulated inference records",
+    "simulated": true,
+    "notes": [
+      "I built it to learn: to take my skills to the next level and understand how the whole system fits together, not just one piece.",
+      "With AI changing how everything gets done, I believe an engineer has to keep adapting and stay broad; if you can't keep up, nothing else is worth much."
+    ]
+  },
+  "AI-ML Data Science Simulation": {
+    "context": "Simulation project with generated retail data",
+    "simulated": true,
+    "notes": []
+  },
+  "Real-Time IoT Telematics": {
+    "context": "Personal portfolio project on simulated sensor telemetry",
+    "simulated": true,
+    "notes": []
+  },
+  "Sentence Transformers": {
+    "context": "ML take-home exercise, later extended with LoRA fine-tuning on a public dataset",
+    "notes": []
+  },
+  "CurioSync": {
+    "exclude": true
+  },
+  "Applied Machine Learning Engineer": {
+    "context": "Contract role; only the facts already published in my profile may be used, nothing beyond them",
+    "notes": []
+  },
+  "Data Analyst / Data Engineer": {
+    "context": "Contract role; only the facts already published in my profile may be used, nothing beyond them",
+    "notes": []
+  }
+}

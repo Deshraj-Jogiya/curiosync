@@ -115,3 +115,9 @@ class TestCheckDuplicatePost:
 
         result = await check_duplicate_post(test_db, user_id=1, date_for=date.today())
         assert result is True
+
+
+def test_reserved_characters_are_escaped_not_dropped():
+    from app.services.linkedin_service import escape_little_text
+
+    assert escape_little_text("CNN (Keras) [v2] a_b @x #tag") == "CNN \(Keras\) \[v2\] a\_b \@x #tag"

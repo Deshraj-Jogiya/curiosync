@@ -11,7 +11,7 @@ def test_plain_strips_html_and_entities():
 
 def test_projects_exclude_team_work_and_curiosync():
     names = [p["title"] for p in featurable_items(SAMPLE_PROFILE, "project")]
-    assert names == ["Job Search CRM & AI Application Tailoring Center", "Job Search dbt Warehouse"]
+    assert names == ["Job Search CRM & AI Application Tailoring Center", "Job Search dbt Warehouse", "Job Market Lakehouse", "Old Project"]
 
 
 def test_experience_facts_are_plain_text():

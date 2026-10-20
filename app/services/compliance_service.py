@@ -25,7 +25,7 @@ ROBOTIC_PHRASES: list[str] = [
 # Mapping of robotic phrases to natural replacements (or empty to just remove)
 _REPLACEMENTS: dict[str, str] = {
     "In conclusion": "To sum up",
-    "It's worth noting": "Notably",
+    "It's worth noting": "",
     "Let's dive in": "",
     "Without further ado": "",
     "In today's fast-paced": "In today's",
@@ -33,8 +33,8 @@ _REPLACEMENTS: dict[str, str] = {
     "Needless to say": "",
     "At the end of the day": "Ultimately",
     "Moving forward": "Going ahead",
-    "game-changer": "significant development",
-    "disruptive": "transformative",
+    "game-changer": "big change",
+    "disruptive": "new",
     "synergy": "collaboration",
     "leverage": "use",
     "paradigm shift": "major shift",
@@ -66,8 +66,8 @@ def clean_special_characters(text: str) -> str:
     # Convert markdown links [label](url) to plain text "label - url" to prevent LinkedIn parser from truncating the post
     text = re.sub(r"\[([^\]]+)\]\(([^)]+)\)", r"\1 - \2", text)
 
-    # Convert any other remaining brackets and parentheses to spaces to avoid triggering LinkedIn's parser
-    text = text.replace("[", " ").replace("]", " ").replace("(", " ").replace(")", " ")
+    # Brackets and parentheses are kept: linkedin_service escapes LinkedIn's reserved characters at publish time, so "(CNN)" no longer
+    # has to become " CNN " to avoid truncation.
 
     # Remove any other stray unicode replacement characters
     text = text.replace("\ufffd", "")

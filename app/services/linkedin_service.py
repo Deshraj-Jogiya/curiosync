@@ -12,12 +12,22 @@ from app.models.post_history import PostHistory
 from app.utils.logging import logger
 
 
+# The Posts API reads "commentary" as Little Text Format, where these characters are markup; unescaped, the post is cut off at the first
+# one. Hashtags written as plain "#tag" are kept as they are, which is how LinkedIn's own clients send them.
+_LITTLE_TEXT_RESERVED = "\\|{}@[]()<>*_~"
+
+
+def escape_little_text(text: str) -> str:
+    return "".join("\\" + ch if ch in _LITTLE_TEXT_RESERVED else ch for ch in text)
+
+
 async def publish_post(
     access_token: str,
     author_urn: str,
     text: str,
     settings: Settings,
     image_path: str = None,
+    alt_text: str | None = None,
 ) -> dict:
     """Publish a post to LinkedIn via the Posts API, optionally with an image."""
     headers = {
@@ -72,7 +82,7 @@ async def publish_post(
 
     body = {
         "author": author_urn,
-        "commentary": text,
+        "commentary": escape_little_text(text),
         "visibility": "PUBLIC",
         "distribution": {"feedDistribution": "MAIN_FEED"},
         "lifecycleState": "PUBLISHED",
@@ -82,7 +92,7 @@ async def publish_post(
         body["content"] = {
             "media": {
                 "id": image_urn,
-                "altText": "Technical insight card for the post"
+                "altText": (alt_text or "Graphic summarizing the project described in the post")[:4086]
             }
         }
 

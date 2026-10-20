@@ -19,7 +19,7 @@ class TestHumanizeDraft:
         text = "This update is a real game-changer for developers."
         result = humanize_draft(text)
         assert "game-changer" not in result
-        assert "significant development" in result
+        assert "big change" in result and "significant" not in result
 
     def test_replaces_leverage(self):
         text = "Companies should leverage AI for productivity."
@@ -57,7 +57,7 @@ class TestHumanizeDraft:
         # Check curly double quotes resolved to straight double quotes
         assert '"' in result
         # Check game-changer robotic phrase also replaced
-        assert "significant development" in result
+        assert "big change" in result and "significant" not in result
 
 
 class TestCheckCompliance:
