@@ -128,3 +128,4 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-10-19 19:08:41 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: project_spotlight, profile: loaded, generate_draft: project_spotlight about AI-ML Data Science Simulation (127 words), humanize: applied, compliance_check: issues: ['Too short: 127 words (minimum 150)'] |
 | 2026-10-20 17:49:47 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Tuesday |
 | 2026-10-21 17:58:35 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: lesson, profile: loaded, generate_draft: lesson about Data Analyst / Data Engineer (hook measured_result, 1008 chars, 6 model calls), compliance_check: passed, visual: breakdown |
+| 2026-10-22 17:53:05 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Thursday |
