@@ -23,17 +23,21 @@ W, H = 1080, 1350
 MARGIN = 80
 VISUALS_DIR = os.path.join("assets", "visuals")
 
-BG = (13, 20, 36)
-PANEL = (22, 32, 54)
-TEXT = (241, 245, 249)
-MUTED = (148, 163, 184)
-ACCENTS = [(56, 189, 248), (52, 211, 153), (251, 191, 36), (167, 139, 250)]
+# The portfolio's identity (graphite, one sage accent, IBM Plex, flat), so every card matches the site.
+BG = (17, 19, 21)          # #111315
+PANEL = (24, 27, 31)       # #181b1f
+TEXT = (236, 235, 230)     # #ecebe6
+MUTED = (168, 172, 178)    # #a8acb2
+ACCENTS = [(140, 196, 173)]  # #8cc4ad, the only accent
+FONTS_DIR = os.path.join("assets", "fonts")
 FOOTER = "Deshraj Jogiya  |  Data Engineer & Machine Learning Engineer"
 
 
 def _font_path(bold: bool) -> str | None:
-    names = ["arialbd.ttf", "DejaVuSans-Bold.ttf"] if bold else ["arial.ttf", "DejaVuSans.ttf"]
-    dirs = [os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"), "/usr/share/fonts/truetype/dejavu",
+    # IBM Plex ships in assets/fonts (SIL OFL); the system fonts are only a fallback.
+    names = (["IBMPlexSansCondensed-Bold.ttf", "arialbd.ttf", "DejaVuSans-Bold.ttf"] if bold
+             else ["IBMPlexSans-Regular.ttf", "arial.ttf", "DejaVuSans.ttf"])
+    dirs = [FONTS_DIR, os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts"), "/usr/share/fonts/truetype/dejavu",
             "/System/Library/Fonts/Supplemental"]
     for d in dirs:
         for n in names:
@@ -106,7 +110,7 @@ def _header(draw, item: dict, accent) -> int:
 
 def _footer(draw):
     font = _font(24, True)
-    draw.line([(MARGIN, H - 120), (W - MARGIN, H - 120)], fill=(51, 65, 85), width=2)
+    draw.line([(MARGIN, H - 120), (W - MARGIN, H - 120)], fill=(43, 48, 54), width=2)
     draw.text((MARGIN, H - 95), FOOTER, font=font, fill=MUTED)
 
 
