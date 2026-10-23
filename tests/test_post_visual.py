@@ -61,3 +61,29 @@ def test_real_visual_is_copied_not_handed_out(tmp_path, monkeypatch):
     assert alt == "DAG run" and os.path.abspath(path) != os.path.abspath("assets/visuals/lake.png")
     os.remove(path)
     assert os.path.exists("assets/visuals/lake.png")
+
+
+def test_stat_card_numbers_are_results_used_once():
+    from app.services.post_visual import _numeric_facts
+
+    item = {"facts": [
+        "Recognises 29 word signs from video, 75.9% top-1 on held-out clips.",
+        "Teaches 7 concepts and recognises 29 word signs, 75.9% top-1.",  # same figure restated
+        "Applied Pareto analysis: the top 20% of customers generate 79.9% of revenue (80/20).",
+        "Found a real 404 on a guessed tile URL and fixed it.",  # an error code, not a result
+        "All 11 tests hit the live APIs.",
+    ]}
+    numbers = [n for n, _ in _numeric_facts(item)]
+    assert numbers == ["75.9%", "20%", "11"]
+
+
+def test_stat_card_never_draws_a_number_without_its_sentence(monkeypatch):
+    from app.services import post_visual
+
+    long_text = "word " * 400
+    item = {"title": "Sample", "facts": [f"Reached 42% on {long_text}", "Cut latency by 30% on the main path."]}
+    seen = []
+    real = post_visual.fit_text
+    monkeypatch.setattr(post_visual, "fit_text", lambda d, t, *a, **k: seen.append(t) or real(d, t, *a, **k))
+    path, alt = post_visual.render_stat_card(item)
+    assert "30%" in alt and "42%" not in alt

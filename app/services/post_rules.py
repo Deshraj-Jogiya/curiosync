@@ -13,7 +13,7 @@ import re
 MIN_CHARS = 800
 MAX_CHARS = 1700
 MAX_FIRST_LINE = 140
-MAX_HASHTAGS = 3
+MAX_HASHTAGS = 2  # 0-2 topic labels: more adds nothing and 10+ hurts (LinkedIn research, Oct 2026)
 
 # Technologies that, if named in a draft, must appear in the featured item's facts or the background. Matching is case-insensitive on
 # whole words. The list only needs to cover tools the model is likely to drop in uninvited.
@@ -49,7 +49,8 @@ STRUCTURE_PATTERNS = [
 ]
 
 ENGAGEMENT_BAIT = re.compile(
-    r"\b(?:like|share|repost|follow)\s+(?:this|if|for|me)\b|\bcomment\s+(?:below|yes|'|\")|\btag someone\b|\bdrop a\b",
+    # "like this post" is bait; "scoring like this" is a comparison, so a bare "like this" is not flagged.
+    r"\b(?:like|share|repost)\s+(?:this\s+(?:post|if)|if|for)\b|\bfollow\s+(?:me|for)\b|\bcomment\s+(?:below|yes|'|\")|\btag someone\b|\bdrop a\b",
     re.IGNORECASE,
 )
 

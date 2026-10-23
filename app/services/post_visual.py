@@ -173,14 +173,30 @@ def render_breakdown(item: dict, meta: dict) -> str | None:
     return _save(img)
 
 
+# A measured result: a percentage, a count with "+", a multiple, or a number with thousands separators.
+_STRONG_NUMBER = re.compile(r"(?<![\w./])(?:\d[\d,]*(?:\.\d+)?\s*%|\d[\d,]*\+|\d[\d,]*(?:\.\d+)?x\b|\d{1,3}(?:,\d{3})+)(?![\w/])")
+# A plain count is only a result when a counted noun follows it ("19 xUnit tests"), never a ratio ("80/20"), a year or a code.
+_COUNT_NUMBER = re.compile(r"(?<![\w./])(\d{2,})(?=\s+(?:[\w-]+\s+){0,2}[a-z][\w-]*s\b)(?![\w/])")
+
+
 def _numeric_facts(item: dict) -> list[tuple[str, str]]:
-    out = []
+    """(number, sentence) pairs for the stat card: measured results first, each number used once."""
+    strong, counts, seen = [], [], set()
     for fact in item["facts"]:
-        m = re.search(r"\d[\d,]*(?:\.\d+)?\s*%|\d[\d,]*\+|\d[\d,]*(?:\.\d+)?x\b|\b\d{2,}[\d,]*\b", fact)
-        if m:
-            text = re.sub(r"^[A-Z][\w &/-]{2,40}:\s*", "", fact)
-            out.append((m.group(0).replace(" ", ""), text))
-    return out
+        text = re.sub(r"^[A-Z][\w &/-]{2,40}:\s*", "", fact)
+        m = _STRONG_NUMBER.search(text)
+        target = strong
+        if not m:
+            m = _COUNT_NUMBER.search(text)
+            if not m or re.fullmatch(r"(?:19|20)\d\d", m.group(1)):
+                continue
+            target = counts
+        number = m.group(0).replace(" ", "")
+        if number in seen:
+            continue  # the same figure restated in another fact
+        seen.add(number)
+        target.append((number, text))
+    return strong + counts
 
 
 def render_stat_card(item: dict) -> tuple[str, str]:
@@ -188,27 +204,30 @@ def render_stat_card(item: dict) -> tuple[str, str]:
     accent = _accent(item["title"])
     img, draw = _canvas()
     y = _header(draw, item, accent)
-    facts = sorted(_numeric_facts(item), key=lambda f: len(f[1]))[:3]
-    if not facts:
-        facts = [("", f) for f in sorted(item["facts"], key=len)[:3]]
+    candidates = _numeric_facts(item) or [("", f) for f in sorted(item["facts"], key=len)]
     footer_top = H - 150
-    slot = min(330, (footer_top - y) // max(1, len(facts)))
-    y += max(0, (footer_top - y - slot * len(facts)) // 2)
-    alt_parts = []
-    for number, text in facts:
-        nfont = _font(96, True)
-        if number:
-            draw.text((MARGIN, y), number, font=nfont, fill=accent)
-            ty = y + 120
-        else:
-            ty = y
-        fitted = fit_text(draw, text, W - 2 * MARGIN, max(2, (slot - (ty - y) - 20) // 38), [32, 30, 28, 26, 24])
+    slots = min(3, len(candidates))
+    slot = min(330, (footer_top - y) // max(1, slots))
+    # Keep only facts whose sentence fits under its number: a number is never drawn without the words that explain it.
+    chosen = []
+    for number, text in candidates:
+        room = slot - (120 if number else 0) - 20
+        fitted = fit_text(draw, text, W - 2 * MARGIN, max(2, room // 38), [32, 30, 28, 26, 24])
         if fitted:
-            font, lines = fitted
-            for ln in lines:
-                draw.text((MARGIN, ty), ln, font=font, fill=TEXT)
-                ty += font.size + 8
-            alt_parts.append(text)
+            chosen.append((number, text, fitted))
+        if len(chosen) == slots:
+            break
+    y += max(0, (footer_top - y - slot * len(chosen)) // 2)
+    alt_parts = []
+    for number, text, (font, lines) in chosen:
+        ty = y
+        if number:
+            draw.text((MARGIN, y), number, font=_font(96, True), fill=accent)
+            ty = y + 120
+        for ln in lines:
+            draw.text((MARGIN, ty), ln, font=font, fill=TEXT)
+            ty += font.size + 8
+        alt_parts.append(text)
         y += slot
     _footer(draw)
     alt = f"{item['title']}: " + " ".join(alt_parts)

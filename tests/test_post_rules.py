@@ -62,4 +62,12 @@ def test_repeated_opener_and_near_duplicate_are_caught():
 
 def test_hashtags_collected_on_one_line():
     text = "Body line.\n\n#DataEngineering\n#AWS\n#Airflow\n#More"
-    assert tidy_hashtags(text) == "Body line.\n\n#DataEngineering #AWS #Airflow"
+    assert tidy_hashtags(text) == "Body line.\n\n#DataEngineering #AWS"
+
+
+def test_comparison_with_like_this_is_not_bait_but_asking_for_likes_is():
+    from app.services.post_rules import ENGAGEMENT_BAIT
+
+    assert not ENGAGEMENT_BAIT.search("If you've built scoring like this, how did you decide when rules were enough?")
+    for bait in ("Like this post if it helped", "Share if you agree", "Follow me for more", "Comment below"):
+        assert ENGAGEMENT_BAIT.search(bait), bait

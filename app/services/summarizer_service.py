@@ -54,13 +54,16 @@ Focus:
   a post that lists everything reads like a resume.
 - Never link two facts by cause and effect ("this came from", "which led to") unless one fact states that link itself.
 
-Shape:
-- First line: {hook} Keep it under 120 characters and make it a complete statement on its own, because only the first line shows
+Shape (the structure the owner approved on 2026-10-23):
+- First line: {hook} Keep it at most 135 characters and make it a complete claim on its own, because only the first line shows
   before "see more".
-- Then short paragraphs of one to three sentences separated by blank lines: the context, the decision and its trade-off, the result,
-  and what you learned or would do the same way again.
+- Then short paragraphs of one to three sentences separated by blank lines, each leading to the next:
+  why it mattered (only from YOUR OWN NOTES, at most one sentence), what you built, the turning point (the result or decision that
+  changed how you read the work), and the measured result.
+- Frame the work as an engineering decision a data or ML engineer would recognise. Keep any job-search backstory to one sentence.
+- Plain words: every number says what it measures ("agreed on 6 of 8 resumes", not "6/8 alignment"). No slogans, no abstract claims.
 - {ending}
-- Total length {min_chars} to {max_chars} characters including spaces, then one last line with 2 or 3 relevant hashtags.
+- Total length {min_chars} to {max_chars} characters including spaces, then one last line with 2 relevant hashtags.
 - Return only the post text.
 
 BACKGROUND:
@@ -86,12 +89,11 @@ FORMAT_TASKS = {
                  "it changes for people who build with that tool, tied to one specific thing you did in FEATURED.",
 }
 
-ENDINGS = {
-    "project_spotlight": "End with one plain sentence saying you are open to {roles} roles.",
-    "lesson": "End with one specific technical question to readers about how they handle the same problem.",
-    "decision": "End with one plain sentence saying you are open to {roles} roles.",
-    "news_take": "End with one specific technical question to readers.",
-}
+# Every format ends the same way: a concrete closing line, then one question only a practitioner could answer. The question is how
+# engineers and hiring managers start a conversation; asking for likes or comments is penalised and stays banned above.
+_CLOSE = ("End with two short paragraphs. First, one concrete sentence about what the work now lets you or its user do. Then one "
+          "specific technical question that only someone who has built something similar could answer.")
+ENDINGS = {fmt: _CLOSE for fmt in ("project_spotlight", "lesson", "decision", "news_take")}
 
 
 def post_format_for(day: date) -> str | None:
