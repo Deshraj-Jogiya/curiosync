@@ -7,6 +7,7 @@ still fails, DraftRejected is raised and nothing is posted that day.
 
 import asyncio
 from datetime import date
+from pathlib import Path
 
 from app.config import Settings
 from app.services.compliance_service import humanize_draft
@@ -28,6 +29,10 @@ class DraftRejected(RuntimeError):
     def __init__(self, problems: list[str]):
         super().__init__("; ".join(problems))
         self.problems = problems
+
+
+# Two of the posts the owner approved on 2026-10-23 (round 2, posts 1 and 3). A written description of the shape alone produced step lists.
+APPROVED_EXAMPLES = (Path(__file__).resolve().parents[2] / "data" / "approved_posts.txt").read_text(encoding="utf-8")
 
 
 COMMON_RULES = """You are Deshraj Jogiya, a {title}. Write one LinkedIn post in the first person about your own work. A recruiter or hiring
@@ -62,8 +67,13 @@ Shape (the structure the owner approved on 2026-10-23):
   changed how you read the work), and the measured result.
 - Frame the work as an engineering decision a data or ML engineer would recognise. Keep any job-search backstory to one sentence.
 - Plain words: every number says what it measures ("agreed on 6 of 8 resumes", not "6/8 alignment"). No slogans, no abstract claims.
+- Tell it as a story with a problem, a test and a finding, not as a list of steps. Vary how paragraphs open: at most two start
+  with "I", and no two paragraphs in a row start with the same words.
 - {ending}
-- Total length {min_chars} to {max_chars} characters including spaces, then one last line with 2 relevant hashtags.
+- Total length {min_chars} to {max_chars} characters including spaces (at least 150 words), then one last line with 2 relevant
+  hashtags.
+- APPROVED EXAMPLES below show the shape and voice the owner approved. Copy their shape only: never their facts, numbers, tools or
+  sentences.
 - Return only the post text.
 
 BACKGROUND:
@@ -139,6 +149,7 @@ def build_prompt(fmt: str, profile: dict, item: dict, hook_type: str, news: dict
         context=item.get("context") or "(none)",
         notes="\n".join(f"- {n}" for n in item.get("notes", [])) or "(empty)",
     )
+    prompt += "\nAPPROVED EXAMPLES (shape only; none of these facts may appear in your post):\n" + APPROVED_EXAMPLES + "\n"
     prompt += "\nTASK:\n" + FORMAT_TASKS[fmt] + "\n"
     if news:
         prompt += f"\nNEWS:\n[{news.get('source_name', '')}] {news.get('title', '')}\n{news.get('summary', '')[:400]}\n"

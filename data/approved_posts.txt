@@ -1,0 +1,33 @@
+--- EXAMPLE 1 ---
+Can plain rules replace an AI score? On 8 real resumes they agreed 6 times out of 8, so I kept both and made each show its evidence.
+
+The scores come from Career Pilot, the job-search platform I built and use every day. I built it because the tools I tried over two years of searching were unfinished or failed. Its weakest part was the match score: one AI number out of 100 that never said which skills matched and which were missing.
+
+So I wrote a rule-based score next to it, also out of 100: 60 points for skills, 20 for the role type, 20 for years of experience. For every skill a posting asks for, it shows where that skill appears in the resume: in a job, in a project, or only in the skills list.
+
+The rule that matters most is a limit. A frontend developer posting that also lists Python, SQL, dbt and AWS shares 4 of its 8 skills with a data engineering resume, enough to score 50. Because the role type doesn't match, the score is held at 40, and the AI score gets the same limit.
+
+Then the test, on 8 resumes I had tailored. The two scores were 16.9 points apart on average and agreed on whether a resume needed another rewrite 5 times out of 8. One fix, counting "Tableau or Power BI" as one requirement instead of two, brought that to 12 points and 6 out of 8. Not enough to drop the AI.
+
+So every posting now shows both scores, each skill with the resume line behind it, and a job of the wrong type can't score above 40 under either one.
+
+If you've had rules and a model scoring the same thing, how did you decide when the rules were good enough to replace it?
+
+#DataEngineering #MachineLearning
+
+--- EXAMPLE 2 ---
+An auditor checking a ledger in order opens 1,108 entries to find 90% of the problems. Sorted by my risk score, they open 43.
+
+The ledger is simulated. I generated the entries and planted 47 problems, listed in a separate table that the detection code never reads, so every result can be checked against the right answers.
+
+Each entry gets three checks. Benford's Law: in many real financial datasets about 30% of amounts start with 1, so amounts that break that pattern score higher. An Isolation Forest, a model that flags amounts and tax ratios unlike the rest. And a tax-rate rule that flags any claim whose rate doesn't match its category. The pipeline runs in Dagster, so each step can be rerun on its own.
+
+Scoring each check on its own changed how I read the results. The plain tax-rate rule found 45 of the 47 problems and flagged nothing wrongly. The model found 18, and the rule had already found all 18.
+
+So the rule's 45 flags go first, and every one is a real problem: that alone gets an auditor to 90% in 43 entries. The model and Benford's Law rank the rest, and the 2 problems the rule missed come up at entries 131 and 137 of 1,200.
+
+On a real ledger I would start the same way: measure the simple rules alone first, then use a model to rank what they leave.
+
+How do you get labels for a real ledger when nobody plants the answers?
+
+#DataEngineering #AnomalyDetection

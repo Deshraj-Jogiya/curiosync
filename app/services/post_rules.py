@@ -12,6 +12,7 @@ import re
 # characters, so the first line has to carry the claim on its own.
 MIN_CHARS = 800
 MAX_CHARS = 1700
+MIN_WORDS = 150  # the same floor compliance_service reports
 MAX_FIRST_LINE = 140
 MAX_HASHTAGS = 2  # 0-2 topic labels: more adds nothing and 10+ hurts (LinkedIn research, Oct 2026)
 
@@ -195,6 +196,20 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         problems.append(f"more than {MAX_HASHTAGS} hashtags")
     if text.count("—") > 1:
         problems.append("more than one em dash")
+
+    # The approved posts vary how paragraphs open; a run of "I built... I built... I ran..." reads as a list of steps, not a story.
+    paras = [p.strip() for p in re.split(r"\n\s*\n", text) if p.strip() and not p.strip().startswith("#")]
+    openers = [re.findall(r"[a-z']+", p.lower())[:2] for p in paras]
+    i_starts = sum(1 for o in openers if o[:1] == ["i"])
+    if i_starts > 2:
+        problems.append(f"{i_starts} paragraphs start with 'I'; open at most 2 that way")
+    for a, b in zip(openers, openers[1:]):
+        if len(a) == 2 and a == b:
+            problems.append(f"two paragraphs in a row open with '{' '.join(a)}'")
+            break
+    words = len(re.findall(r"\w[\w'-]*", re.sub(r"(?<!\w)#\w+", "", text)))
+    if words < MIN_WORDS:
+        problems.append(f"{words} words, must be at least {MIN_WORDS}")
 
     opener = first_words(text)
     for past in history[-30:]:

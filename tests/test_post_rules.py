@@ -9,7 +9,7 @@ SOLO_SIM = {"kind": "project", "solo": True, "simulated": True}
 
 def _post(body: str, first: str = "I wrote 11 Great Expectations checks before trusting a synthetic dataset.") -> str:
     filler = " The pipeline runs PySpark over simulated postings and each stage is checked." * 14
-    return f"{first}\n\n{body}{filler}\n\nI am open to Data Engineer roles.\n\n#DataEngineering #PySpark"
+    return f"{first}\n\n{body}{filler}\n\nSo every stage is checked before anything reads it.\n\n#DataEngineering #PySpark"
 
 
 def test_clean_post_passes():
@@ -71,3 +71,23 @@ def test_comparison_with_like_this_is_not_bait_but_asking_for_likes_is():
     assert not ENGAGEMENT_BAIT.search("If you've built scoring like this, how did you decide when rules were enough?")
     for bait in ("Like this post if it helped", "Share if you agree", "Follow me for more", "Comment below"):
         assert ENGAGEMENT_BAIT.search(bait), bait
+
+
+def test_a_list_of_steps_is_sent_back():
+    # The 2026-10-23 draft: three paragraphs opening with "I", two in a row with "I built", 149 words.
+    steps = "\n\n".join(["A month filter pruned 60k simulated postings down to one partition.", "I built this project to learn how the system fits.",
+                         "I built an external table over raw files.", "I ran a repair command.", "#DataEngineering #PySpark"])
+    problems = check_draft(steps, SOLO_SIM, FACTS + " month filter partition external table repair", [])
+    assert any("paragraphs start with 'I'" in p for p in problems)
+    assert any("in a row open with 'i built'" in p for p in problems)
+    assert any("must be at least 150" in p for p in problems)
+
+
+def test_the_approved_examples_pass_the_shape_rules():
+    from pathlib import Path
+    text = (Path(__file__).resolve().parents[1] / "data" / "approved_posts.txt").read_text(encoding="utf-8")
+    posts = [block.split("---", 1)[1].strip() for block in text.split("--- EXAMPLE")[1:]]
+    assert len(posts) == 2
+    for post in posts:
+        shape = [p for p in check_draft(post, {"kind": "project", "solo": True}, post, []) if "'I'" in p or "in a row" in p or "words" in p]
+        assert shape == []
