@@ -129,3 +129,4 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-10-20 17:49:47 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Tuesday |
 | 2026-10-21 17:58:35 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: lesson, profile: loaded, generate_draft: lesson about Data Analyst / Data Engineer (hook measured_result, 1008 chars, 6 model calls), compliance_check: passed, visual: breakdown |
 | 2026-10-22 17:53:05 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Thursday |
+| 2026-10-23 17:48:28 | **DRAFTED** | duplicate_check: passed, token_check: passed, schedule: decision, profile: loaded, fetch_news: 15 items, generate_draft: decision about Job Market Lakehouse (hook measured_result, 969 chars, 8 model calls), compliance_check: passed, visual: breakdown |
