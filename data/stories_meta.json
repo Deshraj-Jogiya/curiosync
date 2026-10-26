@@ -4,31 +4,15 @@
     "read_on": "2026-10-26",
     "stories": 1
   },
-  "Job Search dbt Warehouse": {
-    "sha": null
-  },
-  "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
-    "sha": null
-  },
   "Tax Anomaly Audit Compliance Engine": {
     "sha": "e3da9b1efce8b6c000ce86f44dd5a13160914bb3",
     "read_on": "2026-10-26",
     "stories": 3
   },
-  "Multi-State Land Use Emissions Analysis": {
-    "sha": "99ae6b6d5d9916ff803dc29f6859dbe2b3f1a6be",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
   "Real-Time IoT Telematics & Predictive Maintenance": {
     "sha": "82bd56fd6e04cfe5087f161747e6866d22f2274e",
     "read_on": "2026-10-26",
     "stories": 1
-  },
-  "Sales Analytics & RFM Customer Segmentation Pipeline": {
-    "sha": "03e792a2f861636348933cc7bfe3b7fb54ec6b9c",
-    "read_on": "2026-10-26",
-    "stories": 0
   },
   "Extending STEM across ASL": {
     "sha": "2c01bfd5670a2df25e3fcfaf41bf3af96b27de63",
@@ -45,41 +29,6 @@
     "read_on": "2026-10-26",
     "stories": 1
   },
-  "Clinical Trials Patient Outcomes Analysis": {
-    "sha": "c9659341519a8ca16a98637a11adf36e1081d7bd",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "AI-ML Data Science Simulation": {
-    "sha": "2b86c4b7fce2ded557811e3d8a28e7165859b98b",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "Automated Daily Data Insights": {
-    "sha": "81f559b23b9fe462418aec8ad5f68bd4b374c2f6",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "ArcGIS Commute Insights": {
-    "sha": "badbc7a6d3a221cbf0307d83a32d64b380635357",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "Reactive Job Ingest Gateway": {
-    "sha": "282e7525da6bbb3d6c7c20ee4443451065c6b16c",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "Interview Prep API": {
-    "sha": "7b49d122f97154bd17f41a1173c2fa13c42c4be4",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "Job Notes": {
-    "sha": "c2d6f0568273a53977621b03d50aa03c6c2f1081",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
   "Job Search CRM & AI Application Tailoring Center": {
     "sha": "8264b149fa4b6ac9feee143c4b9f80911c62916a",
     "read_on": "2026-10-26",
@@ -94,20 +43,5 @@
     "sha": "cef096ff92dacaa216c95e866bddcbaa7ae10096",
     "read_on": "2026-10-26",
     "stories": 4
-  },
-  "Company Search (HTMX)": {
-    "sha": "94b036b5a0fce0abe762b631af83c018bf00ea74",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "Interview Prep Mobile": {
-    "sha": "d7a2f7dd1ea29a0befc1d2829e5d75ced80a51b1",
-    "read_on": "2026-10-26",
-    "stories": 0
-  },
-  "Company Blocklist": {
-    "sha": "a93d1c57810140a9c5ae7570b8ff84c15745aab6",
-    "read_on": "2026-10-26",
-    "stories": 0
   }
 }

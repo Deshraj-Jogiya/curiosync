@@ -333,9 +333,9 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
     if len(docs) < 400:
         logger.info("No usable documents for %s", item["title"])
         return []
-    found = []
+    found, read_any = [], False
     for piece in doc_chunks(docs)[:MAX_CHUNKS_PER_PROJECT]:
-        prompt = MINE_PROMPT.format(title=item["title"], n=n, docs=piece) + "\nReturn only the JSON object, nothing else."
+        prompt = MINE_PROMPT.format(title=item["title"], n=min(n, 6), docs=piece) + "\nReturn only the JSON object, nothing else."
         # One retry at temperature 0 when the reply has no readable JSON; both tries use the mining models, so mining never spends the
         # allowance the writing models need.
         for attempt, temperature in enumerate((0.2, 0.0), 1):
@@ -348,8 +348,11 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
             part = parse_stories(raw)
             if part is not None:
                 found += part
+                read_any = True
                 break
             logger.warning("Story extraction for %s (try %d) returned no readable JSON: %r", item["title"], attempt, (raw or "")[:200])
+    if not read_any:
+        return None  # nothing could be read: the project is not marked as read, so the next run tries again
     stories = []
     for k, s in enumerate(found):
         if not isinstance(s, dict):
@@ -384,15 +387,15 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
     for title in _load(path + ".tried", []):  # the old list of projects read without result
         meta.setdefault(title, {"sha": None})
     left = len(unused(history, stories))
-    if left >= HEALTHY_BANK:
-        return f"{left} stories ready"
+    # With a healthy bank only projects never read are read (their stories add new subjects); re-reads of changed repos wait.
+    healthy = left >= HEALTHY_BANK
 
     never = [i for i in items if i.get("github_url") and i["title"] not in meta and not any(x["subject"] == i["title"] for x in stories)]
     if reread_without_charts:
         # Projects whose stories were mined before chart data existed, read again so their stories gain a series.
         never = [i for i in items if any(x["subject"] == i["title"] and not x.get("series") for x in stories)] + never
     todo, shas = never[:MAX_SUBJECTS_PER_REFILL], {}
-    if len(todo) < MAX_SUBJECTS_PER_REFILL:
+    if len(todo) < MAX_SUBJECTS_PER_REFILL and not healthy:
         for i in items:
             if len(todo) >= MAX_SUBJECTS_PER_REFILL:
                 break
@@ -409,6 +412,8 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
             new = await mine_subject(item, settings)
         except Exception as exc:
             logger.warning("Story extraction for %s failed: %s", item["title"], exc)
+            continue
+        if new is None:
             continue
         existing = {x["id"] for x in stories}
         for st in new:
