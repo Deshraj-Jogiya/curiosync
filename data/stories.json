@@ -31,68 +31,6 @@
     "simulated": false
   },
   {
-    "id": "job-market-lakehouse-1",
-    "subject": "Job Market Lakehouse",
-    "question": "How effectively does Hive dynamic partitioning and partition pruning optimize month-filtered query execution over job posting data?",
-    "test": "Loaded 60,000 synthetic job postings from 400 companies into a Hive Parquet table partitioned dynamically by month, ran MSCK REPAIR TABLE to register partitions, and executed a month-filtered query for June 2025.",
-    "results": [
-      {
-        "label": "Raw dataset row count",
-        "value": "60,000 rows"
-      },
-      {
-        "label": "Companies in synthetic dataset",
-        "value": "400 companies"
-      },
-      {
-        "label": "Initial dynamic partitions written",
-        "value": "20 partitions"
-      },
-      {
-        "label": "Partitions after repair command",
-        "value": "21st partition"
-      },
-      {
-        "label": "June 2025 query rows read",
-        "value": "3,015 rows"
-      }
-    ],
-    "decision": "Used HiveQL dynamic partitioning and MSCK REPAIR TABLE to partition data by month so single-month queries scan only relevant partitions.",
-    "chart_title": "Hive Dynamic Partitioning and Query Partition Pruning Performance",
-    "detail": "In CI, the month filter plan successfully pruned execution down to reading a single partition of 3,015 rows.",
-    "sources": [
-      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
-    ],
-    "simulated": true
-  },
-  {
-    "id": "talentvenue-eventintel-enterprise-data-p-1",
-    "subject": "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence",
-    "question": "Will migrating the SQL Server data to Azure ADLS Gen2 and Snowflake improve key operational metrics?",
-    "test": "Measured financial query latency, payment reconciliation accuracy, and contract‑cancellation risk model performance on the new cloud platform using production data.",
-    "results": [
-      {
-        "label": "Query speed improvement",
-        "value": "45% faster"
-      },
-      {
-        "label": "Payment reconciliation accuracy",
-        "value": "100% accuracy"
-      },
-      {
-        "label": "Risk model accuracy",
-        "value": "86.20% accuracy"
-      }
-    ],
-    "decision": "Adopt the cloud data platform as the primary analytics layer.",
-    "chart_title": "Operational impact of cloud migration",
-    "detail": "",
-    "sources": [
-      "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/README.md"
-    ],
-    "simulated": false
-  },
-  {
     "id": "fintech-credit-risk-fraud-command-center-1",
     "subject": "FinTech Credit Risk & Fraud Command Center",
     "question": "Which model should decline risky loan applications: Random Forest or XGBoost?",
