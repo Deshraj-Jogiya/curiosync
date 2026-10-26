@@ -13,7 +13,7 @@ from app.config import Settings
 from app.services.compliance_service import humanize_draft
 from app.services.llm_service import call_llm_with_fallback
 from app.services.post_plan import HOOK_TYPES, matching_news, news_allowed, pick_hook, pick_subject
-from app.services.post_rules import MAX_CHARS, MIN_CHARS, check_draft, tidy_hashtags
+from app.services.post_rules import MAX_CHARS, MIN_CHARS, check_draft, tidy_hashtags, unsupported_numbers
 from app.services.profile_source import format_item, load_profile, profile_context
 from app.utils.logging import logger
 
@@ -245,20 +245,27 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         fmt = "lesson"
     hook_type = pick_hook(item, history)
     prompt = build_prompt(fmt, profile, item, hook_type, news, story, feedback)
+    facts = source_text(profile, item, news)
+    story_facts = ""
     if story:
         from app.services.story_bank import story_text
 
-        # Numbers may only come from the story; the project's other facts are left out so the post cannot drift to them.
-        facts = story_text(story) + "\n" + profile_context(profile) + "\nProject: " + item["title"]
-    else:
-        facts = source_text(profile, item, news)
+        # The fact check sees the story, the project's facts and the owner's notes; numbers must come from the story alone.
+        story_facts = story_text(story) + "\n" + profile_context(profile)
+        facts = story_text(story) + "\n" + facts
+
+    def rule_problems(draft: str) -> list[str]:
+        found = check_draft(draft, item, facts, history)
+        if story_facts:
+            found += [f"number {n} is not in the story" for n in unsupported_numbers(draft, story_facts)]
+        return found
     logger.info("Drafting %s about %s (hook: %s)", fmt, item["title"], hook_type)
 
     results = await asyncio.gather(*(_one_draft(prompt, settings) for _ in range(DRAFTS_PER_RUN)), return_exceptions=True)
     drafts = [r for r in results if isinstance(r, str) and r.strip()]
     if not drafts:
         raise DraftRejected([f"no draft returned: {results[0]}"])
-    checked = sorted(((d, check_draft(d, item, facts, history)) for d in drafts), key=lambda p: (len(p[1]), _rank(p[0])))
+    checked = sorted(((d, rule_problems(d)) for d in drafts), key=lambda p: (len(p[1]), _rank(p[0])))
     best, problems = checked[0]
     attempts = len(drafts)
     if not problems:
@@ -271,7 +278,7 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         fix = (prompt + "\n\nYour previous draft is below. Rewrite it so it fixes every problem listed, keeping everything else that is "
                "true to the facts.\n\nPROBLEMS:\n" + "\n".join(f"- {p}" for p in problems) + "\n\nPREVIOUS DRAFT:\n" + best)
         best = _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": fix}], settings=settings, temperature=0.7))
-        problems = check_draft(best, item, facts, history)
+        problems = rule_problems(best)
         attempts += 1
         if not problems:
             problems = await critic_problems(best, facts, settings)

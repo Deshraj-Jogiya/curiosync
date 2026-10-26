@@ -52,28 +52,5 @@
       "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
     ],
     "simulated": true
-  },
-  {
-    "id": "job-market-lakehouse-2",
-    "subject": "Job Market Lakehouse",
-    "question": "Do Hadoop Streaming MapReduce aggregations match PySpark counts when executed over HDFS data?",
-    "test": "Tested by running a Hadoop Streaming MapReduce job (Python mapper and reducer, 2 reducers) on synthetic job posting data loaded into single-node HDFS, then reading the results back with PySpark.",
-    "results": [
-      {
-        "label": "Hadoop Streaming MapReduce counts",
-        "value": "100 counts"
-      },
-      {
-        "label": "PySpark matching counts",
-        "value": "100 counts"
-      }
-    ],
-    "decision": "Verified that MapReduce and PySpark produce identical aggregations for postings per month and source.",
-    "chart_title": "MapReduce and PySpark Monthly Posting Aggregation Count Verification",
-    "detail": "PySpark verified that all 100 MapReduce aggregated count entries matched Spark's counts exactly.",
-    "sources": [
-      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
-    ],
-    "simulated": true
   }
 ]

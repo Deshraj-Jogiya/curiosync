@@ -162,6 +162,8 @@ def verify_story(story: dict, docs: str) -> list[str]:
     numeric = [r for r in results if numbers_in(str(r.get("value", "")))]
     if len(numeric) < 2:
         problems.append("fewer than 2 numeric results")
+    elif len({str(r.get("value", "")).strip().lower() for r in numeric}) < 2:
+        problems.append("all results are the same number, so there is nothing to compare")
     text = " ".join([str(story.get(k, "")) for k in ("question", "test", "decision", "detail", "chart_title")] +
                     [f"{r.get('label', '')} {r.get('value', '')}" for r in results])
     bad = unsupported_numbers(text, docs)
