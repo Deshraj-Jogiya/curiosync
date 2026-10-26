@@ -148,6 +148,8 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         OPENAI_API_BASE: ${{ secrets.OPENAI_API_BASE }}
         OPENAI_MODEL: "gemini-3.5-flash"
+        # Free second provider (console.groq.com); used after gemini-3.5-flash. Without the secret only Gemini is used.
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}

@@ -193,3 +193,10 @@ def _no_real_linkedin_token_check(monkeypatch):
     async def ok(_token):
         return True, "valid (test)"
     monkeypatch.setattr("github_cron.check_linkedin_token", ok)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_llm_quota_state(monkeypatch):
+    import app.services.llm_service as llm
+    llm._exhausted.clear()
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
