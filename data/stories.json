@@ -1370,5 +1370,374 @@
       "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/README.md"
     ],
     "simulated": false
+  },
+  {
+    "id": "multi-state-land-use-emissions-analysis-1",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "question": "Can a machine-learning model beat \"last year's value\" on EPA's real land-use flux?",
+    "test": "Forecasting EPA's 25 annual series one year ahead using three previous years, trained up to 2017 and scored 2018‑2022.",
+    "results": [
+      {
+        "label": "Linear Regression accuracy",
+        "value": "0.9418"
+      },
+      {
+        "label": "Random Forest accuracy",
+        "value": "0.9329"
+      },
+      {
+        "label": "Last year's value accuracy",
+        "value": "0.947"
+      }
+    ],
+    "decision": "Neither model outperforms the naive baseline; the baseline is reported alongside model scores.",
+    "chart_title": "EPA real land‑use flux forecast accuracy",
+    "detail": "The EPA data are real, the daily land‑cover files are simulated.",
+    "skills": [
+      "scikit-learn",
+      "pandas",
+      "time-based holdout",
+      "baseline comparison"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "multi-state-land-use-emissions-analysis-2",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "question": "Do the models add anything on the simulated daily balance?",
+    "test": "Week‑ahead forecast from lagged values only, scored on the final four weeks.",
+    "results": [
+      {
+        "label": "Linear Regression accuracy",
+        "value": "0.9981"
+      },
+      {
+        "label": "Random Forest accuracy",
+        "value": "0.9983"
+      },
+      {
+        "label": "Same day last week accuracy",
+        "value": "0.9984"
+      }
+    ],
+    "decision": "The models add nothing; daily land cover barely moves outside shocks.",
+    "chart_title": "Simulated daily balance week‑ahead forecast accuracy",
+    "detail": "Features now exclude the same‑day area to avoid target leakage.",
+    "skills": [
+      "scikit-learn",
+      "lag features",
+      "pytest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "multi-state-land-use-emissions-analysis-3",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "question": "Is the vectorised shock detector faster, and does it flag the same days?",
+    "test": "Timing the rolling‑median detector as a Python function per series and as grouped pandas operations on 5,350 records and 273,750 records, and checking equivalence of flagged days.",
+    "results": [
+      {
+        "label": "5,350 records per series (ms)",
+        "value": "19.6"
+      },
+      {
+        "label": "5,350 records vectorised (ms)",
+        "value": "9.5"
+      },
+      {
+        "label": "5,350 records time saved (ms)",
+        "value": "0.5165"
+      },
+      {
+        "label": "273,750 records per series (ms)",
+        "value": "406.1"
+      },
+      {
+        "label": "273,750 records vectorised (ms)",
+        "value": "307.6"
+      },
+      {
+        "label": "273,750 records time saved (ms)",
+        "value": "0.2424"
+      }
+    ],
+    "decision": "The grouped pandas version is used in the pipeline.",
+    "chart_title": "Shock detector performance: per series vs vectorised",
+    "detail": "Both versions flag exactly the same days.",
+    "skills": [
+      "pandas groupby rolling windows",
+      "benchmarking",
+      "equivalence testing"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "multi-state-land-use-emissions-analysis-4",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "question": "Does shock detection find the injected shocks?",
+    "test": "Each day compared with the same state and land type’s surrounding week, scaled by that series’ own noise; generator injects 2–8% one‑day shocks over 0.1% daily noise.",
+    "results": [
+      {
+        "label": "Shocks flagged",
+        "value": "53"
+      },
+      {
+        "label": "Texas shocks flagged",
+        "value": "16"
+      },
+      {
+        "label": "Florida shocks flagged",
+        "value": "6"
+      }
+    ],
+    "decision": "The method works; all injected shocks are flagged with no false alarms.",
+    "chart_title": "Injected shock detection coverage",
+    "detail": "Shocks stand far above the 0.1% daily noise.",
+    "skills": [
+      "robust rolling statistics",
+      "pandas",
+      "GeoJSON export"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "multi-state-land-use-emissions-analysis-5",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "question": "Does the pipeline's yearly estimate agree with EPA's 2022 inventory?",
+    "test": "Comparing each state’s pipeline estimate (area × EPA emission factor) with EPA’s 2022 net land‑use flux.",
+    "results": [
+      {
+        "label": "Texas difference",
+        "value": "-0.16%"
+      },
+      {
+        "label": "California difference",
+        "value": "-0.18%"
+      },
+      {
+        "label": "Washington difference",
+        "value": "-0.17%"
+      },
+      {
+        "label": "Alabama difference",
+        "value": "-0.13%"
+      },
+      {
+        "label": "Florida difference",
+        "value": "3.9%"
+      }
+    ],
+    "decision": "Per‑state factors are kept; Florida’s larger gap is due to its small net total.",
+    "chart_title": "Pipeline vs EPA 2022 net flux differences",
+    "detail": "Pipeline estimates are within 0.2% of EPA for four states.",
+    "skills": [
+      "GeoPandas",
+      "GeoJSON for ArcGIS Online"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "multi-state-land-use-emissions-analysis-6",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "question": "How much weekly manual preparation does the pipeline replace?",
+    "test": "Counting each week’s work from the pipeline’s steps and costing at fixed per‑step minutes; comparing to pipeline run time.",
+    "results": [
+      {
+        "label": "Median manual preparation per week",
+        "value": "10.2 hours"
+      },
+      {
+        "label": "Lowest week manual preparation",
+        "value": "9.78 hours"
+      },
+      {
+        "label": "Highest week manual preparation",
+        "value": "10.85 hours"
+      },
+      {
+        "label": "Pipeline run per week",
+        "value": "about a second"
+      }
+    ],
+    "decision": "The weekly preparation runs as the pipeline; the estimate is costed from fixed per‑step minutes.",
+    "chart_title": "Manual vs pipeline weekly preparation time",
+    "detail": "Over 30 weeks of data, the pipeline does the work in about a second.",
+    "skills": [
+      "Python benchmarking",
+      "ETL step accounting",
+      "SQLite"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "sales-analytics-rfm-customer-segmentatio-1",
+    "subject": "Sales Analytics & RFM Customer Segmentation Pipeline",
+    "question": "Do RFM features separate customers into distinct groups?",
+    "test": "K‑Means clustering of scaled RFM features (k=4, random_state=42) on 2,000 synthetic customers",
+    "results": [
+      {
+        "label": "Variance explained by clusters",
+        "value": "93.9%"
+      },
+      {
+        "label": "Variance kept by 2‑D PCA view",
+        "value": "99.6%"
+      },
+      {
+        "label": "VIP Champions customers",
+        "value": "400"
+      }
+    ],
+    "decision": "segment names are written back to the customer dimension in the star schema for the Power BI dashboard",
+    "chart_title": "RFM clustering variance and cluster size",
+    "detail": "one cluster stands far apart on frequency and spend (the VIP Champions); the other three have similar frequency and spend and differ mainly in recency.",
+    "skills": [
+      "RFM analysis",
+      "pandas",
+      "SQLite star schema",
+      "Power BI"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Sales-Customer-Segmentation-Pipeline/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Sales-Customer-Segmentation-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "clinical-trials-patient-outcomes-analysi-1",
+    "subject": "Clinical Trials Patient Outcomes Analysis",
+    "question": "Does a higher dosage change survival?",
+    "test": "Kaplan-Meier survival curves and pairwise log-rank tests across three treatment arms over 365 days",
+    "results": [
+      {
+        "label": "Survival at day 365",
+        "value": "0.1582"
+      },
+      {
+        "label": "Median survival (days)",
+        "value": "118.0"
+      },
+      {
+        "label": "Mortality",
+        "value": "69.47%"
+      },
+      {
+        "label": "Log-rank test statistic",
+        "value": "23.78"
+      },
+      {
+        "label": "p-value",
+        "value": "1.08e-06"
+      }
+    ],
+    "decision": "Survival differs between every pair of arms at p < 0.05, and the high-dosage arm survives longest.",
+    "chart_title": "Survival Comparison Across Dosage Arms",
+    "detail": "All 250 patient records are simulated with a fixed seed by `etl/clinical_etl.py`; no real patient data is used.",
+    "skills": [
+      "lifelines",
+      "pandas",
+      "SQL on SQLite"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "clinical-trials-patient-outcomes-analysi-2",
+    "subject": "Clinical Trials Patient Outcomes Analysis",
+    "question": "Does the high dosage bring more adverse events?",
+    "test": "Chi-square test of independence on adverse event rates per arm",
+    "results": [
+      {
+        "label": "Adverse event rate",
+        "value": "23.75%"
+      },
+      {
+        "label": "Chi-square statistic",
+        "value": "9.4644"
+      },
+      {
+        "label": "p-value",
+        "value": "0.008807"
+      },
+      {
+        "label": "Degrees of freedom",
+        "value": "2"
+      }
+    ],
+    "decision": "Adverse-event rates differ significantly across arms (p < 0.05): the arm that survives longest also has the highest adverse-event rate, so the survival gain comes with a safety cost to weigh.",
+    "chart_title": "Adverse Event Rates by Dosage Arm",
+    "detail": "Adverse-event rates differ significantly across arms (p < 0.05).",
+    "skills": [
+      "SciPy",
+      "pandas",
+      "SQL on SQLite"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "clinical-trials-patient-outcomes-analysi-3",
+    "subject": "Clinical Trials Patient Outcomes Analysis",
+    "question": "Should the report refresh run as one process or as separate scripts?",
+    "test": "Timing of four refresh steps (ETL, statistics, Tableau extracts, dashboard) as separate scripts versus one process",
+    "results": [
+      {
+        "label": "Separate scripts time",
+        "value": "15.45 s"
+      },
+      {
+        "label": "One process time",
+        "value": "6.25 s"
+      },
+      {
+        "label": "Time saved",
+        "value": "0.5954"
+      }
+    ],
+    "decision": "`make_report.py` refreshes the whole report in one process; `tests/test_make_report.py` asserts the extracts are the same as the separate scripts produce.",
+    "chart_title": "Report Refresh Time Comparison",
+    "detail": "`make_report.py` refreshes the whole report in one process; 6.3 s instead of 15.5 s for the four steps run as separate scripts, 60% faster, with identical extracts.",
+    "skills": [
+      "Python",
+      "pandas",
+      "pytest",
+      "Matplotlib",
+      "Tableau extracts"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": false
   }
 ]

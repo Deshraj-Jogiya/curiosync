@@ -53,5 +53,20 @@
     "sha": "4604a41e2a1ecdde0b3b230ebb78957933059f6f",
     "read_on": "2026-10-26",
     "stories": 1
+  },
+  "Multi-State Land Use Emissions Analysis": {
+    "sha": "99ae6b6d5d9916ff803dc29f6859dbe2b3f1a6be",
+    "read_on": "2026-10-26",
+    "stories": 6
+  },
+  "Sales Analytics & RFM Customer Segmentation Pipeline": {
+    "sha": "03e792a2f861636348933cc7bfe3b7fb54ec6b9c",
+    "read_on": "2026-10-26",
+    "stories": 1
+  },
+  "Clinical Trials Patient Outcomes Analysis": {
+    "sha": "c9659341519a8ca16a98637a11adf36e1081d7bd",
+    "read_on": "2026-10-26",
+    "stories": 3
   }
 }

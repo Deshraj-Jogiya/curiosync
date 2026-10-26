@@ -19,5 +19,24 @@
     "text": "Can plain rules replace an AI score? On 8 real resumes they agreed 6 times out of 8, so I kept both and made each show its evidence.\n\nThe scores come from Career Pilot, the job-search platform I built and use every day. I built it because the tools I tried over two years of searching were unfinished or failed. Its weakest part was the match score: one AI number out of 100 that never said which skills matched and which were missing.\n\nSo I wrote a rule-based score next to it, also out of 100: 60 points for skills, 20 for the role type, 20 for years of experience. For every skill a posting asks for, it shows where that skill appears in the resume: in a job, in a project, or only in the skills list.\n\nThe rule that matters most is a limit. A frontend developer posting that also lists Python, SQL, dbt and AWS shares 4 of its 8 skills with a data engineering resume, enough to score 50. Because the role type doesn't match, the score is held at 40, and the AI score gets the same limit.\n\nThen the test, on 8 resumes I had tailored. The two scores were 16.9 points apart on average and agreed on whether a resume needed another rewrite 5 times out of 8. One fix, counting \"Tableau or Power BI\" as one requirement instead of two, brought that to 12 points and 6 out of 8. Not enough to drop the AI.\n\nSo every posting now shows both scores, each skill with the resume line behind it, and a job of the wrong type can't score above 40 under either one.\n\nIf you've had rules and a model scoring the same thing, how did you decide when the rules were good enough to replace it?\n\n#DataEngineering #MachineLearning",
     "posted_by": "owner, by hand (approved round-2 post 1, with 8-page document)",
     "url": "https://www.linkedin.com/feed/update/urn:li:activity:7519497560483385344/"
+  },
+  {
+    "format": "project_spotlight",
+    "subject": "Portfolio assistant fallback",
+    "text": "When Gemini fails, the chat assistant on my portfolio still answers, with no AI model at all. It got 92.5% of test questions right.\n\nWithout a backup, a failed Gemini call means a recruiter's question gets no answer. So I built one that runs in the browser: every fact on the site (each job, project, skill and certificate) is stored as a short passage, a question is matched to passages by keywords and by meaning, and a small ranking model picks the best one. The answer is that passage with its source, so it can't make anything up.\n\nTo test it, I wrote 120 questions a recruiter might ask, including typos and questions it should refuse, like salary, visa status and skills not in my profile. I tuned on 80 and kept 40 aside until the end. The 92.5% is on those 40.\n\nThe biggest gain came from teaching it when not to answer. Refusing when the ranking model's confidence is low added 4 points, and fixed refusal topics for pay, work authorization and personal details added 7. Together that is more than the ranking model itself added, 10 points.\n\nSpeed was the other problem: the first version took 7.5 s per answer. Shorter inputs and a smaller ranking model brought it to 0.9 s, and its 57 MB of files download only the first time Gemini fails. It still misses some vague questions, like \"what has he been working on recently\".\n\nSo a recruiter who asks about my work gets an answer quoted from my own profile, with its source, even when the AI behind the site is down.\n\nIf you've built retrieval over a small set of documents, how do you decide when it should refuse instead of answer?\n\n#MachineLearning #NLP",
+    "approved_id": "round2-post2-assistant",
+    "date": "2026-10-26",
+    "opener_words": [
+      "when",
+      "gemini",
+      "fails",
+      "the",
+      "chat",
+      "assistant",
+      "on",
+      "my",
+      "portfolio",
+      "still"
+    ]
   }
 ]
