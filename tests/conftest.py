@@ -200,3 +200,11 @@ def _fresh_llm_quota_state(monkeypatch):
     import app.services.llm_service as llm
     llm._exhausted.clear()
     monkeypatch.delenv("GROQ_API_KEY", raising=False)
+
+
+@pytest.fixture(autouse=True)
+def _no_real_story_files(monkeypatch, tmp_path):
+    """Tests never read or write the repo's real story bank, its read log or the owner's feedback."""
+    monkeypatch.setattr("app.services.story_bank.STORIES_PATH", str(tmp_path / "stories.json"))
+    monkeypatch.setattr("app.services.story_bank.META_PATH", str(tmp_path / "stories_meta.json"))
+    monkeypatch.setattr("app.services.story_bank.FEEDBACK_PATH", str(tmp_path / "feedback.json"))

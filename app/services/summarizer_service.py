@@ -175,6 +175,9 @@ def build_prompt(fmt: str, profile: dict, item: dict, hook_type: str, news: dict
         from app.services.story_bank import story_text
 
         prompt += STORY_RULES.format(story=story_text(story))
+        if story.get("repeat_of"):
+            prompt += (f"\nThis test was already posted on {story['repeat_of']}. Write it from a different angle: lead with a different "
+                       "result or with the decision, and do not reuse the earlier opening.\n")
     if feedback:
         prompt += FEEDBACK_RULES.format(feedback="\n".join(f"- {f}" for f in feedback))
     prompt += "\nTASK:\n" + FORMAT_TASKS[fmt] + "\n"

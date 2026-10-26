@@ -2,17 +2,21 @@
 
 A post written from a project's resume bullets reads as a list of facts, and its image (drawn from the same bullets) ends up about
 something else. The posts the owner approved each tell one measured test instead: a question, how it was tested, the numbers, and
-the decision that followed. A story holds exactly that, taken from the project's own repository documents (README and docs/*.md), and
-every number in it must appear in that source. The post is written from one story, and its image charts that story's numbers, so text
-and image describe the same thing.
+the decision that followed. A story holds exactly that, taken from the project's own repository documents (README, FINDINGS and every
+other .md in the root, docs/ and reports/), and every number in it must appear in that source. The post is written from one story, and
+its image charts that story's numbers, so text and image describe the same thing.
 
-data/stories.json is filled by refill(): when fewer than MIN_UNUSED stories are left, the documents of projects without stories are read
-and stories are extracted from them. A story is used once; one rejected twice by the owner is not offered again.
+data/stories.json is filled by refill() on every run: up to MAX_SUBJECTS_PER_REFILL projects a run, first those never read, then those
+whose repository changed since it was last read (data/stories_meta.json keeps the commit each was read at), so new work in any repo
+becomes new stories by itself. Every story a document supports is kept, not a fixed few, and each lists the skills it shows, so the
+posts rotate across projects and skills. A story is used once; one rejected twice by the owner is not offered again. When every story
+has been used, the one posted longest ago (at least REPEAT_AFTER_DAYS) may come back as a new post with a different format.
 """
 
 import json
 import os
 import re
+from datetime import date, timedelta
 
 import httpx
 
@@ -20,11 +24,14 @@ from app.services.post_rules import numbers_in, unsupported_numbers
 from app.utils.logging import logger
 
 STORIES_PATH = os.path.join("data", "stories.json")
+META_PATH = os.path.join("data", "stories_meta.json")
 FEEDBACK_PATH = os.path.join("data", "feedback.json")
-MIN_UNUSED = 4
-MAX_SUBJECTS_PER_REFILL = 2
-MAX_DOC_CHARS = 24000
+MAX_SUBJECTS_PER_REFILL = 3
+MAX_DOC_CHARS = 60000
+MAX_STORIES_PER_PROJECT = 12
 MIN_RESULTS = 3
+REPEAT_AFTER_DAYS = 180
+RECENT_POSTS_FOR_SKILLS = 10
 
 
 def _load(path: str, default):
@@ -76,21 +83,47 @@ def unused(history: list[dict], stories: list[dict] | None = None, feedback: lis
     return [s for s in stories if s["id"] not in taken and _rejections(s["id"], feedback) < 2]
 
 
+def _skills_recently_featured(history: list[dict], stories: list[dict]) -> set[str]:
+    by_id = {x["id"]: x for x in stories}
+    recent = [h for h in history if h.get("story_id")][-RECENT_POSTS_FOR_SKILLS:]
+    return {k.lower() for h in recent for k in by_id.get(h["story_id"], {}).get("skills", [])}
+
+
 def pick_story(items: list[dict], history: list[dict], stories: list[dict] | None = None,
-               feedback: list[dict] | None = None) -> tuple[dict, dict] | None:
-    """The unused story whose subject was posted about least recently; ties go to the profile's own order (most recent work first)."""
+               feedback: list[dict] | None = None, today: date | None = None) -> tuple[dict, dict] | None:
+    """The unused story whose project was posted about least recently; among a project's stories, the one showing the most skills not
+    featured in the last posts; ties go to the profile's own order (most recent work first). With nothing unused, the story posted
+    longest ago (at least REPEAT_AFTER_DAYS) comes back, marked as a repeat so it is written in a different format."""
+    stories = load_stories() if stories is None else stories
+    feedback = load_feedback() if feedback is None else feedback
     by_title = {i["title"]: i for i in items}
     recent = [h.get("subject") for h in history]
+    featured = _skills_recently_featured(history, stories)
 
     def last_posted(subject: str) -> int:
         return max((n for n, s in enumerate(recent) if s == subject), default=-1)
 
+    def new_skills(story: dict) -> int:
+        return len({k.lower() for k in story.get("skills", [])} - featured)
+
     order = {t: n for n, t in enumerate(by_title)}
     candidates = [s for s in unused(history, stories, feedback) if s["subject"] in by_title]
-    if not candidates:
+    if candidates:
+        best = min(candidates, key=lambda s: (last_posted(s["subject"]), -new_skills(s), order[s["subject"]]))
+        return best, by_title[best["subject"]]
+
+    today = today or date.today()
+    posted_on = {}
+    for h in history:
+        if h.get("story_id") and h.get("date"):
+            posted_on[h["story_id"]] = max(posted_on.get(h["story_id"], ""), h["date"])
+    cutoff = str(today - timedelta(days=REPEAT_AFTER_DAYS))
+    old = [s for s in stories if s["subject"] in by_title and posted_on.get(s["id"], "9999") <= cutoff
+           and _rejections(s["id"], feedback) < 2]
+    if not old:
         return None
-    best = min(candidates, key=lambda s: (last_posted(s["subject"]), order[s["subject"]]))
-    return best, by_title[best["subject"]]
+    best = min(old, key=lambda s: posted_on[s["id"]])
+    return {**best, "repeat_of": posted_on[best["id"]]}, by_title[best["subject"]]
 
 
 # --- Filling the bank from the project's own documents -------------------------------------------------------------------------------
@@ -100,24 +133,56 @@ def _repo(github_url: str) -> str | None:
     return m.group(1).removesuffix(".git") if m else None
 
 
+async def head_sha(github_url: str) -> str | None:
+    repo = _repo(github_url)
+    if not repo:
+        return None
+    headers = {"Accept": "application/vnd.github+json"}
+    if os.getenv("GITHUB_TOKEN"):
+        headers["Authorization"] = f"Bearer {os.getenv('GITHUB_TOKEN')}"
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            resp = await client.get(f"https://api.github.com/repos/{repo}/commits/HEAD", headers=headers)
+        return resp.json().get("sha") if resp.status_code == 200 else None
+    except Exception as exc:
+        logger.warning("Could not read the latest commit of %s: %s", repo, exc)
+        return None
+
+
+def _doc_rank(path: str) -> int:
+    name = path.lower()
+    if "findings" in name:
+        return 0
+    if name == "readme.md":
+        return 1
+    if name.startswith(("docs/", "reports/")):
+        return 2
+    return 3
+
+
 async def fetch_docs(github_url: str) -> tuple[str, list[str]]:
-    """README.md and docs/*.md of a public repository, with the URLs they came from."""
+    """Every .md in the repository root, docs/ and reports/ (FINDINGS first, then README), with the URLs they came from."""
     repo = _repo(github_url)
     if not repo:
         return "", []
     headers = {"Accept": "application/vnd.github+json"}
     if os.getenv("GITHUB_TOKEN"):
         headers["Authorization"] = f"Bearer {os.getenv('GITHUB_TOKEN')}"
-    texts, sources = [], []
+    texts, sources, paths = [], [], []
+    skip = ("license", "changelog", "code_of_conduct", "security", "contributing")
     async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
-        paths = ["README.md"]
-        try:
-            resp = await client.get(f"https://api.github.com/repos/{repo}/contents/docs", headers=headers)
-            if resp.status_code == 200:
-                paths += [f["path"] for f in resp.json() if f.get("name", "").lower().endswith(".md")][:6]
-        except Exception as exc:
-            logger.warning("Could not list docs/ of %s: %s", repo, exc)
-        for path in paths:
+        for folder in ("", "docs", "reports"):
+            try:
+                resp = await client.get(f"https://api.github.com/repos/{repo}/contents/{folder}", headers=headers)
+            except Exception as exc:
+                logger.warning("Could not list %s/%s: %s", repo, folder or "(root)", exc)
+                continue
+            if resp.status_code == 200 and isinstance(resp.json(), list):
+                paths += [f["path"] for f in resp.json() if f.get("type") == "file" and f.get("name", "").lower().endswith(".md")
+                          and not f["name"].lower().startswith(skip)]
+        if not paths:
+            paths = ["README.md"]
+        for path in sorted(set(paths), key=lambda x: (_doc_rank(x), x)):
             try:
                 resp = await client.get(f"https://raw.githubusercontent.com/{repo}/HEAD/{path}")
             except Exception as exc:
@@ -131,7 +196,8 @@ async def fetch_docs(github_url: str) -> tuple[str, list[str]]:
 
 MINE_PROMPT = """Below are the repository documents of a project by Deshraj Jogiya, "{title}".
 
-Find up to {n} separate stories in them that would each make one LinkedIn post. A story is ONE measured test or comparison: a question
+Find EVERY separate story in them (up to {n}) that would make one LinkedIn post: do not stop at the first few, and look through all
+files, including findings, evaluations, benchmarks and tables. A story is ONE measured test or comparison: a question
 the author had, how it was tested, the measured results, and the decision taken because of them. Good stories compare two or more
 things with numbers (before and after, option A against option B, a rule against a model, a target against the result).
 Skip anything that is only a feature list or a description of the stack.
@@ -148,9 +214,12 @@ Rules:
   decision, give the plain conclusion they draw.
 - "chart_title" is at most 10 words and names what the results measure.
 - If the work used simulated or synthetic data, say so in "test".
+- "skills" lists the tools, languages and techniques this one test used, each written exactly as DOCUMENTS write it (for example
+  "XGBoost", "MLflow", "Isolation Forest", "dbt", "partition pruning"). At most 6.
+- Two stories must not be the same test told twice.
 
 Return only JSON: {{"stories": [{{"question": "...", "test": "...", "results": [{{"label": "...", "value": "..."}}], "decision": "...",
-"detail": "one optional sentence of supporting detail from DOCUMENTS, or empty", "chart_title": "..."}}]}}
+"detail": "one optional sentence of supporting detail from DOCUMENTS, or empty", "chart_title": "...", "skills": ["..."]}}]}}
 
 DOCUMENTS:
 {docs}
@@ -177,7 +246,14 @@ def verify_story(story: dict, docs: str) -> list[str]:
     return problems
 
 
-async def mine_subject(item: dict, settings, n: int = 3) -> list[dict]:
+def _same_test(a: dict, b: dict) -> bool:
+    """Two stories with mostly the same result numbers are the same test told twice."""
+    na = {v for r in a["results"] for v in numbers_in(str(r["value"]))}
+    nb = {v for r in b["results"] for v in numbers_in(str(r["value"]))}
+    return bool(na and nb) and len(na & nb) / min(len(na), len(nb)) >= 0.6
+
+
+async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -> list[dict]:
     from app.services.llm_service import call_llm_with_fallback
 
     docs, sources = await fetch_docs(item.get("github_url", ""))
@@ -201,21 +277,39 @@ async def mine_subject(item: dict, settings, n: int = 3) -> list[dict]:
             logger.info("Story %d for %s dropped: %s", k, item["title"], problems)
             continue
         slug = re.sub(r"[^a-z0-9]+", "-", item["title"].lower()).strip("-")[:40]
-        stories.append({"id": f"{slug}-{len(stories) + 1}", "subject": item["title"], **{key: s[key] for key in
-                        ("question", "test", "results", "decision", "chart_title")}, "detail": s.get("detail") or "",
-                        "sources": sources, "simulated": bool(item.get("simulated"))})
+        skills = [k for k in s.get("skills") or [] if isinstance(k, str) and k.strip() and k.lower() in docs.lower()][:6]
+        story = {"id": f"{slug}-{len(stories) + 1}", "subject": item["title"], **{key: s[key] for key in
+                 ("question", "test", "results", "decision", "chart_title")}, "detail": s.get("detail") or "",
+                 "skills": skills, "sources": sources, "simulated": bool(item.get("simulated"))}
+        if any(_same_test(story, kept) for kept in stories):
+            continue
+        stories.append(story)
     return stories
 
 
-async def refill(items: list[dict], history: list[dict], settings, path: str | None = None) -> str:
-    """Mine new stories when fewer than MIN_UNUSED are left: projects with no stories yet first, most recent work first."""
-    path = path or STORIES_PATH
+async def refill(items: list[dict], history: list[dict], settings, path: str | None = None, meta_path: str | None = None) -> str:
+    """Read up to MAX_SUBJECTS_PER_REFILL projects this run: never-read ones first (most recent work first), then ones whose repository
+    has new commits. New stories that repeat a test already in the bank are skipped."""
+    path, meta_path = path or STORIES_PATH, meta_path or META_PATH
     stories = load_stories(path)
+    meta = _load(meta_path, {})
+    for title in _load(path + ".tried", []):  # the old list of projects read without result
+        meta.setdefault(title, {"sha": None})
     left = len(unused(history, stories))
-    if left >= MIN_UNUSED:
-        return f"{left} stories ready"
-    mined_subjects = {s["subject"] for s in stories} | {s for s in _load(path + ".tried", [])}
-    todo = [i for i in items if i.get("github_url") and i["title"] not in mined_subjects][:MAX_SUBJECTS_PER_REFILL]
+
+    never = [i for i in items if i.get("github_url") and i["title"] not in meta and not any(x["subject"] == i["title"] for x in stories)]
+    todo, shas = never[:MAX_SUBJECTS_PER_REFILL], {}
+    if len(todo) < MAX_SUBJECTS_PER_REFILL:
+        for i in items:
+            if len(todo) >= MAX_SUBJECTS_PER_REFILL:
+                break
+            if not i.get("github_url") or i in todo:
+                continue
+            sha = await head_sha(i["github_url"])
+            if sha and meta.get(i["title"], {}).get("sha") != sha:
+                todo.append(i)
+                shas[i["title"]] = sha
+
     added = 0
     for item in todo:
         try:
@@ -223,14 +317,17 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
         except Exception as exc:
             logger.warning("Story extraction for %s failed: %s", item["title"], exc)
             continue
-        existing = {s["id"] for s in stories}
-        for s in new:
-            while s["id"] in existing:
-                s["id"] += "x"
-            stories.append(s)
-            existing.add(s["id"])
-        added += len(new)
-        if not new:
-            _save(path + ".tried", sorted(set(_load(path + ".tried", [])) | {item["title"]}))
+        existing = {x["id"] for x in stories}
+        for st in new:
+            if any(x["subject"] == st["subject"] and _same_test(st, x) for x in stories):
+                continue
+            while st["id"] in existing:
+                st["id"] += "x"
+            stories.append(st)
+            existing.add(st["id"])
+            added += 1
+        meta[item["title"]] = {"sha": shas.get(item["title"]) or await head_sha(item["github_url"]), "read_on": str(date.today()),
+                               "stories": len(new)}
     _save(path, stories)
-    return f"{left} stories ready, {added} new from {', '.join(i['title'] for i in todo) or 'no new project'}"
+    _save(meta_path, meta)
+    return f"{left} stories ready, {added} new from {', '.join(i['title'] for i in todo) or 'no changed project'}"

@@ -21,6 +21,37 @@ def escape_little_text(text: str) -> str:
     return "".join("\\" + ch if ch in _LITTLE_TEXT_RESERVED else ch for ch in text)
 
 
+async def _upload(kind: str, path: str, owner: str, headers: dict) -> str | None:
+    """Upload a file through LinkedIn's images or documents API and return its URN (urn:li:image or urn:li:document), or None."""
+    field = "image" if kind == "images" else "document"
+    content_type = "image/png" if kind == "images" else "application/pdf"
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            init = await client.post(f"https://api.linkedin.com/rest/{kind}?action=initializeUpload",
+                                     json={"initializeUploadRequest": {"owner": owner}}, headers=headers)
+        if init.status_code != 200:
+            logger.error("Failed to initialize %s upload. Status: %d, Response: %s", field, init.status_code, init.text)
+            return None
+        value = init.json().get("value", {})
+        upload_url, urn = value.get("uploadUrl"), value.get(field)
+        if not (upload_url and urn):
+            logger.error("No uploadUrl or %s URN in response: %s", field, value)
+            return None
+        with open(path, "rb") as f:
+            data = f.read()
+        async with httpx.AsyncClient(timeout=120) as client:
+            up = await client.put(upload_url, content=data, headers={"Authorization": headers["Authorization"],
+                                                                     "Content-Type": content_type})
+        if up.status_code not in (200, 201, 204):
+            logger.error("Failed to upload %s bytes. Status: %d, Response: %s", field, up.status_code, up.text)
+            return None
+        logger.info("Uploaded %s %s", field, urn)
+        return urn
+    except Exception as exc:
+        logger.exception("Error uploading %s to LinkedIn: %s", field, exc)
+        return None
+
+
 async def publish_post(
     access_token: str,
     author_urn: str,
@@ -28,8 +59,12 @@ async def publish_post(
     settings: Settings,
     image_path: str = None,
     alt_text: str | None = None,
+    document_path: str | None = None,
+    document_title: str | None = None,
 ) -> dict:
-    """Publish a post to LinkedIn via the Posts API, optionally with an image."""
+    """Publish a post to LinkedIn via the Posts API with an image or a PDF document (shown as a swipeable carousel).
+
+    The media was approved together with the text, so a failed upload fails the post instead of publishing the text alone."""
     headers = {
         "Authorization": f"Bearer {access_token}",
         "LinkedIn-Version": "202605",
@@ -37,48 +72,17 @@ async def publish_post(
         "Content-Type": "application/json",
     }
 
-    image_urn = None
-    if image_path and os.path.exists(image_path):
-        try:
-            logger.info("Initializing image upload for %s", image_path)
-            # Step 1: Initialize upload
-            init_url = "https://api.linkedin.com/rest/images?action=initializeUpload"
-            init_body = {
-                "initializeUploadRequest": {
-                    "owner": author_urn
-                }
-            }
-            async with httpx.AsyncClient(timeout=30) as client:
-                init_resp = await client.post(init_url, json=init_body, headers=headers)
-
-            if init_resp.status_code == 200:
-                init_data = init_resp.json()
-                upload_url = init_data.get("value", {}).get("uploadUrl")
-                image_urn = init_data.get("value", {}).get("image")
-
-                if upload_url and image_urn:
-                    logger.info("Uploading image bytes to %s", upload_url)
-                    # Step 2: Upload raw image binary
-                    with open(image_path, "rb") as f:
-                        image_bytes = f.read()
-
-                    async with httpx.AsyncClient(timeout=60) as client:
-                        upload_resp = await client.put(upload_url, content=image_bytes, headers={"Content-Type": "image/png"})
-
-                    if upload_resp.status_code in (200, 201, 204):
-                        logger.info("Image bytes uploaded successfully. URN: %s", image_urn)
-                    else:
-                        logger.error("Failed to upload image bytes. Status: %d, Response: %s", upload_resp.status_code, upload_resp.text)
-                        image_urn = None
-                else:
-                    logger.error("Could not find uploadUrl or image URN in response: %s", init_data)
-                    image_urn = None
-            else:
-                logger.error("Failed to initialize image upload. Status: %d, Response: %s", init_resp.status_code, init_resp.text)
-                image_urn = None
-        except Exception as e:
-            logger.exception("Error uploading image to LinkedIn: %s", str(e))
-            image_urn = None
+    media = None
+    if document_path and os.path.exists(document_path):
+        urn = await _upload("documents", document_path, author_urn, headers)
+        if not urn:
+            return {"success": False, "post_id": None, "error": "the approved document could not be uploaded; nothing was posted"}
+        media = {"id": urn, "title": (document_title or "Project results")[:400]}
+    elif image_path and os.path.exists(image_path):
+        urn = await _upload("images", image_path, author_urn, headers)
+        if not urn:
+            return {"success": False, "post_id": None, "error": "the approved image could not be uploaded; nothing was posted"}
+        media = {"id": urn, "altText": (alt_text or "Graphic summarizing the project described in the post")[:4086]}
 
     body = {
         "author": author_urn,
@@ -87,14 +91,9 @@ async def publish_post(
         "distribution": {"feedDistribution": "MAIN_FEED"},
         "lifecycleState": "PUBLISHED",
     }
-
-    if image_urn:
-        body["content"] = {
-            "media": {
-                "id": image_urn,
-                "altText": (alt_text or "Graphic summarizing the project described in the post")[:4086]
-            }
-        }
+    if media:
+        body["content"] = {"media": media}
+    image_urn = media["id"] if media else None
 
     logger.info("Publishing post to LinkedIn", extra={"author_urn": author_urn, "text_length": len(text), "has_image": image_urn is not None})
 

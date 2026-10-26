@@ -186,14 +186,22 @@ async def run_daily_pipeline(
         author_urn = f"urn:li:person:{user.linkedin_sub}" if user else ""
 
         image_path, alt_text, visual_kind = None, None, "none"
+        document_path, document_pages, document_title = None, [], None
         try:
             if story:
                 # The image charts the same story the post tells, using only numbers the post states; no chart, no image.
+                from app.services.post_document import render_story_document, wants_document
                 from app.services.post_visual import render_story_chart
 
-                chart = render_story_chart(story, post["item"], draft_text)
-                if chart:
-                    image_path, alt_text, visual_kind = chart[0], chart[1], "story chart"
+                doc = render_story_document(story, post["item"], draft_text) if wants_document(story) else None
+                if doc:
+                    # A story with enough results goes out as a multi-page document (a carousel), like the first approved post.
+                    document_path, document_pages, document_title = doc
+                    image_path, alt_text, visual_kind = document_pages[0], f"{document_title}: {len(document_pages)}-page document", "document"
+                else:
+                    chart = render_story_chart(story, post["item"], draft_text)
+                    if chart:
+                        image_path, alt_text, visual_kind = chart[0], chart[1], "story chart"
             else:
                 image_path, alt_text, visual_kind = await build_visual(post["item"], settings,
                                                                        source_text(profile, post["item"], post["news"]))
@@ -224,6 +232,9 @@ async def run_daily_pipeline(
                 "image_path": image_path,
                 "alt_text": alt_text,
                 "visual": visual_kind,
+                "document_path": document_path,
+                "document_pages": document_pages,
+                "document_title": document_title,
                 "history_entry": history_entry,
                 "compliance": compliance,
                 "steps": steps,

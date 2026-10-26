@@ -164,6 +164,12 @@ def _write_pending(result: dict, preview: bool = False):
     os.makedirs(PENDING_DIR, exist_ok=True)
     with open(os.path.join(PENDING_DIR, "post.txt"), "w", encoding="utf-8") as f:
         f.write(result["draft"])
+    pages = [p for p in result.get("document_pages") or [] if os.path.exists(p)]
+    if result.get("document_path") and os.path.exists(result["document_path"]) and pages:
+        shutil.copy(result["document_path"], os.path.join(PENDING_DIR, "document.pdf"))
+        os.makedirs(os.path.join(PENDING_DIR, "pages"), exist_ok=True)
+        for n, page in enumerate(pages, 1):
+            shutil.copy(page, os.path.join(PENDING_DIR, "pages", f"page-{n}.png"))
     image = result.get("image_path")
     if image and os.path.exists(image):
         shutil.copy(image, os.path.join(PENDING_DIR, "image.png"))
@@ -178,6 +184,8 @@ def _write_pending(result: dict, preview: bool = False):
         "history_entry": result.get("history_entry"),
         "post_day": result.get("post_day"),
         "story_id": (result.get("history_entry") or {}).get("story_id"),
+        "document_title": result.get("document_title"),
+        "pages": len(os.listdir(os.path.join(PENDING_DIR, "pages"))) if os.path.isdir(os.path.join(PENDING_DIR, "pages")) else 0,
     }
     with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
@@ -189,8 +197,10 @@ def _write_pending(result: dict, preview: bool = False):
         image_url = (f"https://raw.githubusercontent.com/{repo}/previews/{run_id}.png"
                      if repo and run_id and os.path.exists(os.path.join(PENDING_DIR, "image.png")) else None)
         run_url = f"https://github.com/{repo}/actions/runs/{run_id}" if repo and run_id else ""
+        page_urls = [f"https://raw.githubusercontent.com/{repo}/previews/{run_id}-p{n}.png"
+                     for n in range(1, meta["pages"] + 1)] if repo and run_id and meta["pages"] else []
         with open(summary, "a", encoding="utf-8") as f:
-            f.write(review_summary(result["draft"], meta, image_url, run_url, preview))
+            f.write(review_summary(result["draft"], meta, image_url, run_url, preview, page_urls))
 
 
 def _as_markdown_text(text: str) -> str:
@@ -207,7 +217,8 @@ def _as_markdown_text(text: str) -> str:
     return "\n".join(out)
 
 
-def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, preview: bool = False) -> str:
+def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, preview: bool = False,
+                   page_urls: list[str] | None = None) -> str:
     warnings = meta.get("warnings") or []
     day_label = "its post day"
     if meta.get("post_day"):
@@ -238,7 +249,10 @@ def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, p
     if warnings:
         parts.append("**Check before approving:** " + "; ".join(warnings) + "\n")
     parts.append("---\n\n## The post\n\n" + _as_markdown_text(text) + "\n")
-    if image_url:
+    if page_urls:
+        parts.append(f"## The document ({len(page_urls)} pages, posted as a swipeable carousel)\n\n**{meta.get('document_title')}**\n")
+        parts += [f"Page {n}\n\n![Page {n}]({u})\n" for n, u in enumerate(page_urls, 1)]
+    elif image_url:
         # Markdown image syntax: the run summary drops a raw <img> tag.
         parts.append(f"## The image\n\n![Post image]({image_url})\n\n[Open the image full size]({image_url})\n")
     else:
@@ -306,8 +320,10 @@ async def publish_due(access_token: str, raw_sub: str, settings) -> str:
     if item is None:
         return "nothing approved for today"
     image = image_copy(item)
+    document = item.get("document") if item.get("document") and os.path.exists(item["document"]) else None
     try:
-        result = await publish_post(access_token, f"urn:li:person:{raw_sub}", item["text"], settings, image, item.get("alt_text"))
+        result = await publish_post(access_token, f"urn:li:person:{raw_sub}", item["text"], settings, image, item.get("alt_text"),
+                                    document_path=document, document_title=item.get("document_title"))
     finally:
         if image and os.path.exists(image):
             os.remove(image)
@@ -435,8 +451,15 @@ async def run_approve(access_token: str, raw_sub: str, settings):
         os.makedirs(os.path.join("assets", "approved"), exist_ok=True)
         image_dst = f"assets/approved/{item_id}.png"
         shutil.copy(image, image_dst)
+    document = os.path.join(PENDING_DIR, "document.pdf")
+    document_dst = None
+    if os.path.exists(document):
+        os.makedirs(os.path.join("assets", "approved"), exist_ok=True)
+        document_dst = f"assets/approved/{item_id}.pdf"
+        shutil.copy(document, document_dst)
     add_to_queue({"id": item_id, "format": meta.get("format"), "subject": meta.get("subject"), "text": text, "image": image_dst,
-                  "alt_text": meta.get("alt_text"), "post_day": meta.get("post_day"), "history_entry": meta.get("history_entry")})
+                  "alt_text": meta.get("alt_text"), "post_day": meta.get("post_day"), "history_entry": meta.get("history_entry"),
+                  "document": document_dst, "document_title": meta.get("document_title")})
     steps = {"approved": f"{item_id} ({meta.get('subject')}) for {meta.get('post_day')}"}
     steps["publish"] = await publish_due(access_token, raw_sub, settings)
     failed = steps["publish"].startswith("failed")
@@ -469,6 +492,23 @@ async def main(mode: str = "draft"):
 
     token_ok, token_state = await check_linkedin_token(access_token)
     logger.info("LinkedIn token: %s", token_state)
+
+    if mode == "uploadcheck":
+        # Uploads a one-page PDF and a PNG to LinkedIn's documents and images APIs and creates no post: proves the token may upload
+        # the media a post needs, without publishing anything.
+        from app.services.linkedin_service import _upload
+        from PIL import Image
+
+        img = Image.new("RGB", (1080, 1350), (17, 19, 21))
+        img.save("check.png")
+        img.save("check.pdf", "PDF")
+        headers = {"Authorization": f"Bearer {access_token}", "LinkedIn-Version": "202605", "X-Restli-Protocol-Version": "2.0.0",
+                   "Content-Type": "application/json"}
+        doc = await _upload("documents", "check.pdf", f"urn:li:person:{raw_sub}", headers)
+        image = await _upload("images", "check.png", f"urn:li:person:{raw_sub}", headers)
+        logger.info("Upload check: document %s, image %s (no post created)", doc or "FAILED", image or "FAILED")
+        sys.exit(0 if doc and image else 1)
+        return
 
     if mode in ("approve", "publish"):
         if not token_ok:

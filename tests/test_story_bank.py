@@ -57,8 +57,8 @@ async def test_refill_reads_project_documents_and_keeps_only_verified_stories(tm
                                      "results": [{"label": "Invented", "value": "71%"}, {"label": "Also", "value": "12 ms"},
                                                  {"label": "Third", "value": "63%"}]}]})
     with patch("app.services.story_bank.fetch_docs", AsyncMock(return_value=(DOCS * 5, ["https://github.com/o/a/blob/HEAD/README.md"]))), \
-         patch("app.services.llm_service.call_llm_with_fallback", AsyncMock(return_value=reply)):
-        status = await refill(ITEMS, [], settings=None, path=path)
+         patch("app.services.llm_service.call_llm_with_fallback", AsyncMock(return_value=reply)),          patch("app.services.story_bank.head_sha", AsyncMock(return_value="sha1")):
+        status = await refill(ITEMS, [], settings=None, path=path, meta_path=str(tmp_path / "meta.json"))
     stories = load_stories(path)
     assert [s["subject"] for s in stories] == ["Project A", "Project B"]  # one verified story from each project's documents
     assert stories[0]["sources"] == ["https://github.com/o/a/blob/HEAD/README.md"]
@@ -69,3 +69,39 @@ def test_feedback_is_kept(tmp_path):
     path = str(tmp_path / "feedback.json")
     add_feedback({"story_id": "a-1", "comment": "too many numbers"}, path)
     assert json.load(open(path, encoding="utf-8"))[0]["comment"] == "too many numbers"
+
+
+def test_skills_not_featured_lately_come_first_within_a_project():
+    old = {**STORY, "id": "a-1", "skills": ["Python", "SQL"]}
+    fresh = {**STORY, "id": "a-2", "skills": ["Isolation Forest", "Dagster"],
+             "results": [{"label": "x", "value": "45"}, {"label": "y", "value": "18"}, {"label": "z", "value": "43"}]}
+    history = [{"story_id": "z-9", "subject": "Project B"}]
+    stories = [old, fresh, {**STORY, "id": "z-9", "subject": "Project B", "skills": ["Python", "SQL"]}]
+    assert pick_story(ITEMS, history, stories, [])[0]["id"] == "a-2"
+
+
+def test_when_every_story_is_used_the_oldest_comes_back_after_six_months_as_a_repeat():
+    from datetime import date
+
+    history = [{"story_id": "a-1", "subject": "Project A", "date": "2026-01-05"}]
+    assert pick_story(ITEMS, history, [STORY], [], today=date(2026, 5, 1)) is None
+    story, _ = pick_story(ITEMS, history, [STORY], [], today=date(2026, 8, 1))
+    assert story["id"] == "a-1" and story["repeat_of"] == "2026-01-05"
+
+
+@pytest.mark.asyncio
+async def test_a_project_is_read_again_when_its_repository_changes_and_repeated_tests_are_skipped(tmp_path):
+    path, meta = str(tmp_path / "stories.json"), str(tmp_path / "meta.json")
+    reply = json.dumps({"stories": [{k: STORY[k] for k in ("question", "test", "results", "decision", "chart_title")}]})
+    llm = AsyncMock(return_value=reply)
+    sha = AsyncMock(return_value="sha1")
+    with patch("app.services.story_bank.fetch_docs", AsyncMock(return_value=(DOCS * 5, ["src"]))), \
+         patch("app.services.llm_service.call_llm_with_fallback", llm), patch("app.services.story_bank.head_sha", sha):
+        await refill(ITEMS[:1], [], settings=None, path=path, meta_path=meta)
+        assert llm.await_count == 1
+        await refill(ITEMS[:1], [], settings=None, path=path, meta_path=meta)  # same commit: not read again
+        assert llm.await_count == 1
+        sha.return_value = "sha2"
+        status = await refill(ITEMS[:1], [], settings=None, path=path, meta_path=meta)  # new commit: read again
+        assert llm.await_count == 2 and "0 new" in status  # the same test is not added twice
+    assert len(load_stories(path)) == 1

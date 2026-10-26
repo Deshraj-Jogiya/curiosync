@@ -3,7 +3,7 @@
 import json
 import os
 from datetime import date, datetime, timedelta
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from sqlalchemy import select
@@ -256,3 +256,47 @@ async def test_preview_drafts_a_new_post_and_never_offers_it_for_publishing(mock
     assert "has_draft=false" in outputs and "has_preview=true" in outputs
     assert "will not be posted" in summary.read_text(encoding="utf-8")
     mock_til.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("sys.exit")
+async def test_a_document_draft_keeps_every_page_for_review_and_the_pdf(mock_exit, mock_pipeline, mock_til, tmp_path, monkeypatch):
+    pages = []
+    for n in range(1, 4):
+        p = tmp_path / f"p{n}.png"
+        p.write_bytes(b"\x89PNG page")
+        pages.append(str(p))
+    pdf = tmp_path / "doc.pdf"
+    pdf.write_bytes(b"%PDF-1.4")
+    mock_pipeline.return_value = {"status": "drafted", "draft": "Post", "format": "lesson", "subject": "S", "image_path": pages[0],
+                                  "document_path": str(pdf), "document_pages": pages, "document_title": "Results",
+                                  "compliance": {"issues": []}, "steps": {}}
+    summary = tmp_path / "summary.md"
+    work = tmp_path / "work"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    _queue(work, monkeypatch, [])
+    _day(monkeypatch, date(2026, 10, 27))
+    with patch.dict(os.environ, dict(ENV, GITHUB_STEP_SUMMARY=str(summary), GITHUB_REPOSITORY="o/r", GITHUB_RUN_ID="9")):
+        await main("draft")
+    assert sorted(os.listdir(work / "pending_post" / "pages")) == ["page-1.png", "page-2.png", "page-3.png"]
+    assert (work / "pending_post" / "document.pdf").read_bytes() == b"%PDF-1.4"
+    text = summary.read_text(encoding="utf-8")
+    assert "3 pages" in text and "previews/9-p3.png" in text
+
+
+@pytest.mark.asyncio
+async def test_a_failed_media_upload_posts_nothing(tmp_path):
+    from app.services.linkedin_service import publish_post
+
+    pdf = tmp_path / "doc.pdf"
+    pdf.write_bytes(b"%PDF-1.4")
+    with patch("app.services.linkedin_service._upload", AsyncMock(return_value=None)) as up, \
+         patch("httpx.AsyncClient.post", AsyncMock()) as post:
+        with patch.dict(os.environ, ENV):
+            result = await publish_post("t", "urn:li:person:x", "text", get_settings(), document_path=str(pdf), document_title="R")
+    assert result["success"] is False and "nothing was posted" in result["error"]
+    up.assert_awaited_once()
+    post.assert_not_called()
