@@ -27,11 +27,14 @@ STORIES_PATH = os.path.join("data", "stories.json")
 META_PATH = os.path.join("data", "stories_meta.json")
 FEEDBACK_PATH = os.path.join("data", "feedback.json")
 MAX_SUBJECTS_PER_REFILL = 3
-MAX_DOC_CHARS = 60000
+MAX_DOC_CHARS = 40000
 MAX_STORIES_PER_PROJECT = 12
 MIN_RESULTS = 3
 REPEAT_AFTER_DAYS = 180
 RECENT_POSTS_FOR_SKILLS = 10
+# Mining reads whole documents (thousands of tokens each); it pauses while this many stories are waiting, to keep the free daily
+# allowance for writing posts. Changed repositories are still read once the bank drops below it.
+HEALTHY_BANK = 20
 
 
 def _load(path: str, default):
@@ -261,7 +264,8 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
         logger.info("No usable documents for %s", item["title"])
         return []
     raw = await call_llm_with_fallback(
-        messages=[{"role": "user", "content": MINE_PROMPT.format(title=item["title"], n=n, docs=docs)}], settings=settings, temperature=0.2)
+        messages=[{"role": "user", "content": MINE_PROMPT.format(title=item["title"], n=n, docs=docs)}], settings=settings, temperature=0.2,
+        tier="mine")
     raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.MULTILINE).strip()
     try:
         found = json.loads(raw).get("stories", [])
@@ -296,6 +300,8 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
     for title in _load(path + ".tried", []):  # the old list of projects read without result
         meta.setdefault(title, {"sha": None})
     left = len(unused(history, stories))
+    if left >= HEALTHY_BANK:
+        return f"{left} stories ready"
 
     never = [i for i in items if i.get("github_url") and i["title"] not in meta and not any(x["subject"] == i["title"] for x in stories)]
     todo, shas = never[:MAX_SUBJECTS_PER_REFILL], {}

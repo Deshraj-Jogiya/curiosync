@@ -20,8 +20,12 @@ FALLBACK_MODELS = [
 ]
 
 GROQ_BASE = "https://api.groq.com/openai/v1"
-# Tried right after the configured Gemini model, before the weaker flash-lite models.
-GROQ_MODELS = ["openai/gpt-oss-120b", "llama-3.3-70b-versatile"]
+# Text models this Groq key can use (listed by the upload-check run on 2026-10-26); each has its own daily allowance.
+GROQ_STRONG = ["openai/gpt-oss-120b", "qwen/qwen3.8-27b"]
+GROQ_LIGHT = ["openai/gpt-oss-20b"]
+# Models good enough to write or fact-check a post. The flash-lite models wrote short, flat drafts, so a post waits for the next day
+# rather than being written by one of them.
+GEMINI_STRONG = ["gemini-3.5-flash", "gemini-2.5-flash"]
 
 # (provider base, model) pairs that hit their daily quota during this run.
 _exhausted: set[tuple[str | None, str]] = set()
@@ -36,10 +40,13 @@ async def call_llm_with_fallback(
     messages: list[dict],
     settings: Settings,
     temperature: float = 0.7,
+    tier: str = "any",
 ) -> str:
     """Call LLM completion API with automatic model fallback for 429/404 errors.
 
-    Attempts configured model first, then Groq's models (when GROQ_API_KEY is set), then the remaining FALLBACK_MODELS.
+    tier "write" (drafting and fact-checking a post): strong models only, Gemini first, then Groq's strong models.
+    tier "mine" (reading repository documents for stories): Groq's light model first, then the rest, so mining does not spend the
+    strong models' allowance. tier "any": the configured model, Groq's models, then the remaining FALLBACK_MODELS.
     """
     api_base = settings.openai_api_base
     if isinstance(api_base, str):
@@ -53,11 +60,22 @@ async def call_llm_with_fallback(
             logger.info("Defaulting API base to Google AI Studio for Gemini.")
 
     configured_model = settings.openai_model
-    primary = [(api_base, settings.openai_api_key, configured_model)]
-    rest = [(api_base, settings.openai_api_key, m) for m in FALLBACK_MODELS if m != configured_model]
+    gemini_all = [configured_model] + [m for m in FALLBACK_MODELS if m != configured_model]
     groq_key = os.getenv("GROQ_API_KEY", "").strip()
-    groq = [(GROQ_BASE, groq_key, m) for m in GROQ_MODELS] if groq_key else []
-    attempts = primary + groq + rest
+
+    def gem(models):
+        return [(api_base, settings.openai_api_key, m) for m in models]
+
+    def groq(models):
+        return [(GROQ_BASE, groq_key, m) for m in models] if groq_key else []
+
+    if tier == "write":
+        strong = [configured_model] + [m for m in GEMINI_STRONG if m != configured_model]
+        attempts = gem(strong) + groq(GROQ_STRONG)
+    elif tier == "mine":
+        attempts = groq(GROQ_LIGHT) + groq(GROQ_STRONG) + gem([m for m in gemini_all if m not in GEMINI_STRONG]) + gem(GEMINI_STRONG)
+    else:
+        attempts = gem([configured_model]) + groq(GROQ_STRONG + GROQ_LIGHT) + gem(gemini_all[1:])
 
     clients: dict[tuple[str | None, str], openai.AsyncOpenAI] = {}
     last_error = None

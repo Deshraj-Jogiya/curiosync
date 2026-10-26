@@ -212,7 +212,7 @@ async def critic_problems(text: str, facts: str, settings: Settings) -> list[str
 
     try:
         raw = await call_llm_with_fallback(messages=[{"role": "user", "content": CRITIC_PROMPT.format(facts=facts, post=text)}],
-                                           settings=settings, temperature=0.0)
+                                           settings=settings, temperature=0.0, tier="write")
     except Exception as exc:
         # An unchecked draft is never published: if the fact check cannot run, the draft fails it.
         return [f"fact check could not run ({type(exc).__name__})"]
@@ -233,7 +233,8 @@ def _rank(text: str) -> float:
 
 
 async def _one_draft(prompt: str, settings: Settings) -> str:
-    return _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": prompt}], settings=settings, temperature=1.0))
+    return _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": prompt}], settings=settings, temperature=1.0,
+                                                tier="write"))
 
 
 async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, news_items: list[dict] | None = None,
@@ -289,7 +290,8 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
             break
         fix = (prompt + "\n\nYour previous draft is below. Rewrite it so it fixes every problem listed, keeping everything else that is "
                "true to the facts.\n\nPROBLEMS:\n" + "\n".join(f"- {p}" for p in problems) + "\n\nPREVIOUS DRAFT:\n" + best)
-        best = _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": fix}], settings=settings, temperature=0.7))
+        best = _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": fix}], settings=settings, temperature=0.7,
+                                                    tier="write"))
         problems = rule_problems(best)
         attempts += 1
         if not problems:

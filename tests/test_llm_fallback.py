@@ -103,3 +103,16 @@ async def test_groq_follows_the_configured_model_and_exhausted_models_are_skippe
         assert await call_llm_with_fallback([{"role": "user", "content": "x"}], settings) == "from groq"
         assert await call_llm_with_fallback([{"role": "user", "content": "x"}], settings) == "from groq"
     assert calls == ["gemini-3.5-flash", "openai/gpt-oss-120b", "openai/gpt-oss-120b"]
+    calls.clear()
+
+    async def all_fail(self, model, **kw):
+        calls.append(model)
+        raise Exception("Error code: 429 - GenerateRequestsPerDayPerProjectPerModel-FreeTier")
+
+    import app.services.llm_service as llm
+    llm._exhausted.clear()
+    with patch("openai.resources.chat.completions.AsyncCompletions.create", all_fail):
+        with pytest.raises(Exception):
+            await call_llm_with_fallback([{"role": "user", "content": "x"}], settings, tier="write")
+    # A post is never written by a lite model: the day waits instead.
+    assert calls == ["gemini-3.5-flash", "gemini-2.5-flash", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"]

@@ -82,7 +82,7 @@ async def test_rewrites_then_gives_up_rather_than_posting_an_invented_number():
 
 @pytest.mark.asyncio
 async def test_fact_check_failure_rejects_the_draft():
-    async def llm(messages, settings, temperature):
+    async def llm(messages, settings, temperature, tier="any"):
         if "checking a LinkedIn post" in messages[0]["content"]:
             raise RuntimeError("quota")
         return GOOD
