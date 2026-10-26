@@ -52,5 +52,90 @@
       "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
     ],
     "simulated": true
+  },
+  {
+    "id": "fintech-credit-risk-fraud-command-center-1",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "question": "Which model delivers higher predictive performance for loan defaults?",
+    "test": "Held‑out 20% of 10,586 loans (synthetic data).",
+    "results": [
+      {
+        "label": "Random Forest ROC AUC",
+        "value": "0.92"
+      },
+      {
+        "label": "Random Forest precision",
+        "value": "93.4%"
+      },
+      {
+        "label": "XGBoost precision",
+        "value": "91.3%"
+      },
+      {
+        "label": "XGBoost recall",
+        "value": "44.6%"
+      }
+    ],
+    "decision": "Random Forest goes to production.",
+    "chart_title": "Model precision and recall comparison",
+    "detail": "Both runs are tracked in MLflow and CI checks they were logged.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "fintech-credit-risk-fraud-command-center-2",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "question": "Does the FastAPI prediction endpoint satisfy the latency SLA?",
+    "test": "200 calls on a laptop measuring response time.",
+    "results": [
+      {
+        "label": "Median latency",
+        "value": "67 ms"
+      },
+      {
+        "label": "95th percentile latency",
+        "value": "85 ms"
+      }
+    ],
+    "decision": "CI passes because median latency is below 100 ms.",
+    "chart_title": "API latency distribution",
+    "detail": "tests/test_risk_api.py fails if the median reaches 100 ms.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "fintech-credit-risk-fraud-command-center-3",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "question": "How effective are the rule‑based fraud detectors?",
+    "test": "Evaluated against the simulator's planted fraud (synthetic data).",
+    "results": [
+      {
+        "label": "Velocity rule catches",
+        "value": "1,110 charges"
+      },
+      {
+        "label": "Foreign‑location fraud share",
+        "value": "29.6%"
+      },
+      {
+        "label": "Amount‑spike fraud share",
+        "value": "1%"
+      },
+      {
+        "label": "Combined rules precision",
+        "value": "25.8%"
+      }
+    ],
+    "decision": "Rules catch every planted fraud case and are used as detection signals.",
+    "chart_title": "Fraud rule precision and coverage",
+    "detail": "Results are written to models/fraud_rule_metrics.csv.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": false
   }
 ]
