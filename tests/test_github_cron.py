@@ -121,3 +121,20 @@ async def test_publish_refuses_stale_draft(mock_exit, mock_publish, tmp_path, mo
         await main("publish")
     mock_publish.assert_not_called()
     mock_exit.assert_called_once_with(0)
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("sys.exit")
+async def test_expired_linkedin_token_fails_the_draft_run_but_still_writes_til(mock_exit, mock_pipeline, mock_til, tmp_path, monkeypatch):
+    async def expired(_token):
+        return False, "expired or revoked (401)"
+    monkeypatch.setattr("github_cron.check_linkedin_token", expired)
+    monkeypatch.chdir(tmp_path)
+    with patch.dict(os.environ, ENV):
+        await main("draft")
+    mock_pipeline.assert_not_called()
+    mock_til.assert_awaited()
+    mock_exit.assert_called_with(1)
+    assert "expired or revoked" in (tmp_path / "run_log.md").read_text(encoding="utf-8")

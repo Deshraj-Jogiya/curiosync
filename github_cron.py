@@ -127,6 +127,24 @@ Make the concept feel genuine, practical, and highly technical.
         logger.exception("Failed to generate or save daily TIL note: %s", exc)
 
 
+async def check_linkedin_token(access_token: str) -> tuple[bool, str]:
+    """Ask LinkedIn whether the token still works. The token stored for the pipeline is given a made-up 60-day expiry, so without this
+    an expired token only shows up when an approved post fails to publish. Only a 401 counts as expired; anything else is reported and
+    the run carries on, so a LinkedIn hiccup does not stop a draft."""
+    import httpx
+
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.get("https://api.linkedin.com/v2/userinfo", headers={"Authorization": f"Bearer {access_token}"})
+    except Exception as exc:
+        return True, f"not checked ({exc})"
+    if resp.status_code == 401:
+        return False, "expired or revoked (401)"
+    if resp.status_code == 200:
+        return True, "valid"
+    return True, f"not confirmed ({resp.status_code})"
+
+
 PENDING_DIR = "pending_post"
 # An approval that arrives later than this would post stale news, so the publish step refuses it.
 MAX_DRAFT_AGE_HOURS = 36
@@ -206,8 +224,16 @@ async def _seed_user(access_token: str, raw_sub: str, settings) -> int:
         return user.id
 
 
-async def run_draft(user_id: int, settings):
+async def run_draft(user_id: int, settings, token_ok: bool = True):
     """Scheduled step: draft today's post (if one is scheduled) and write the TIL note. Never publishes."""
+    if not token_ok:
+        # Nothing approved today could be posted, so no draft is offered; the TIL note is still written and the run fails so GitHub emails.
+        write_run_log({"status": "failed", "steps": {"linkedin_token": "expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})
+        _set_output("has_draft", "false")
+        await generate_and_save_til(settings)
+        logger.error("LinkedIn token is expired or revoked. Renew the LINKEDIN_ACCESS_TOKEN secret.")
+        sys.exit(1)
+        return
     result = await run_daily_pipeline(user_id=user_id, run_type="github_actions_cron")
     write_run_log(result)
     if result.get("status") == "drafted":
@@ -286,7 +312,14 @@ async def main(mode: str = "draft"):
     raw_sub = sub_urn.replace("urn:li:person:", "")
     settings = get_settings()
 
+    token_ok, token_state = await check_linkedin_token(access_token)
+    logger.info("LinkedIn token: %s", token_state)
+
     if mode == "publish":
+        if not token_ok:
+            write_run_log({"status": "failed", "steps": {"publish": "LinkedIn token expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})
+            sys.exit(1)
+            return
         await run_publish(access_token, raw_sub, settings)
         return
 
@@ -297,7 +330,7 @@ async def main(mode: str = "draft"):
         logger.exception("Failed to encrypt access token using Fernet key!")
         sys.exit(1)
         return
-    await run_draft(user_id, settings)
+    await run_draft(user_id, settings, token_ok)
 
 
 if __name__ == "__main__":

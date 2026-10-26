@@ -4,11 +4,40 @@ on:
   schedule:
     # Run daily at 13:00 UTC (6:00 AM MST / America/Phoenix timezone)
     - cron: '0 13 * * *'
+    # Backup in case GitHub delays or drops the first one; the once_a_day job lets only the first scheduled run of the day draft.
+    - cron: '30 17 * * *'
   workflow_dispatch:
     # Allows manual triggering from the GitHub Actions tab
 
 jobs:
+  once_a_day:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    outputs:
+      go: ${{ steps.check.outputs.go }}
+    steps:
+    - name: Skip if an earlier scheduled run already ran today
+      id: check
+      env:
+        GH_TOKEN: ${{ github.token }}
+        EVENT: ${{ github.event_name }}
+      run: |
+        if [ "$EVENT" != "schedule" ]; then echo "go=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+        today=$(date -u +%F)
+        # Earlier scheduled runs today that did not fail or get cancelled (a run waiting for approval counts as done).
+        n=$(gh api "repos/${{ github.repository }}/actions/workflows/daily_post.yml/runs?created=${today}&event=schedule&per_page=50"           --jq "[.workflow_runs[] | select(.id < ${{ github.run_id }} and .conclusion != \"failure\" and .conclusion != \"cancelled\")] | length" || echo 0)
+        # If the check itself fails, draft anyway: a missed post is worse than a second approval email.
+        if [ "${n:-0}" -gt 0 ]; then
+          echo "go=false" >> "$GITHUB_OUTPUT"
+          echo "An earlier scheduled run already ran today ($today); this backup run does nothing."
+        else
+          echo "go=true" >> "$GITHUB_OUTPUT"
+        fi
+
   draft:
+    needs: once_a_day
+    if: ${{ needs.once_a_day.outputs.go == 'true' }}
     # Drafts the day's post (Mon/Wed/Fri) and writes the TIL note. It never posts: LinkedIn's API terms do not allow unattended automated
     # posting, so the publish job below waits for the owner's approval of each draft.
     runs-on: ubuntu-latest

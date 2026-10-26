@@ -180,3 +180,16 @@ def mock_news_items():
 def sample_post():
     """Return a sample LinkedIn post."""
     return SAMPLE_LINKEDIN_POST
+
+
+@pytest.fixture(autouse=True)
+def _no_real_approved_queue(monkeypatch, tmp_path):
+    """Tests write their own drafts; the repo's real approved posts would otherwise replace them on every post day."""
+    monkeypatch.setattr("app.services.approved_queue.QUEUE_PATH", str(tmp_path / "no_queue.json"))
+
+
+@pytest.fixture(autouse=True)
+def _no_real_linkedin_token_check(monkeypatch):
+    async def ok(_token):
+        return True, "valid (test)"
+    monkeypatch.setattr("github_cron.check_linkedin_token", ok)

@@ -11,6 +11,7 @@ from app.database import async_session
 from app.models.draft import Draft
 from app.models.user import User
 from app.models.scheduler_run import SchedulerRun
+from app.services.approved_queue import image_copy, next_approved
 from app.services.auth_service import get_valid_token
 from app.services.compliance_service import check_compliance
 from app.services.deduplication_service import deduplicate_news
@@ -86,6 +87,37 @@ async def run_daily_pipeline(
                 await session.commit()
             return {"status": "skipped", "reason": f"No post is scheduled on {date_for:%A}.", "steps": steps}
         steps["schedule"] = fmt
+
+        queued = next_approved(load_history())
+        if queued and not publish:
+            steps["generate_draft"] = f"approved post {queued['id']} used as written ({len(queued['text'])} chars, 0 model calls)"
+            compliance = check_compliance(queued["text"], [])
+            steps["compliance_check"] = "passed" if not compliance["blocking"] else f"warnings: {compliance['blocking']}"
+            image_path = image_copy(queued)
+            steps["visual"] = "approved image" if image_path else "none"
+            await record_scheduler_run(session, run_type, "drafted", None, steps)
+            if own_session:
+                await session.commit()
+            return {
+                "status": "drafted",
+                "format": queued["format"],
+                "subject": queued["subject"],
+                "draft": queued["text"],
+                "image_path": image_path,
+                "alt_text": queued.get("alt_text"),
+                "visual": steps["visual"],
+                "history_entry": {
+                    "date": str(date_for),
+                    "format": queued["format"],
+                    "subject": queued["subject"],
+                    "hook_type": queued.get("hook_type", "measured_result"),
+                    "opener_words": first_words(queued["text"]),
+                    "text": queued["text"],
+                    "approved_id": queued["id"],
+                },
+                "compliance": compliance,
+                "steps": steps,
+            }
 
         try:
             profile = await load_profile()
