@@ -106,3 +106,11 @@ def test_a_sentence_with_a_real_figure_keeps_it_when_an_unsupported_one_is_cut()
 
     text = "It read just 3,015 rows out of 60,000, avoiding the other 56,985 rows."
     assert drop_sentences_with_numbers(text, ["56985"]) == "It read just 3,015 rows out of 60,000."
+
+
+def test_exact_decimal_percent_conversions_pass_and_rounded_ones_fail():
+    from app.services.post_rules import unsupported_numbers
+
+    source = "recall 0.9813, precision 93.4%"
+    assert unsupported_numbers("Recall reached 98.13% and precision 0.934.", source) == []
+    assert unsupported_numbers("Recall reached 98.1%.", source) == ["98.1%"]

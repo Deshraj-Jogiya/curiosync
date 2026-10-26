@@ -131,7 +131,7 @@ STORY below is the one measured test this post is about. Build the whole post on
 explain how it was tested, give the results, and end with the decision it led to. FEATURED only tells you what the project is; do not
 add any other fact from FEATURED. Every number in the post must come from STORY, written as STORY writes it: never work out a new
 number from them (no differences, totals, ratios or percentages STORY does not state), and never add a speed, size or scale claim
-STORY does not make.
+STORY does not make. Never round: write 0.9813 as 0.9813 or exactly as 98.13%, never as 98.1% or "about 98%".
 
 STORY:
 {story}

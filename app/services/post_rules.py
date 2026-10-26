@@ -6,6 +6,7 @@ project never used, "we" on solo work, or a simulation presented as a real busin
 """
 
 import re
+from decimal import Decimal, InvalidOperation
 
 # Length window: the research found engagement best around 1,200-1,800 characters (AuthoredUp 2025-26; Ordinal's data disagrees), but a
 # post limited to two or three real facts runs shorter, and padding is worse than brevity. The "see more" fold on mobile is about 140
@@ -79,9 +80,27 @@ def _bare(n: str) -> str:
     return re.sub(r"[^\d.]", "", n)
 
 
+def _exact_conversions(known: set[str]) -> set[str]:
+    """A share written the other way round, exactly: 0.9813 <-> 98.13%. Never a rounded value (0.9813 is not 98.1%)."""
+    extra = set()
+    for n in known:
+        try:
+            if n.endswith("%"):
+                value = Decimal(_bare(n)) / 100
+                extra.add(format(value.normalize(), "f"))
+            elif "." in n and Decimal(_bare(n)) <= 1:
+                value = Decimal(_bare(n)) * 100
+                extra.add(format(value.normalize(), "f") + "%")
+        except (InvalidOperation, ValueError):
+            continue
+    return extra
+
+
 def unsupported_numbers(draft: str, source: str) -> list[str]:
-    """Numbers in the draft that the source facts do not contain. Small counts (2-10) are allowed: "three decisions", "step 2"."""
+    """Numbers in the draft that the source facts do not contain. Small counts (2-10) are allowed: "three decisions", "step 2".
+    A share converted exactly between decimal and percent (0.9813 and 98.13%) counts as the same number; a rounded one does not."""
     known = numbers_in(source)
+    known |= _exact_conversions(known)
     known_bare = {_bare(n) for n in known}
     bad = []
     for n in sorted(numbers_in(draft)):
