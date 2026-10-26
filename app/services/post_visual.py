@@ -298,3 +298,69 @@ def _real_visual(item: dict) -> tuple[str, str] | None:
                 copy = _save(Image.open(path).convert("RGB"))
                 return copy, entry.get("alt", f"Screenshot of {item['title']}")
     return None
+
+
+def _value_number(value: str) -> float | None:
+    m = re.search(r"\d[\d,]*(?:\.\d+)?", value)
+    return float(m.group(0).replace(",", "")) if m else None
+
+
+def _unit(value: str) -> str:
+    return re.sub(r"[\d,.\s]+", "", value).strip().lower()
+
+
+def story_results_in_post(story: dict, post_text: str) -> list[dict]:
+    """The story's results whose number the post itself states, so the image never shows a figure the text does not."""
+    from app.services.post_rules import numbers_in
+
+    in_post = numbers_in(post_text)
+    return [r for r in story["results"] if numbers_in(str(r["value"])) & in_post]
+
+
+def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, str] | None:
+    """A chart of the story's results that the post mentions: bars when they share a unit, otherwise one figure per result.
+    Returns None when fewer than two of them appear in the post."""
+    results = story_results_in_post(story, post_text)
+    if len(results) < 2:
+        return None
+    accent = _accent(item["title"])
+    img, draw = _canvas()
+    y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)
+    width = W - 2 * MARGIN
+    fitted = fit_text(draw, story["chart_title"], width, 2, [40, 36, 32, 28], bold=True)
+    if fitted:
+        font, lines = fitted
+        for ln in lines:
+            draw.text((MARGIN, y), ln, font=font, fill=TEXT)
+            y += font.size + 10
+        y += 30
+    footer_top = H - 150
+    results = results[:5]
+    slot = (footer_top - y) // len(results)
+    values = [_value_number(str(r["value"])) for r in results]
+    same_unit = len({_unit(str(r["value"])) for r in results}) == 1 and all(v is not None for v in values)
+    top = max(values) if same_unit and max(values) > 0 else None
+    for r, v in zip(results, values):
+        label_fit = fit_text(draw, r["label"], width, 2, [30, 28, 26, 24])
+        if not label_fit:
+            return None
+        lfont, llines = label_fit
+        ty = y
+        for ln in llines:
+            draw.text((MARGIN, ty), ln, font=lfont, fill=MUTED)
+            ty += lfont.size + 6
+        vfont = _font(56, True)
+        value = str(r["value"])
+        if top:
+            bar_w = width - draw.textlength(value, font=vfont) - 30
+            length = max(8, int(bar_w * v / top))
+            draw.rounded_rectangle([MARGIN, ty + 8, MARGIN + length, ty + 56], radius=6, fill=accent)
+            draw.text((MARGIN + length + 20, ty), value, font=vfont, fill=TEXT)
+        else:
+            draw.text((MARGIN, ty), value, font=vfont, fill=accent)
+        y += slot
+    _footer(draw)
+    alt = f"{story['chart_title']}: " + "; ".join(f"{r['label']} {r['value']}" for r in results) + "."
+    if story.get("simulated"):
+        alt += " Simulated data."
+    return _save(img), alt

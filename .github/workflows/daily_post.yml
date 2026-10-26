@@ -19,6 +19,14 @@ on:
         description: "Started automatically after a rejected draft"
         type: boolean
         default: false
+      reject_comment:
+        description: "The comment left when rejecting the last draft"
+        type: string
+        default: ""
+      rejected_story:
+        description: "The story the rejected draft was written from"
+        type: string
+        default: ""
 
 jobs:
   once_a_day:
@@ -155,6 +163,9 @@ jobs:
         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
         PREVIEW_FORMAT: ${{ inputs.preview || 'none' }}
         REDRAFT: ${{ inputs.redraft || false }}
+        REJECT_COMMENT: ${{ inputs.reject_comment }}
+        REJECTED_STORY: ${{ inputs.rejected_story }}
+        GITHUB_TOKEN: ${{ github.token }}
         WAITING_APPROVALS: ${{ steps.waiting.outputs.count }}
       working-directory: curiosync
       run: python -m github_cron draft
@@ -198,7 +209,7 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add run_log.md data/post_history.json || true
+        git add run_log.md data/post_history.json data/stories.json data/stories.json.tried data/feedback.json || true
         git commit -m "chore: update daily execution log [skip ci]" || true
         git pull --rebase || true
         git push || true
@@ -299,7 +310,16 @@ jobs:
     permissions:
       actions: write
     steps:
-    - name: Start a new draft
+    - name: Fetch the rejected draft
+      uses: actions/download-artifact@v4
+      with:
+        name: pending-post
+        path: pending_post
+
+    - name: Start a new draft, passing on the reason for the reject
       env:
         GH_TOKEN: ${{ github.token }}
-      run: gh workflow run daily_post.yml -R "${{ github.repository }}" -f redraft=true
+      run: |
+        comment=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/approvals" --jq '[.[] | select(.state == "rejected")][0].comment // ""' || echo "")
+        story=$(python3 -c "import json; print(json.load(open('pending_post/meta.json')).get('story_id') or '')" || echo "")
+        gh workflow run daily_post.yml -R "${{ github.repository }}" -f redraft=true -f reject_comment="$comment" -f rejected_story="$story"

@@ -177,6 +177,7 @@ def _write_pending(result: dict, preview: bool = False):
         "visual": result.get("visual"),
         "history_entry": result.get("history_entry"),
         "post_day": result.get("post_day"),
+        "story_id": (result.get("history_entry") or {}).get("story_id"),
     }
     with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
@@ -230,8 +231,9 @@ def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, p
         f"1. Read the post and look at the image below.\n"
         f"2. Scroll to the top of {'[this run](' + run_url + ')' if run_url else 'this page'} and click **Review deployments**.\n"
         f"3. Tick **linkedin-publish**, then click **Approve and deploy**. It is posted exactly as shown on {day_label}.\n"
-        f"4. Or click **Reject**: a new draft for the same day is written and sent to you, until one is approved or the day's free AI "
-        f"quota runs out (drafting then carries on with the next day's run).\n",
+        f"4. Or click **Reject**, and type in the comment box what is wrong (for example \"too many numbers\" or \"wrong focus\"). A new "
+        f"draft for the same day is written and sent to you, and your comment is given to it and to every later draft. This repeats "
+        f"until one is approved or the day's free AI quota runs out (drafting then carries on with the next day's run).\n",
     ]
     if warnings:
         parts.append("**Check before approving:** " + "; ".join(warnings) + "\n")
@@ -331,7 +333,7 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
     if preview and preview != "none":
         # A manual preview: draft a new post of this format to read on the run page. Nothing is offered for approval.
         result = await run_daily_pipeline(user_id=user_id, run_type="preview", draft_format=preview,
-                                          extra_history=[_queued_history(i) for i in unposted(load_history())])
+                                          extra_history=[_queued_history(i) for i in unposted(load_history())], use_stories=True)
         if result.get("status") == "drafted":
             _write_pending(result, preview=True)
             _set_output("has_preview", "true")
@@ -342,6 +344,16 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
         sys.exit(1)
         return
     redraft = os.getenv("REDRAFT", "").lower() == "true"
+    if redraft:
+        # The owner's reason for rejecting the last draft: kept in data/feedback.json and given to every later draft. A story rejected
+        # twice is not offered again.
+        from app.services.story_bank import add_feedback
+        from app.utils.timezone import today_phoenix as _today
+
+        comment = os.getenv("REJECT_COMMENT", "").strip()
+        rejected_story = os.getenv("REJECTED_STORY", "").strip()
+        if comment or rejected_story:
+            add_feedback({"date": str(_today()), "story_id": rejected_story or None, "comment": comment})
     if not token_ok:
         # Nothing could be posted, so no draft is offered; the TIL note is still written and the run fails so GitHub emails.
         write_run_log({"status": "failed", "steps": {"linkedin_token": "expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})
@@ -367,7 +379,7 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
         day = slot_for_next_draft(today_phoenix(), history)
         fmt = post_format_for(day)
         result = await run_daily_pipeline(user_id=user_id, run_type="redraft" if redraft else "github_actions_cron", draft_format=fmt,
-                                          draft_day=day, extra_history=[_queued_history(i) for i in ready])
+                                          draft_day=day, extra_history=[_queued_history(i) for i in ready], use_stories=True)
         steps["draft"] = f"{fmt} for {day:%a %b} {day.day}"
         steps.update({k: v for k, v in result.get("steps", {}).items() if k not in ("duplicate_check", "token_check")})
         if result.get("status") == "drafted":

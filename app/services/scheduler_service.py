@@ -36,6 +36,7 @@ async def run_daily_pipeline(
     draft_format: str | None = None,
     draft_day: date | None = None,
     extra_history: list[dict] | None = None,
+    use_stories: bool = False,
 ) -> dict:
     """Orchestrate the daily post pipeline.
 
@@ -49,6 +50,10 @@ async def run_daily_pipeline(
     draft_format drafts a post of that format whatever today is, for draft_day (default today), skipping the already-posted check: the
     GitHub runner drafts ahead for the next open post day and for previews. extra_history (approved posts not yet published) counts as
     history, so a new draft does not repeat their subject or opener.
+
+    use_stories (the GitHub runner) writes the post from one story in data/stories.json (see story_bank), refilling the bank from the
+    projects' repositories when it runs low, and charts that story's numbers as the image. With no story ready nothing is drafted:
+    a post built from resume bullets is the weak draft this replaces.
     """
     settings = settings or get_settings()
     own_session = db is None
@@ -118,8 +123,28 @@ async def run_daily_pipeline(
                 steps["fetch_news"] = f"unavailable ({exc}); no news exception today"
 
         history = load_history() + list(extra_history or [])
+        story, story_item, feedback = None, None, []
+        if use_stories:
+            from app.services.post_plan import candidates, load_notes
+            from app.services.story_bank import load_feedback, pick_story, refill
+
+            items = candidates(profile, "project", load_notes())
+            try:
+                steps["stories"] = await refill(items, history, settings)
+            except Exception as exc:
+                steps["stories"] = f"refill failed ({exc})"
+            picked = pick_story(items, history)
+            if picked is None:
+                steps["generate_draft"] = "no story ready; nothing drafted"
+                await record_scheduler_run(session, run_type, "skipped", "No story ready", steps)
+                if own_session:
+                    await session.commit()
+                return {"status": "skipped", "reason": "No story is ready to write from.", "steps": steps}
+            story, story_item = picked
+            feedback = [f["comment"] for f in load_feedback()[-8:] if f.get("comment")]
         try:
-            post = await generate_post(fmt, profile, settings, date_for, deduped, history)
+            post = await generate_post(fmt, profile, settings, date_for, deduped, history, story=story, item=story_item,
+                                       feedback=feedback)
         except DraftRejected as exc:
             steps["generate_draft"] = f"rejected after rewrites: {exc.problems}"
             await record_scheduler_run(session, run_type, "skipped", "Draft failed the post rules", steps)
@@ -127,8 +152,8 @@ async def run_daily_pipeline(
                 await session.commit()
             return {"status": "skipped", "reason": f"No draft passed the post rules: {exc.problems}", "steps": steps}
         draft_text, subject, fmt = post["text"], post["subject"], post["format"]
-        steps["generate_draft"] = (f"{fmt} about {subject} (hook {post['hook_type']}, {len(draft_text)} chars, "
-                                   f"{post['attempts']} model calls)")
+        steps["generate_draft"] = (f"{fmt} about {subject}{' (story ' + story['id'] + ')' if story else ''} "
+                                   f"(hook {post['hook_type']}, {len(draft_text)} chars, {post['attempts']} model calls)")
 
         compliance = check_compliance(draft_text, deduped)
         steps["compliance_check"] = "passed" if not compliance["blocking"] else f"blocked: {compliance['blocking']}"
@@ -160,7 +185,16 @@ async def run_daily_pipeline(
 
         image_path, alt_text, visual_kind = None, None, "none"
         try:
-            image_path, alt_text, visual_kind = await build_visual(post["item"], settings, source_text(profile, post["item"], post["news"]))
+            if story:
+                # The image charts the same story the post tells, using only numbers the post states; no chart, no image.
+                from app.services.post_visual import render_story_chart
+
+                chart = render_story_chart(story, post["item"], draft_text)
+                if chart:
+                    image_path, alt_text, visual_kind = chart[0], chart[1], "story chart"
+            else:
+                image_path, alt_text, visual_kind = await build_visual(post["item"], settings,
+                                                                       source_text(profile, post["item"], post["news"]))
         except Exception as img_err:
             logger.error("Failed to build the post image: %s", img_err)
         steps["visual"] = visual_kind
@@ -173,6 +207,8 @@ async def run_daily_pipeline(
             "opener_words": first_words(draft_text),
             "text": draft_text,
         }
+        if story:
+            history_entry["story_id"] = story["id"]
 
         if not publish:
             await record_scheduler_run(session, run_type, "drafted", None, steps)

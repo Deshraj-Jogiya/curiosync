@@ -123,7 +123,23 @@ def source_text(profile: dict, item: dict, news: dict | None = None) -> str:
     return "\n".join(p for p in parts if p)
 
 
-def build_prompt(fmt: str, profile: dict, item: dict, hook_type: str, news: dict | None = None) -> str:
+STORY_RULES = """
+STORY below is the one measured test this post is about. Build the whole post on it: open with its question or its most telling result,
+explain how it was tested, give the results, and end with the decision it led to. FEATURED only tells you what the project is; do not
+add any other fact from FEATURED. Every number in the post must come from STORY.
+
+STORY:
+{story}
+"""
+
+FEEDBACK_RULES = """
+The owner rejected earlier drafts with the comments below. Follow every one of them:
+{feedback}
+"""
+
+
+def build_prompt(fmt: str, profile: dict, item: dict, hook_type: str, news: dict | None = None, story: dict | None = None,
+                 feedback: list[str] | None = None) -> str:
     roles = roles_from_title(profile["title"])
     if item["kind"] == "project" and item.get("solo", True):
         solo_rule = "a project you built alone: always write 'I', never 'we', 'our' or 'us'."
@@ -150,6 +166,12 @@ def build_prompt(fmt: str, profile: dict, item: dict, hook_type: str, news: dict
         notes="\n".join(f"- {n}" for n in item.get("notes", [])) or "(empty)",
     )
     prompt += "\nAPPROVED EXAMPLES (shape only; none of these facts may appear in your post):\n" + APPROVED_EXAMPLES + "\n"
+    if story:
+        from app.services.story_bank import story_text
+
+        prompt += STORY_RULES.format(story=story_text(story))
+    if feedback:
+        prompt += FEEDBACK_RULES.format(feedback="\n".join(f"- {f}" for f in feedback))
     prompt += "\nTASK:\n" + FORMAT_TASKS[fmt] + "\n"
     if news:
         prompt += f"\nNEWS:\n[{news.get('source_name', '')}] {news.get('title', '')}\n{news.get('summary', '')[:400]}\n"
@@ -206,21 +228,29 @@ async def _one_draft(prompt: str, settings: Settings) -> str:
 
 
 async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, news_items: list[dict] | None = None,
-                        history: list[dict] | None = None) -> dict:
-    """Write the day's post. Returns {text, subject, format, hook_type, item, attempts}; raises DraftRejected if nothing passes."""
+                        history: list[dict] | None = None, story: dict | None = None, item: dict | None = None,
+                        feedback: list[str] | None = None) -> dict:
+    """Write the day's post. Returns {text, subject, format, hook_type, item, attempts, story}; raises DraftRejected if nothing passes.
+    With a story (and its project as item) the post is built on that one test and its numbers only."""
     history = history or []
-    item = pick_subject(profile, fmt, history, day)
+    item = item or pick_subject(profile, fmt, history, day)
     news = None
     if fmt == "decision" and news_items and news_allowed(history):
         news = matching_news(item, news_items)
         if news:
             fmt = "news_take"
-    if fmt == "decision" and not item.get("notes"):
+    if fmt == "decision" and not item.get("notes") and not story:
         # Why a decision was made can only come from the owner; without his notes a decision post would have to invent the reasons.
         fmt = "lesson"
     hook_type = pick_hook(item, history)
-    prompt = build_prompt(fmt, profile, item, hook_type, news)
-    facts = source_text(profile, item, news)
+    prompt = build_prompt(fmt, profile, item, hook_type, news, story, feedback)
+    if story:
+        from app.services.story_bank import story_text
+
+        # Numbers may only come from the story; the project's other facts are left out so the post cannot drift to them.
+        facts = story_text(story) + "\n" + profile_context(profile) + "\nProject: " + item["title"]
+    else:
+        facts = source_text(profile, item, news)
     logger.info("Drafting %s about %s (hook: %s)", fmt, item["title"], hook_type)
 
     results = await asyncio.gather(*(_one_draft(prompt, settings) for _ in range(DRAFTS_PER_RUN)), return_exceptions=True)
@@ -250,7 +280,7 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         raise DraftRejected(problems)
     logger.info("Draft accepted", extra={"format": fmt, "chars": len(best), "attempts": attempts})
     return {"text": best, "subject": item["title"], "format": fmt, "hook_type": hook_type, "item": item, "attempts": attempts,
-            "news": news}
+            "news": news, "story": story, "facts": facts}
 
 
 async def generate_draft(news_items: list[dict], settings: Settings) -> str:

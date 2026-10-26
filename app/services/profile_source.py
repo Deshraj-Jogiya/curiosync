@@ -69,6 +69,7 @@ def featurable_items(profile: dict, kind: str) -> list[dict]:
             "org": "",
             "dates": p.get("date", ""),
             "facts": [plain(p.get("desc", ""))] + [plain(b["html"]) for b in p.get("bullets", [])],
+            "github_url": p.get("github_url") or "",
         }
         for p in profile["projects"]
         if not _is_excluded(p)
