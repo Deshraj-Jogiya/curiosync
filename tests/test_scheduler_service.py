@@ -148,10 +148,7 @@ async def test_blocking_compliance_issue_stops_the_draft(test_db):
 
 
 @pytest.mark.asyncio
-async def test_preview_drafts_the_chosen_format_on_any_day_and_skips_the_queue(test_db, tmp_path, monkeypatch):
-    path = tmp_path / "q.json"
-    path.write_text('[{"id": "a", "format": "lesson", "subject": "A", "text": "Approved."}]', encoding="utf-8")
-    monkeypatch.setattr("app.services.approved_queue.QUEUE_PATH", str(path))
+async def test_draft_format_drafts_for_the_given_day_and_counts_queued_posts_as_history(test_db):
     user_id = await _seed_user(test_db)
     gen = AsyncMock(side_effect=lambda fmt, *a, **k: {"text": "new draft", "subject": "P", "format": fmt, "hook_type": "claim",
                                                       "item": {}, "attempts": 3, "news": None})
@@ -159,8 +156,12 @@ async def test_preview_drafts_the_chosen_format_on_any_day_and_skips_the_queue(t
     for p in patches:
         p.start()
     try:
-        result = await run_daily_pipeline(user_id=user_id, db=test_db, settings=_settings(), run_type="preview", preview_format="decision")
+        result = await run_daily_pipeline(user_id=user_id, db=test_db, settings=_settings(), run_type="preview", draft_format="decision",
+                                          draft_day=date(2026, 10, 30), extra_history=[{"subject": "Queued"}])
     finally:
         for p in patches:
             p.stop()
     assert result["status"] == "drafted" and result["draft"] == "new draft" and result["format"] == "decision"
+    assert gen.await_args.args[3] == date(2026, 10, 30)
+    assert gen.await_args.args[5] == [{"subject": "Queued"}]
+    assert result["history_entry"]["date"] == "2026-10-30"

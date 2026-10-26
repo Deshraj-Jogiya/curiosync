@@ -1,8 +1,8 @@
-"""Posts the owner has already approved word for word, used before any new draft is written.
+"""Posts the owner has approved, waiting for their post day.
 
-data/approved_queue.json holds them in posting order. On a post day the first one not yet in the published-post history goes out as it
-is: no model call, no rewrite, no profile fetch, so a Gemini outage or a quota limit cannot change or block it. A queued post counts as
-published once a history entry carries its id (the publish job commits that entry), so an unapproved day just moves it to the next post day.
+data/approved_queue.json holds them in posting order: posts approved in chat, and drafts approved in GitHub (the approve job adds them).
+On each Mon/Wed/Fri the first one not yet in the published-post history goes out word for word, with no model call, so a Gemini outage or
+quota limit cannot change or block it. A queued post counts as published once a history entry carries its id.
 """
 
 import json
@@ -22,12 +22,8 @@ def load_queue(path: str | None = None) -> list[dict]:
 
 
 def next_approved(history: list[dict], path: str | None = None) -> dict | None:
-    posted_ids = {h.get("approved_id") for h in history}
-    posted_texts = {h.get("text", "").strip() for h in history}
-    for item in load_queue(path):
-        if item["id"] not in posted_ids and item["text"].strip() not in posted_texts:
-            return item
-    return None
+    waiting = unposted(history, path)
+    return waiting[0] if waiting else None
 
 
 def image_copy(item: dict) -> str | None:
@@ -39,3 +35,36 @@ def image_copy(item: dict) -> str | None:
     os.close(fd)
     shutil.copy(src, dst)
     return dst
+
+
+# Approved posts kept ready ahead of their post day (one week of Mon/Wed/Fri). Drafting pauses once this many are waiting.
+QUEUE_AHEAD = 3
+
+
+def unposted(history: list[dict], path: str | None = None) -> list[dict]:
+    posted_ids = {h.get("approved_id") for h in history}
+    posted_texts = {h.get("text", "").strip() for h in history}
+    return [i for i in load_queue(path) if i["id"] not in posted_ids and i["text"].strip() not in posted_texts]
+
+
+def add_to_queue(item: dict, path: str | None = None) -> None:
+    queue = load_queue(path)
+    queue.append(item)
+    with open(path or QUEUE_PATH, "w", encoding="utf-8") as f:
+        json.dump(queue, f, indent=2, ensure_ascii=False)
+
+
+def open_post_days(today, history: list[dict], horizon: int = 28) -> list:
+    """Post days from today on, leaving out today if something was already posted today."""
+    from datetime import timedelta
+
+    from app.services.summarizer_service import post_format_for
+
+    posted_today = any(h.get("date") == str(today) for h in history)
+    days = [today + timedelta(days=i) for i in range(horizon)]
+    return [d for d in days if post_format_for(d) and not (d == today and posted_today)]
+
+
+def slot_for_next_draft(today, history: list[dict], path: str | None = None):
+    """The post day a new draft would fill: the first open post day after the ones already taken by approved posts."""
+    return open_post_days(today, history)[len(unposted(history, path))]

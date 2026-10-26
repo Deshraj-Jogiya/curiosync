@@ -1,8 +1,9 @@
 """Standalone GitHub Actions runner.
 
-`python -m github_cron draft` (scheduled): seeds an in-memory database from environment variables, drafts the day's post if one is
-scheduled, saves it to pending_post/ for review, and writes the TIL note. It never publishes.
-`python -m github_cron publish` (runs only after the owner approves the job in GitHub): posts the saved draft unchanged.
+`python -m github_cron draft` (daily): on Mon/Wed/Fri posts the next post the owner approved, word for word; then drafts a new post for
+the next open post day, saves it to pending_post/ for approval, and writes the TIL note.
+`python -m github_cron approve` (runs only after the owner approves the draft in GitHub): adds it to the approved queue for its post day,
+and posts it at once if that day is today.
 """
 
 import asyncio
@@ -146,8 +147,6 @@ async def check_linkedin_token(access_token: str) -> tuple[bool, str]:
 
 
 PENDING_DIR = "pending_post"
-# An approval that arrives later than this would post stale news, so the publish step refuses it.
-MAX_DRAFT_AGE_HOURS = 36
 
 
 def _set_output(name: str, value: str):
@@ -177,6 +176,7 @@ def _write_pending(result: dict, preview: bool = False):
         "alt_text": result.get("alt_text"),
         "visual": result.get("visual"),
         "history_entry": result.get("history_entry"),
+        "post_day": result.get("post_day"),
     }
     with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
@@ -208,6 +208,12 @@ def _as_markdown_text(text: str) -> str:
 
 def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, preview: bool = False) -> str:
     warnings = meta.get("warnings") or []
+    day_label = "its post day"
+    if meta.get("post_day"):
+        from datetime import date as _date
+
+        d = _date.fromisoformat(meta["post_day"])
+        day_label = f"{d:%A, %B} {d.day}"
     if preview:
         head = [
             "# Preview of a new draft: this will not be posted\n",
@@ -217,20 +223,22 @@ def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, p
     else:
         head = [
             "# LinkedIn post ready for your review\n",
-            f"**{meta.get('subject')}** · {len(text.split())} words · {len(text)} characters\n",
-            "## How to post it\n",
+            f"**For {day_label}** · {meta.get('subject')} · {len(text.split())} words · {len(text)} characters\n",
+            "## How to approve it\n",
         ]
     parts = head + [
         f"1. Read the post and look at the image below.\n"
         f"2. Scroll to the top of {'[this run](' + run_url + ')' if run_url else 'this page'} and click **Review deployments**.\n"
-        f"3. Tick **linkedin-publish**, then click **Approve and deploy** to post it exactly as shown, or **Reject** to skip today.\n\n"
-        f"Approve within {MAX_DRAFT_AGE_HOURS} hours; an older draft is not posted.\n",
+        f"3. Tick **linkedin-publish**, then click **Approve and deploy**. It is posted exactly as shown on {day_label}.\n"
+        f"4. Or click **Reject**: a new draft for the same day is written and sent to you, until one is approved or the day's free AI "
+        f"quota runs out (drafting then carries on with the next day's run).\n",
     ]
     if warnings:
         parts.append("**Check before approving:** " + "; ".join(warnings) + "\n")
     parts.append("---\n\n## The post\n\n" + _as_markdown_text(text) + "\n")
     if image_url:
-        parts.append(f"## The image\n\n<img src=\"{image_url}\" width=\"540\" alt=\"Post image\">\n")
+        # Markdown image syntax: the run summary drops a raw <img> tag.
+        parts.append(f"## The image\n\n![Post image]({image_url})\n\n[Open the image full size]({image_url})\n")
     else:
         parts.append("## The image\n\nNo image with this post.\n")
     if meta.get("alt_text"):
@@ -268,13 +276,62 @@ async def _seed_user(access_token: str, raw_sub: str, settings) -> int:
         return user.id
 
 
-async def run_draft(user_id: int, settings, token_ok: bool = True):
-    """Scheduled step: draft today's post (if one is scheduled) and write the TIL note. Never publishes."""
+def _queued_history(item: dict) -> dict:
+    entry = dict(item.get("history_entry") or {})
+    entry.setdefault("format", item.get("format"))
+    entry.setdefault("subject", item.get("subject"))
+    entry.setdefault("text", item["text"])
+    entry["approved_id"] = item["id"]
+    return entry
+
+
+async def publish_due(access_token: str, raw_sub: str, settings) -> str:
+    """On a post day with nothing posted yet, post the next approved post word for word. Returns what happened, for the run log."""
+    from app.services.approved_queue import image_copy, next_approved
+    from app.services.linkedin_service import publish_post
+    from app.services.post_plan import append_history, load_history
+    from app.services.post_rules import first_words
+    from app.services.summarizer_service import post_format_for
+    from app.utils.timezone import today_phoenix
+
+    today = today_phoenix()
+    history = load_history()
+    if post_format_for(today) is None:
+        return f"no post on {today:%A}"
+    if any(h.get("date") == str(today) for h in history):
+        return "already posted today"
+    item = next_approved(history)
+    if item is None:
+        return "nothing approved for today"
+    image = image_copy(item)
+    try:
+        result = await publish_post(access_token, f"urn:li:person:{raw_sub}", item["text"], settings, image, item.get("alt_text"))
+    finally:
+        if image and os.path.exists(image):
+            os.remove(image)
+    if not result.get("success"):
+        return f"failed to post {item['id']}: {result.get('error', '')}"
+    entry = _queued_history(item)
+    entry["date"] = str(today)
+    entry.setdefault("opener_words", first_words(item["text"]))
+    append_history(entry)
+    return f"posted {item['id']}"
+
+
+async def run_draft(user_id: int, settings, token_ok: bool = True, access_token: str = "", raw_sub: str = ""):
+    """Daily step: post today's approved post if one is due, then draft a post for the next open post day and offer it for approval.
+    Drafting pauses while a draft waits for approval or QUEUE_AHEAD approved posts are already waiting."""
+    from app.services.approved_queue import QUEUE_AHEAD, slot_for_next_draft, unposted
+    from app.services.post_plan import load_history
+    from app.services.summarizer_service import post_format_for
+    from app.utils.timezone import today_phoenix
+
+    _set_output("has_draft", "false")
     preview = os.getenv("PREVIEW_FORMAT", "").strip()
     if preview and preview != "none":
-        # A manual preview: draft a new post of this format to read on the run page. Nothing is offered for publishing.
-        _set_output("has_draft", "false")
-        result = await run_daily_pipeline(user_id=user_id, run_type="preview", preview_format=preview)
+        # A manual preview: draft a new post of this format to read on the run page. Nothing is offered for approval.
+        result = await run_daily_pipeline(user_id=user_id, run_type="preview", draft_format=preview,
+                                          extra_history=[_queued_history(i) for i in unposted(load_history())])
         if result.get("status") == "drafted":
             _write_pending(result, preview=True)
             _set_output("has_preview", "true")
@@ -284,38 +341,65 @@ async def run_draft(user_id: int, settings, token_ok: bool = True):
         logger.error("Preview not drafted: %s %s", result.get("error") or result.get("reason"), result.get("steps"))
         sys.exit(1)
         return
+    redraft = os.getenv("REDRAFT", "").lower() == "true"
     if not token_ok:
-        # Nothing approved today could be posted, so no draft is offered; the TIL note is still written and the run fails so GitHub emails.
+        # Nothing could be posted, so no draft is offered; the TIL note is still written and the run fails so GitHub emails.
         write_run_log({"status": "failed", "steps": {"linkedin_token": "expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})
-        _set_output("has_draft", "false")
-        await generate_and_save_til(settings)
+        if not redraft:
+            await generate_and_save_til(settings)
         logger.error("LinkedIn token is expired or revoked. Renew the LINKEDIN_ACCESS_TOKEN secret.")
         sys.exit(1)
         return
-    result = await run_daily_pipeline(user_id=user_id, run_type="github_actions_cron")
-    write_run_log(result)
-    if result.get("status") == "drafted":
-        _write_pending(result)
-        _set_output("has_draft", "true")
+
+    steps = {"publish": await publish_due(access_token, raw_sub, settings)}
+    publish_failed = steps["publish"].startswith("failed")
+    posted = steps["publish"].startswith("posted")
+
+    history = load_history()
+    waiting_approval = int(os.getenv("WAITING_APPROVALS", "0") or 0)
+    ready = unposted(history)
+    result = {"status": "skipped"}
+    if waiting_approval:
+        steps["draft"] = "a draft is already waiting for approval"
+    elif len(ready) >= QUEUE_AHEAD:
+        steps["draft"] = f"{len(ready)} approved posts already waiting"
     else:
-        _set_output("has_draft", "false")
+        day = slot_for_next_draft(today_phoenix(), history)
+        fmt = post_format_for(day)
+        result = await run_daily_pipeline(user_id=user_id, run_type="redraft" if redraft else "github_actions_cron", draft_format=fmt,
+                                          draft_day=day, extra_history=[_queued_history(i) for i in ready])
+        steps["draft"] = f"{fmt} for {day:%a %b} {day.day}"
+        steps.update({k: v for k, v in result.get("steps", {}).items() if k not in ("duplicate_check", "token_check")})
+        if result.get("status") == "drafted":
+            result["post_day"] = str(day)
+            _write_pending(result)
+            _set_output("has_draft", "true")
 
-    await generate_and_save_til(settings)
+    if publish_failed or result.get("status") == "failed":
+        status = "failed"
+    elif result.get("status") == "drafted":
+        status = "drafted"
+    else:
+        status = "posted" if posted else "skipped"
+    write_run_log({"status": status, "steps": steps})
 
-    if result.get("status") in ("drafted", "skipped"):
-        logger.info("Draft step finished: %s", result.get("status"))
-        sys.exit(0)
+    if not redraft:
+        await generate_and_save_til(settings)
+    if status == "failed":
+        logger.error("Run failed: %s %s", result.get("error"), steps)
+        sys.exit(1)
         return
-    logger.error("Draft step failed! Error: %s", result.get("error"))
-    logger.error("Pipeline steps detail: %s", result.get("steps"))
-    sys.exit(1)
+    logger.info("Daily step finished: %s", steps)
+    sys.exit(0)
 
 
-async def run_publish(access_token: str, raw_sub: str, settings):
-    """Approved step: post the saved draft exactly as it was shown for approval."""
+async def run_approve(access_token: str, raw_sub: str, settings):
+    """Runs only after the owner approves a draft in GitHub: adds it to the approved queue for its post day, and posts it right away when
+    that day is today and nothing has been posted yet."""
     import json
+    import shutil
 
-    from app.services.linkedin_service import publish_post
+    from app.services.approved_queue import add_to_queue
 
     text_path, meta_path = os.path.join(PENDING_DIR, "post.txt"), os.path.join(PENDING_DIR, "meta.json")
     if not (os.path.exists(text_path) and os.path.exists(meta_path)):
@@ -326,25 +410,20 @@ async def run_publish(access_token: str, raw_sub: str, settings):
         text = f.read()
     with open(meta_path, encoding="utf-8") as f:
         meta = json.load(f)
-
-    age = datetime.now(timezone.utc).replace(tzinfo=None) - datetime.fromisoformat(meta["created_at"])
-    if age > timedelta(hours=MAX_DRAFT_AGE_HOURS):
-        write_run_log({"status": "skipped", "steps": {"publish": f"draft is {age} old, not posted"}})
-        logger.warning("Draft is %s old; not posting stale content.", age)
-        sys.exit(0)
-        return
-
+    item_id = f"draft-{os.getenv('GITHUB_RUN_ID') or datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}"
     image = os.path.join(PENDING_DIR, "image.png")
-    result = await publish_post(access_token, f"urn:li:person:{raw_sub}", text, settings, image if os.path.exists(image) else None,
-                                meta.get("alt_text"))
-    status = "success" if result.get("success") else "failed"
-    if status == "success" and meta.get("history_entry"):
-        from app.services.post_plan import append_history
-
-        append_history(meta["history_entry"])
-    write_run_log({"status": status, "steps": {"publish": "approved and posted" if status == "success" else f"failed: {result.get('error', '')}",
-                                               "format": meta.get("format"), "subject": meta.get("subject")}})
-    sys.exit(0 if status == "success" else 1)
+    image_dst = None
+    if os.path.exists(image):
+        os.makedirs(os.path.join("assets", "approved"), exist_ok=True)
+        image_dst = f"assets/approved/{item_id}.png"
+        shutil.copy(image, image_dst)
+    add_to_queue({"id": item_id, "format": meta.get("format"), "subject": meta.get("subject"), "text": text, "image": image_dst,
+                  "alt_text": meta.get("alt_text"), "post_day": meta.get("post_day"), "history_entry": meta.get("history_entry")})
+    steps = {"approved": f"{item_id} ({meta.get('subject')}) for {meta.get('post_day')}"}
+    steps["publish"] = await publish_due(access_token, raw_sub, settings)
+    failed = steps["publish"].startswith("failed")
+    write_run_log({"status": "failed" if failed else "approved", "steps": steps})
+    sys.exit(1 if failed else 0)
 
 
 async def main(mode: str = "draft"):
@@ -373,12 +452,12 @@ async def main(mode: str = "draft"):
     token_ok, token_state = await check_linkedin_token(access_token)
     logger.info("LinkedIn token: %s", token_state)
 
-    if mode == "publish":
+    if mode in ("approve", "publish"):
         if not token_ok:
-            write_run_log({"status": "failed", "steps": {"publish": "LinkedIn token expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})
+            write_run_log({"status": "failed", "steps": {"approve": "LinkedIn token expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})
             sys.exit(1)
             return
-        await run_publish(access_token, raw_sub, settings)
+        await run_approve(access_token, raw_sub, settings)
         return
 
     await init_db()
@@ -388,7 +467,7 @@ async def main(mode: str = "draft"):
         logger.exception("Failed to encrypt access token using Fernet key!")
         sys.exit(1)
         return
-    await run_draft(user_id, settings, token_ok)
+    await run_draft(user_id, settings, token_ok, access_token, raw_sub)
 
 
 if __name__ == "__main__":

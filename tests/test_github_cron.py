@@ -2,7 +2,7 @@
 
 import json
 import os
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -45,7 +45,8 @@ async def test_draft_mode_seeds_database_and_runs_pipeline(mock_exit, mock_pipel
         token = (await session.execute(select(OAuthToken).where(OAuthToken.user_id == user.id))).scalar_one_or_none()
         assert token is not None
 
-    mock_pipeline.assert_called_once_with(user_id=user.id, run_type="github_actions_cron")
+    assert mock_pipeline.call_args.kwargs["user_id"] == user.id
+    assert mock_pipeline.call_args.kwargs["draft_format"] in ("project_spotlight", "lesson", "decision")
     assert token.decrypt_access_token(settings.fernet_key) == "mock-access-token-123"
     mock_til.assert_awaited_once()
 
@@ -89,38 +90,122 @@ async def test_draft_mode_saves_pending_post_and_summary(mock_exit, mock_pipelin
     mock_exit.assert_called_once_with(0)
 
 
-def _pending(tmp_path, age_hours):
+def _pending(tmp_path, post_day="2026-10-30"):
     d = tmp_path / "pending_post"
     d.mkdir()
     (d / "post.txt").write_text("Approved post text", encoding="utf-8")
-    created = (datetime.utcnow() - timedelta(hours=age_hours)).isoformat()
-    (d / "meta.json").write_text(json.dumps({"created_at": created, "format": "lesson", "subject": "X"}), encoding="utf-8")
+    (d / "image.png").write_bytes(b"\x89PNG fake")
+    meta = {"created_at": datetime.utcnow().isoformat(), "format": "decision", "subject": "X", "alt_text": "Chart", "post_day": post_day,
+            "history_entry": {"subject": "X", "format": "decision", "hook_type": "claim", "text": "Approved post text"}}
+    (d / "meta.json").write_text(json.dumps(meta), encoding="utf-8")
+
+
+def _queue(tmp_path, monkeypatch, items):
+    path = tmp_path / "data" / "approved_queue.json"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps(items), encoding="utf-8")
+    monkeypatch.setattr("app.services.approved_queue.QUEUE_PATH", str(path))
+    return path
+
+
+def _day(monkeypatch, day):
+    monkeypatch.setattr("app.utils.timezone.today_phoenix", lambda: day)
 
 
 @pytest.mark.asyncio
 @patch("app.services.linkedin_service.publish_post")
 @patch("sys.exit")
-async def test_publish_posts_saved_draft_unchanged(mock_exit, mock_publish, tmp_path, monkeypatch):
-    mock_publish.return_value = {"success": True, "post_id": "1"}
-    _pending(tmp_path, 1)
+async def test_approve_queues_the_draft_for_its_post_day_without_posting_early(mock_exit, mock_publish, tmp_path, monkeypatch):
+    _pending(tmp_path)
     monkeypatch.chdir(tmp_path)
-    with patch.dict(os.environ, ENV):
-        await main("publish")
-    assert mock_publish.call_args.args[1] == "urn:li:person:mock-sub-456"
-    assert mock_publish.call_args.args[2] == "Approved post text"
-    mock_exit.assert_called_once_with(0)
-
-
-@pytest.mark.asyncio
-@patch("app.services.linkedin_service.publish_post")
-@patch("sys.exit")
-async def test_publish_refuses_stale_draft(mock_exit, mock_publish, tmp_path, monkeypatch):
-    _pending(tmp_path, 48)
-    monkeypatch.chdir(tmp_path)
-    with patch.dict(os.environ, ENV):
-        await main("publish")
+    path = _queue(tmp_path, monkeypatch, [])
+    _day(monkeypatch, date(2026, 10, 27))  # Tuesday
+    with patch.dict(os.environ, dict(ENV, GITHUB_RUN_ID="555")):
+        await main("approve")
+    queue = json.loads(path.read_text(encoding="utf-8"))
+    assert queue[0]["id"] == "draft-555" and queue[0]["text"] == "Approved post text" and queue[0]["post_day"] == "2026-10-30"
+    assert (tmp_path / "assets" / "approved" / "draft-555.png").exists()
     mock_publish.assert_not_called()
     mock_exit.assert_called_once_with(0)
+
+
+@pytest.mark.asyncio
+@patch("app.services.linkedin_service.publish_post")
+@patch("sys.exit")
+async def test_approving_on_its_post_day_posts_it_at_once(mock_exit, mock_publish, tmp_path, monkeypatch):
+    mock_publish.return_value = {"success": True, "post_id": "1"}
+    _pending(tmp_path, "2026-10-30")
+    monkeypatch.chdir(tmp_path)
+    _queue(tmp_path, monkeypatch, [])
+    _day(monkeypatch, date(2026, 10, 30))  # Friday
+    with patch.dict(os.environ, dict(ENV, GITHUB_RUN_ID="556")):
+        await main("approve")
+    assert mock_publish.call_args.args[1] == "urn:li:person:mock-sub-456"
+    assert mock_publish.call_args.args[2] == "Approved post text"
+    history = json.loads((tmp_path / "data" / "post_history.json").read_text(encoding="utf-8"))
+    assert history[-1]["approved_id"] == "draft-556" and history[-1]["date"] == "2026-10-30"
+    mock_exit.assert_called_once_with(0)
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("app.services.linkedin_service.publish_post")
+@patch("sys.exit")
+async def test_post_day_posts_the_approved_post_then_drafts_for_the_next_open_day(mock_exit, mock_publish, mock_pipeline, mock_til,
+                                                                                   tmp_path, monkeypatch):
+    mock_publish.return_value = {"success": True, "post_id": "1"}
+    mock_pipeline.return_value = {"status": "drafted", "draft": "New", "format": "decision", "subject": "S", "image_path": None,
+                                  "compliance": {"issues": []}, "steps": {}}
+    monkeypatch.chdir(tmp_path)
+    _queue(tmp_path, monkeypatch, [{"id": "a", "format": "lesson", "subject": "A", "text": "Post A."},
+                                   {"id": "b", "format": "lesson", "subject": "B", "text": "Post B."}])
+    _day(monkeypatch, date(2026, 10, 26))  # Monday
+    out = tmp_path / "out.txt"
+    with patch.dict(os.environ, dict(ENV, GITHUB_OUTPUT=str(out))):
+        await main("draft")
+    assert mock_publish.call_args.args[2] == "Post A."
+    # Monday is taken by A (posted) and Wednesday by B, so the new draft is Friday's decision post.
+    assert mock_pipeline.call_args.kwargs["draft_day"] == date(2026, 10, 30)
+    assert mock_pipeline.call_args.kwargs["draft_format"] == "decision"
+    assert [h["subject"] for h in mock_pipeline.call_args.kwargs["extra_history"]] == ["B"]
+    assert json.loads((tmp_path / "pending_post" / "meta.json").read_text())["post_day"] == "2026-10-30"
+    assert "has_draft=true" in out.read_text()
+    mock_exit.assert_called_once_with(0)
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("app.services.linkedin_service.publish_post")
+@patch("sys.exit")
+async def test_no_new_draft_while_one_waits_for_approval_or_the_queue_is_full(mock_exit, mock_publish, mock_pipeline, mock_til,
+                                                                               tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    _day(monkeypatch, date(2026, 10, 27))  # Tuesday: nothing to post
+    _queue(tmp_path, monkeypatch, [])
+    with patch.dict(os.environ, dict(ENV, WAITING_APPROVALS="1")):
+        await main("draft")
+    _queue(tmp_path, monkeypatch, [{"id": i, "format": "lesson", "subject": i, "text": i} for i in "abc"])
+    with patch.dict(os.environ, ENV):
+        await main("draft")
+    mock_pipeline.assert_not_called()
+    mock_publish.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("sys.exit")
+async def test_redraft_after_a_reject_does_not_write_a_second_til(mock_exit, mock_pipeline, mock_til, tmp_path, monkeypatch):
+    mock_pipeline.return_value = {"status": "skipped", "steps": {}}
+    monkeypatch.chdir(tmp_path)
+    _day(monkeypatch, date(2026, 10, 27))
+    _queue(tmp_path, monkeypatch, [])
+    with patch.dict(os.environ, dict(ENV, REDRAFT="true")):
+        await main("draft")
+    assert mock_pipeline.call_args.kwargs["run_type"] == "redraft"
+    mock_til.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -144,10 +229,10 @@ def test_review_summary_reads_like_the_post():
     from github_cron import review_summary
 
     text = "First line with 92.5% and a_b.\n\n- one point\n\n#DataEngineering #NLP"
-    out = review_summary(text, {"subject": "Project A", "warnings": [], "alt_text": "Chart of *things*"},
+    out = review_summary(text, {"subject": "Project A", "warnings": [], "alt_text": "Chart of *things*", "post_day": "2026-10-30"},
                          "https://raw.githubusercontent.com/o/r/previews/1.png", "https://github.com/o/r/actions/runs/1")
-    assert "Review deployments" in out and "Approve and deploy" in out
-    assert '<img src="https://raw.githubusercontent.com/o/r/previews/1.png"' in out
+    assert "Review deployments" in out and "Approve and deploy" in out and "Friday, October 30" in out and "Reject" in out
+    assert "![Post image](https://raw.githubusercontent.com/o/r/previews/1.png)" in out
     assert "\#DataEngineering" in out  # not turned into a heading
     assert "a\_b" in out and "- one point" in out
     assert "```text\n" + text + "\n```" in out  # exact copy kept
@@ -160,12 +245,13 @@ def test_review_summary_reads_like_the_post():
 async def test_preview_drafts_a_new_post_and_never_offers_it_for_publishing(mock_exit, mock_pipeline, mock_til, tmp_path, monkeypatch):
     mock_pipeline.return_value = {"status": "drafted", "draft": "New draft.", "format": "lesson", "subject": "S", "image_path": None,
                                   "compliance": {"issues": []}, "steps": {}}
+    _queue(tmp_path, monkeypatch, [])
     out = tmp_path / "out.txt"
     summary = tmp_path / "summary.md"
     monkeypatch.chdir(tmp_path)
     with patch.dict(os.environ, {**ENV, "PREVIEW_FORMAT": "lesson", "GITHUB_OUTPUT": str(out), "GITHUB_STEP_SUMMARY": str(summary)}):
         await main("draft")
-    assert mock_pipeline.call_args.kwargs["preview_format"] == "lesson"
+    assert mock_pipeline.call_args.kwargs["draft_format"] == "lesson"
     outputs = out.read_text(encoding="utf-8")
     assert "has_draft=false" in outputs and "has_preview=true" in outputs
     assert "will not be posted" in summary.read_text(encoding="utf-8")

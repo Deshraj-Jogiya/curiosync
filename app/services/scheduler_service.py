@@ -2,6 +2,7 @@
 
 import json
 import os
+from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +12,6 @@ from app.database import async_session
 from app.models.draft import Draft
 from app.models.user import User
 from app.models.scheduler_run import SchedulerRun
-from app.services.approved_queue import image_copy, next_approved
 from app.services.auth_service import get_valid_token
 from app.services.compliance_service import check_compliance
 from app.services.deduplication_service import deduplicate_news
@@ -33,7 +33,9 @@ async def run_daily_pipeline(
     settings: Settings | None = None,
     run_type: str = "scheduled",
     publish: bool = False,
-    preview_format: str | None = None,
+    draft_format: str | None = None,
+    draft_day: date | None = None,
+    extra_history: list[dict] | None = None,
 ) -> dict:
     """Orchestrate the daily post pipeline.
 
@@ -44,8 +46,9 @@ async def run_daily_pipeline(
     approves each post before it goes out; LinkedIn's API terms do not allow unattended automated posting. Only a caller acting on a
     person's explicit click (the web app's Run now button, or the approved publish job) passes publish=True.
 
-    preview_format drafts a new post of that format on any day, skipping the approved queue and the already-posted check, so the
-    model's drafts can be reviewed; the caller never publishes a preview.
+    draft_format drafts a post of that format whatever today is, for draft_day (default today), skipping the already-posted check: the
+    GitHub runner drafts ahead for the next open post day and for previews. extra_history (approved posts not yet published) counts as
+    history, so a new draft does not repeat their subject or opener.
     """
     settings = settings or get_settings()
     own_session = db is None
@@ -55,14 +58,14 @@ async def run_daily_pipeline(
     else:
         session = db
 
-    date_for = today_phoenix()
+    date_for = draft_day or today_phoenix()
     steps: dict[str, str] = {}
 
     logger.info("Starting daily pipeline", extra={"user_id": user_id, "date_for": str(date_for), "run_type": run_type})
 
     try:
         # 1. Check duplicate
-        existing = None if preview_format else await get_today_post(session, user_id, date_for)
+        existing = None if draft_format else await get_today_post(session, user_id, date_for)
         if existing:
             steps["duplicate_check"] = "skipped — already posted today"
             logger.info("Pipeline skipped — already posted today", extra={"user_id": user_id})
@@ -83,7 +86,7 @@ async def run_daily_pipeline(
             return {"status": "failed", "error": "LinkedIn token expired. Please re-authorize.", "steps": steps}
         steps["token_check"] = "passed"
 
-        fmt = preview_format or post_format_for(date_for)
+        fmt = draft_format or post_format_for(date_for)
         if fmt is None:
             steps["schedule"] = f"no post scheduled on {date_for:%A}"
             await record_scheduler_run(session, run_type, "skipped", None, steps)
@@ -91,37 +94,6 @@ async def run_daily_pipeline(
                 await session.commit()
             return {"status": "skipped", "reason": f"No post is scheduled on {date_for:%A}.", "steps": steps}
         steps["schedule"] = fmt
-
-        queued = None if preview_format else next_approved(load_history())
-        if queued and not publish:
-            steps["generate_draft"] = f"approved post {queued['id']} used as written ({len(queued['text'])} chars, 0 model calls)"
-            compliance = check_compliance(queued["text"], [])
-            steps["compliance_check"] = "passed" if not compliance["blocking"] else f"warnings: {compliance['blocking']}"
-            image_path = image_copy(queued)
-            steps["visual"] = "approved image" if image_path else "none"
-            await record_scheduler_run(session, run_type, "drafted", None, steps)
-            if own_session:
-                await session.commit()
-            return {
-                "status": "drafted",
-                "format": queued["format"],
-                "subject": queued["subject"],
-                "draft": queued["text"],
-                "image_path": image_path,
-                "alt_text": queued.get("alt_text"),
-                "visual": steps["visual"],
-                "history_entry": {
-                    "date": str(date_for),
-                    "format": queued["format"],
-                    "subject": queued["subject"],
-                    "hook_type": queued.get("hook_type", "measured_result"),
-                    "opener_words": first_words(queued["text"]),
-                    "text": queued["text"],
-                    "approved_id": queued["id"],
-                },
-                "compliance": compliance,
-                "steps": steps,
-            }
 
         try:
             profile = await load_profile()
@@ -145,7 +117,7 @@ async def run_daily_pipeline(
             except Exception as exc:
                 steps["fetch_news"] = f"unavailable ({exc}); no news exception today"
 
-        history = load_history()
+        history = load_history() + list(extra_history or [])
         try:
             post = await generate_post(fmt, profile, settings, date_for, deduped, history)
         except DraftRejected as exc:

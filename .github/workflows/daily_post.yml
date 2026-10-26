@@ -1,4 +1,4 @@
-name: Daily LinkedIn Draft (approval to publish) & TIL Generator
+name: Daily LinkedIn draft (approve ahead, posts Mon/Wed/Fri) & TIL Generator
 
 on:
   schedule:
@@ -15,6 +15,10 @@ on:
         type: choice
         default: none
         options: [none, project_spotlight, lesson, decision]
+      redraft:
+        description: "Started automatically after a rejected draft"
+        type: boolean
+        default: false
 
 jobs:
   once_a_day:
@@ -116,7 +120,21 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r curiosync/requirements.txt
 
-    - name: Draft today's post & write the TIL note
+    - name: Count drafts already waiting for approval
+      # Only one draft waits for approval at a time; runs from before the approve job existed (job "publish") are not counted.
+      id: waiting
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        n=0
+        for id in $(gh api "repos/${{ github.repository }}/actions/runs?status=waiting&per_page=50" --jq '.workflow_runs[].id' || true); do
+          c=$(gh api "repos/${{ github.repository }}/actions/runs/$id/jobs" --jq '[.jobs[] | select(.name == "approve" and .status == "waiting")] | length' || echo 0)
+          n=$((n + c))
+        done
+        echo "count=$n" >> "$GITHUB_OUTPUT"
+        echo "Drafts waiting for approval: $n"
+
+    - name: Post today's approved post, draft the next one & write the TIL note
       id: run
       env:
         # Dummy configuration to satisfy Settings schema validations
@@ -134,6 +152,8 @@ jobs:
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
         PREVIEW_FORMAT: ${{ inputs.preview || 'none' }}
+        REDRAFT: ${{ inputs.redraft || false }}
+        WAITING_APPROVALS: ${{ steps.waiting.outputs.count }}
       working-directory: curiosync
       run: python -m github_cron draft
 
@@ -176,8 +196,9 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add run_log.md || true
+        git add run_log.md data/post_history.json || true
         git commit -m "chore: update daily execution log [skip ci]" || true
+        git pull --rebase || true
         git push || true
 
     - name: Commit and push daily TIL
@@ -212,9 +233,9 @@ jobs:
           echo "::warning::No TIL note dated $(date -u +%F) was written to dev-root-affinity/notes."
         fi
 
-  publish:
-    # Waits on the "linkedin-publish" environment, whose required reviewer is the owner: GitHub emails a review request, the draft is on
-    # the draft job's summary page, and nothing is posted unless it is approved. Rejecting (or ignoring) it skips the day.
+  approve:
+    # Waits on the "linkedin-publish" environment, whose required reviewer is the owner. Approving adds the draft to the approved queue
+    # for its post day (and posts it at once if that day is today). Rejecting it starts the redraft job below.
     needs: draft
     if: ${{ always() && needs.draft.outputs.has_draft == 'true' }}
     runs-on: ubuntu-latest
@@ -246,7 +267,7 @@ jobs:
         name: pending-post
         path: pending_post
 
-    - name: Publish the approved draft
+    - name: Queue the approved draft for its post day
       env:
         SECRET_KEY: "github-actions-dummy-secret-key-placeholder"
         LINKEDIN_CLIENT_ID: "github-actions-dummy-client-id-placeholder"
@@ -256,14 +277,27 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
-      run: python -m github_cron publish
+      run: python -m github_cron approve
 
-    - name: Commit and push run log
+    - name: Commit the queue and run log
       if: always()
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add run_log.md data/post_history.json || true
-        git commit -m "chore: update daily execution log [skip ci]" || true
-        git pull --rebase || true
-        git push || true
+        git add run_log.md data/post_history.json data/approved_queue.json assets/approved || true
+        git commit -m "Queue an approved post [skip ci]" || true
+        for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
+
+  redraft:
+    # A rejected draft fails the approve job; this starts a new run that writes another draft for the same post day. It stops on its own
+    # when the day's free model quota runs out, since a run that cannot draft offers nothing to reject.
+    needs: [draft, approve]
+    if: ${{ always() && needs.draft.outputs.has_draft == 'true' && needs.approve.result == 'failure' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+    - name: Start a new draft
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh workflow run daily_post.yml -R "${{ github.repository }}" -f redraft=true
