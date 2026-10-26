@@ -91,6 +91,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: read  # to count drafts already waiting for approval; without it the count silently read 0
     outputs:
       has_draft: ${{ steps.run.outputs.has_draft }}
       has_preview: ${{ steps.run.outputs.has_preview }}
