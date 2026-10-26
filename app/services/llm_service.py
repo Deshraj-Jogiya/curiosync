@@ -5,7 +5,9 @@ requests a day on its larger models, no card) is the second provider when GROQ_A
 quota error is skipped for the rest of the run instead of being retried on every call.
 """
 
+import asyncio
 import os
+import re
 
 import openai
 from app.config import Settings
@@ -29,6 +31,15 @@ GEMINI_STRONG = ["gemini-3.5-flash", "gemini-2.5-flash"]
 
 # (provider base, model) pairs that hit their daily quota during this run.
 _exhausted: set[tuple[str | None, str]] = set()
+
+
+def _per_minute_wait(err: Exception) -> float | None:
+    """Seconds to wait when a model is only over its per-minute limit (Groq: "tokens per minute"), else None."""
+    text = str(err)
+    if "429" not in text or not re.search(r"per minute|TPM|RPM", text):
+        return None
+    m = re.search(r"try again in ([\d.]+)s", text)
+    return min(60.0, float(m.group(1)) + 1) if m else 20.0
 
 
 def _is_daily_quota(err: Exception) -> bool:
@@ -105,6 +116,20 @@ async def call_llm_with_fallback(
             logger.info("LLM call succeeded with model: %s", model)
             return content
         except Exception as e:
+            wait = _per_minute_wait(e)
+            if wait is not None:
+                # Over the per-minute limit only: wait it out once and try the same model again.
+                logger.info("Model %s is over its per-minute limit; waiting %.0f s", model, wait)
+                await asyncio.sleep(wait)
+                try:
+                    response = await client.chat.completions.create(model=model, messages=messages, temperature=temperature,
+                                                                    timeout=90.0, **extra)
+                    content = (response.choices[0].message.content or "").strip()
+                    if content:
+                        logger.info("LLM call succeeded with model: %s", model)
+                        return content
+                except Exception as retry_error:
+                    e = retry_error
             if _is_daily_quota(e):
                 _exhausted.add((base, model))
                 logger.warning("Model %s is out of its daily quota; skipping it for the rest of this run.", model)

@@ -159,3 +159,12 @@ def test_story_json_is_read_through_fences_and_surrounding_text():
     assert parse_stories('Here you go:\n```json\n{"stories": [{"question": "q"}]}\n```') == [{"question": "q"}]
     assert parse_stories("no json at all") is None
     assert parse_stories('{"stories": [') is None
+
+
+def test_documents_are_read_in_pieces_that_fit_the_free_tier():
+    from app.services.story_bank import doc_chunks
+
+    docs = "# FILE: docs/FINDINGS.md\n" + ("Finding paragraph.\n\n" * 900) + "# FILE: README.md\nShort readme."
+    chunks = doc_chunks(docs, size=14000)
+    assert all(len(c) <= 14000 for c in chunks) and len(chunks) >= 2
+    assert chunks[0].startswith("# FILE: docs/FINDINGS.md") and "Short readme." in chunks[-1]

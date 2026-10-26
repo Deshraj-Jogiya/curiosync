@@ -27,7 +27,11 @@ STORIES_PATH = os.path.join("data", "stories.json")
 META_PATH = os.path.join("data", "stories_meta.json")
 FEEDBACK_PATH = os.path.join("data", "feedback.json")
 MAX_SUBJECTS_PER_REFILL = 3
-MAX_DOC_CHARS = 40000
+MAX_DOC_CHARS = 60000
+# Groq's free tier takes about 7,000-8,000 input tokens a minute per model, so documents are read in pieces of this size (about
+# 3,500 tokens), one file or part of a file at a time, FINDINGS first. Every number is still checked against all the documents.
+CHUNK_CHARS = 14000
+MAX_CHUNKS_PER_PROJECT = 4
 MAX_STORIES_PER_PROJECT = 12
 MIN_RESULTS = 3
 REPEAT_AFTER_DAYS = 180
@@ -305,6 +309,23 @@ def parse_stories(raw: str) -> list | None:
     return found if isinstance(found, list) else None
 
 
+def doc_chunks(docs: str, size: int = CHUNK_CHARS) -> list[str]:
+    """The documents split at file boundaries (and inside a long file at paragraph breaks) into pieces of at most `size` characters."""
+    files = [f for f in re.split(r"(?=^# FILE: )", docs, flags=re.MULTILINE) if f.strip()]
+    chunks: list[str] = []
+    for f in files:
+        while len(f) > size:
+            cut = f.rfind("\n\n", 0, size)
+            cut = cut if cut > size // 2 else size
+            chunks.append(f[:cut])
+            f = f[cut:]
+        if chunks and len(chunks[-1]) + len(f) <= size:
+            chunks[-1] += "\n\n" + f
+        else:
+            chunks.append(f)
+    return chunks
+
+
 async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -> list[dict]:
     from app.services.llm_service import call_llm_with_fallback
 
@@ -312,19 +333,23 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
     if len(docs) < 400:
         logger.info("No usable documents for %s", item["title"])
         return []
-    prompt = MINE_PROMPT.format(title=item["title"], n=n, docs=docs)
-    found = None
-    # One retry at temperature 0 when the reply has no readable JSON; both tries use the mining models, so mining never spends the
-    # allowance the writing models need.
-    for attempt, temperature in enumerate((0.2, 0.0), 1):
-        raw = await call_llm_with_fallback(messages=[{"role": "user", "content": prompt + "\nReturn only the JSON object, nothing else."}],
-                                           settings=settings, temperature=temperature, tier="mine")
-        found = parse_stories(raw)
-        if found is not None:
-            break
-        logger.warning("Story extraction for %s (try %d) returned no readable JSON: %r", item["title"], attempt, (raw or "")[:200])
-    if found is None:
-        return []
+    found = []
+    for piece in doc_chunks(docs)[:MAX_CHUNKS_PER_PROJECT]:
+        prompt = MINE_PROMPT.format(title=item["title"], n=n, docs=piece) + "\nReturn only the JSON object, nothing else."
+        # One retry at temperature 0 when the reply has no readable JSON; both tries use the mining models, so mining never spends the
+        # allowance the writing models need.
+        for attempt, temperature in enumerate((0.2, 0.0), 1):
+            try:
+                raw = await call_llm_with_fallback(messages=[{"role": "user", "content": prompt}], settings=settings,
+                                                   temperature=temperature, tier="mine")
+            except Exception as exc:
+                logger.warning("Story extraction for %s failed on one part: %s", item["title"], str(exc)[:200])
+                break
+            part = parse_stories(raw)
+            if part is not None:
+                found += part
+                break
+            logger.warning("Story extraction for %s (try %d) returned no readable JSON: %r", item["title"], attempt, (raw or "")[:200])
     stories = []
     for k, s in enumerate(found):
         if not isinstance(s, dict):
