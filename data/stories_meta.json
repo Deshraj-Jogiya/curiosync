@@ -22,5 +22,20 @@
     "sha": "82bd56fd6e04cfe5087f161747e6866d22f2274e",
     "read_on": "2026-10-26",
     "stories": 1
+  },
+  "Sales Analytics & RFM Customer Segmentation Pipeline": {
+    "sha": "03e792a2f861636348933cc7bfe3b7fb54ec6b9c",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "Extending STEM across ASL": {
+    "sha": "2c01bfd5670a2df25e3fcfaf41bf3af96b27de63",
+    "read_on": "2026-10-26",
+    "stories": 4
+  },
+  "Member Messages QA System: Semantic Search & NER-Based Question Answering": {
+    "sha": "daf803c0d3846abd2750302228ab57d9ea541ac0",
+    "read_on": "2026-10-26",
+    "stories": 3
   }
 }

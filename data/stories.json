@@ -432,5 +432,264 @@
       "https://github.com/Deshraj-Jogiya/IoT-Telematics-Predictive-Maintenance/blob/HEAD/README.md"
     ],
     "simulated": true
+  },
+  {
+    "id": "extending-stem-across-asl-1",
+    "subject": "Extending STEM across ASL",
+    "question": "How accurately can the model recognize STEM and computing word signs from video on held-out clips?",
+    "test": "The model was trained on clips of 29 STEM and computing signs, with 2 clips of each sign held out for evaluation. The model uses MediaPipe hand landmarks and OpenCV hand-crop features, resampled to 32 frames, fed to a 1-D convolution and a bidirectional GRU.",
+    "results": [
+      {
+        "label": "Top-1 accuracy",
+        "value": "0.7586"
+      },
+      {
+        "label": "Top-3 accuracy",
+        "value": "0.9483"
+      },
+      {
+        "label": "Chance accuracy (1 of 29)",
+        "value": "0.0345"
+      }
+    ],
+    "decision": "The browser page shows the top three signs for each recording, not only the top one.",
+    "chart_title": "Word sign recognition accuracy on held-out clips",
+    "detail": "Clips are from the public WLASL set (29 STEM and computing signs, 214 clips).",
+    "skills": [
+      "MediaPipe Hand Landmarker",
+      "OpenCV",
+      "PyTorch (Conv1d + bidirectional GRU)",
+      "seeded holdout evaluation"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "extending-stem-across-asl-2",
+    "subject": "Extending STEM across ASL",
+    "question": "How many distinct hand shapes are needed to represent the 29 STEM and computing signs?",
+    "test": "Each clip's hand shape was analyzed based on finger bending and spreading. Two signs were considered to share a hand shape if a permutation test could not distinguish their clips (p ≥ 0.05).",
+    "results": [
+      {
+        "label": "Distinct hand shapes required",
+        "value": "18"
+      },
+      {
+        "label": "Hand shapes saved",
+        "value": "11"
+      },
+      {
+        "label": "Reduction in shapes to practice",
+        "value": "0.3793"
+      },
+      {
+        "label": "Sign pairs sharing a shape",
+        "value": "55"
+      }
+    ],
+    "decision": "A lesson teaches each shared shape once, and lesson search merges concepts that share a hand shape.",
+    "chart_title": "Hand shape analysis for 29 ASL signs",
+    "detail": "Shared groups include email, program, write and learn; letter, energy and research; computer and network; machine, paper and school.",
+    "skills": [
+      "feature engineering on landmarks",
+      "permutation testing",
+      "Python"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "extending-stem-across-asl-3",
+    "subject": "Extending STEM across ASL",
+    "question": "What is the latency of the webcam sign recognition pipeline on a laptop CPU?",
+    "test": "20 requests of 30 JPEG frames each (a two-second recording) were sent to the /recognize-sign endpoint, with each stage timed on a laptop CPU.",
+    "results": [
+      {
+        "label": "Median decode frames time",
+        "value": "76.2 ms"
+      },
+      {
+        "label": "Median hand features time",
+        "value": "997.0 ms"
+      },
+      {
+        "label": "Median model inference time",
+        "value": "8.9 ms"
+      },
+      {
+        "label": "Median total processing time per request",
+        "value": "1081.2 ms"
+      },
+      {
+        "label": "Median whole request time",
+        "value": "1090.5 ms"
+      }
+    ],
+    "decision": "The hand landmarker, which takes nearly all the time, is built once and reused across requests, and each answer returns its time per stage.",
+    "chart_title": "Webcam sign recognition pipeline latency breakdown",
+    "detail": "The test used 30 JPEG frames, simulating a two-second recording.",
+    "skills": [
+      "Flask endpoint",
+      "browser getUserMedia capture",
+      "OpenCV decoding",
+      "per-stage latency profiling"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "extending-stem-across-asl-4",
+    "subject": "Extending STEM across ASL",
+    "question": "How does the model perform on individual signs, and which signs are confused with each other?",
+    "test": "Per-sign accuracy and the confusion matrix were calculated on the same held-out clips used for overall model evaluation.",
+    "results": [
+      {
+        "label": "network sign held-out accuracy",
+        "value": "0.0"
+      },
+      {
+        "label": "chemistry sign held-out accuracy",
+        "value": "0.0"
+      },
+      {
+        "label": "internet sign held-out accuracy",
+        "value": "0.5"
+      },
+      {
+        "label": "paper sign held-out accuracy",
+        "value": "0.5"
+      },
+      {
+        "label": "school sign held-out accuracy",
+        "value": "0.5"
+      }
+    ],
+    "decision": "The misses fall between related computing and school signs (network and internet; paper, print and school), the kind of signs the hand-shape analysis finds close together.",
+    "chart_title": "Per-sign accuracy and common confusions",
+    "detail": "The confusion matrix revealed specific sign confusions, such as 'network' being predicted as 'internet' for both clips.",
+    "skills": [
+      "confusion-matrix error analysis",
+      "pandas"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "member-messages-qa-system-semantic-searc-1",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "question": "How accurate is the system at identifying the correct member, message, and answer for a given question?",
+    "test": "eval_qa.py scores 26 hand-written, paraphrased questions against a labelled evaluation set.",
+    "results": [
+      {
+        "label": "Member identification accuracy",
+        "value": "100%"
+      },
+      {
+        "label": "Message retrieval accuracy",
+        "value": "96%"
+      },
+      {
+        "label": "Answer extraction accuracy",
+        "value": "96%"
+      }
+    ],
+    "decision": "CI fails if answer accuracy drops below 90%.",
+    "chart_title": "QA System Accuracy on Member Messages",
+    "detail": "The one miss asks for Lorenzo's Thursday booking; the top-ranked message is his Saturday dinner at The Fat Duck.",
+    "skills": [
+      "sentence-transformers embeddings",
+      "cosine-similarity ranking",
+      "spaCy NER",
+      "fuzzy matching",
+      "labelled evaluation set",
+      "CI quality gate"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "member-messages-qa-system-semantic-searc-2",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "question": "What is the distribution of message lengths in the dataset?",
+    "test": "Analysis of message lengths in the 'messages.json' dataset.",
+    "results": [
+      {
+        "label": "Minimum message length",
+        "value": "47 Characters"
+      },
+      {
+        "label": "Maximum message length",
+        "value": "84 Characters"
+      },
+      {
+        "label": "Average message length",
+        "value": "63.6 Characters"
+      }
+    ],
+    "decision": "Messages are concise and suitable for direct QA responses. No truncation required.",
+    "chart_title": "Member Message Length Distribution",
+    "detail": "The dataset contains 100 member messages.",
+    "skills": [
+      "data analysis",
+      "pandas"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "member-messages-qa-system-semantic-searc-3",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "question": "Are there any significant numeric outliers in the member messages dataset?",
+    "test": "Analysis of numeric information extracted from the 'messages.json' dataset.",
+    "results": [
+      {
+        "label": "Minimum numeric value",
+        "value": "1"
+      },
+      {
+        "label": "Maximum numeric value",
+        "value": "123,456,789"
+      },
+      {
+        "label": "Median numeric value",
+        "value": "555"
+      }
+    ],
+    "decision": "QA system should flag or handle numeric outliers to avoid misleading answers.",
+    "chart_title": "Numeric Data Analysis in Member Messages",
+    "detail": "An extreme outlier (123 million) suggests a data entry error.",
+    "skills": [
+      "numeric analysis",
+      "data quality"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
+    ],
+    "simulated": false
   }
 ]
