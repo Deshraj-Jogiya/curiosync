@@ -340,6 +340,9 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
     values = [_value_number(str(r["value"])) for r in results]
     same_unit = len({_unit(str(r["value"])) for r in results}) == 1 and all(v is not None for v in values)
     top = max(values) if same_unit and max(values) > 0 else None
+    if top and min(values) > 0 and top / min(values) < 1.25:
+        # Bars drawn from zero make close values (0.91 against 0.93) look identical; show the figures instead.
+        top = None
     for r, v in zip(results, values):
         label_fit = fit_text(draw, r["label"], width, 2, [30, 28, 26, 24])
         if not label_fit:
