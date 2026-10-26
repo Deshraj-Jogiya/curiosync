@@ -26,8 +26,8 @@ def test_a_story_with_a_number_not_in_the_documents_is_dropped():
     assert verify_story(STORY, DOCS) == []
     bad = {**STORY, "results": STORY["results"] + [{"label": "Users", "value": "5,000"}]}
     assert any("not in the documents" in p for p in verify_story(bad, DOCS))
-    assert "fewer than 2 numeric results" in verify_story({**STORY, "results": STORY["results"][:1]}, DOCS)
-    same = {**STORY, "results": [{"label": "A", "value": "63%"}, {"label": "B", "value": "63%"}]}
+    assert "fewer than 3 numeric results" in verify_story({**STORY, "results": STORY["results"][:2]}, DOCS)
+    same = {**STORY, "results": [{"label": "A", "value": "63%"}, {"label": "B", "value": "63%"}, {"label": "C", "value": "63%"}]}
     assert any("same number" in p for p in verify_story(same, DOCS))
 
 
@@ -54,7 +54,8 @@ async def test_refill_reads_project_documents_and_keeps_only_verified_stories(tm
     path = str(tmp_path / "stories.json")
     reply = json.dumps({"stories": [{k: STORY[k] for k in ("question", "test", "results", "decision", "chart_title")},
                                     {**{k: STORY[k] for k in ("question", "test", "decision", "chart_title")},
-                                     "results": [{"label": "Invented", "value": "71%"}, {"label": "Also", "value": "12 ms"}]}]})
+                                     "results": [{"label": "Invented", "value": "71%"}, {"label": "Also", "value": "12 ms"},
+                                                 {"label": "Third", "value": "63%"}]}]})
     with patch("app.services.story_bank.fetch_docs", AsyncMock(return_value=(DOCS * 5, ["https://github.com/o/a/blob/HEAD/README.md"]))), \
          patch("app.services.llm_service.call_llm_with_fallback", AsyncMock(return_value=reply)):
         status = await refill(ITEMS, [], settings=None, path=path)

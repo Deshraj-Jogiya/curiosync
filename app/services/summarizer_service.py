@@ -129,7 +129,9 @@ def source_text(profile: dict, item: dict, news: dict | None = None) -> str:
 STORY_RULES = """
 STORY below is the one measured test this post is about. Build the whole post on it: open with its question or its most telling result,
 explain how it was tested, give the results, and end with the decision it led to. FEATURED only tells you what the project is; do not
-add any other fact from FEATURED. Every number in the post must come from STORY.
+add any other fact from FEATURED. Every number in the post must come from STORY, written as STORY writes it: never work out a new
+number from them (no differences, totals, ratios or percentages STORY does not state), and never add a speed, size or scale claim
+STORY does not make.
 
 STORY:
 {story}

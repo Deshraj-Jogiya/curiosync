@@ -99,3 +99,10 @@ def test_sentences_with_unsupported_numbers_are_cut_and_lone_hashes_dropped():
     text = "It read 3,015 rows of 60,000. That skipped the other 19 partitions. It works.\n\nOnly 19 left."
     assert drop_sentences_with_numbers(text, ["19"]) == "It read 3,015 rows of 60,000. It works."
     assert tidy_hashtags("Body.\n\n#DataEngineering #") == "Body.\n\n#DataEngineering"
+
+
+def test_a_sentence_with_a_real_figure_keeps_it_when_an_unsupported_one_is_cut():
+    from app.services.post_rules import drop_sentences_with_numbers
+
+    text = "It read just 3,015 rows out of 60,000, avoiding the other 56,985 rows."
+    assert drop_sentences_with_numbers(text, ["56985"]) == "It read just 3,015 rows out of 60,000."

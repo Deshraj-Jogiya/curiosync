@@ -231,13 +231,24 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
 
 
 def drop_sentences_with_numbers(text: str, numbers: list[str]) -> str:
-    """Remove each sentence that states one of these numbers, and any paragraph left empty. Used as the last repair when a draft's only
+    """Remove each sentence (or, in a sentence that also states a real figure, each clause) that states one of these numbers, and any
+    paragraph left empty. Used as the last repair when a draft's only
     problem is a number the facts do not contain (a figure the model worked out itself, like "the other 19 partitions")."""
     targets = {_bare(n) for n in numbers}
     out = []
     for para in text.split("\n\n"):
         sentences = re.split(r"(?<=[.!?])\s+", para.strip())
-        kept = [s for s in sentences if not ({_bare(n) for n in numbers_in(s)} & targets)]
+        kept = []
+        for s in sentences:
+            found = {_bare(n) for n in numbers_in(s)}
+            if not found & targets:
+                kept.append(s)
+            elif found - targets:
+                # The sentence also states a real figure: cut only the clause with the unsupported one.
+                clauses = [c for c in re.split(r",\s+", s) if not ({_bare(n) for n in numbers_in(c)} & targets)]
+                if clauses:
+                    joined = ", ".join(clauses).rstrip(",")
+                    kept.append(joined if joined.endswith((".", "!", "?")) else joined + ".")
         if kept:
             out.append(" ".join(kept))
     return "\n\n".join(out)

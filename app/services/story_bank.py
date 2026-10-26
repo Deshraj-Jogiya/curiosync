@@ -24,6 +24,7 @@ FEEDBACK_PATH = os.path.join("data", "feedback.json")
 MIN_UNUSED = 4
 MAX_SUBJECTS_PER_REFILL = 2
 MAX_DOC_CHARS = 24000
+MIN_RESULTS = 3
 
 
 def _load(path: str, default):
@@ -139,7 +140,8 @@ Rules:
 - Every number must be copied exactly as it appears in DOCUMENTS. Never compute, round or invent a number.
 - Every result must have a short label (at most 8 words) and a value that is a number from DOCUMENTS with its unit, like "92.5%",
   "0.9 s", "43 entries".
-- Give 2 to 5 results per story, and prefer results that can be compared on one chart (same unit).
+- Give 3 to 6 results per story. When the story compares options, give each option the same metrics (accuracy of A and of B,
+  latency of A and of B), so they can be compared on one chart.
 - "decision" says what was chosen or changed because of the results, only as the documents state it. If the documents state no
   decision, give the plain conclusion they draw.
 - "chart_title" is at most 10 words and names what the results measure.
@@ -160,8 +162,9 @@ def verify_story(story: dict, docs: str) -> list[str]:
             problems.append(f"missing {key}")
     results = story.get("results") or []
     numeric = [r for r in results if numbers_in(str(r.get("value", "")))]
-    if len(numeric) < 2:
-        problems.append("fewer than 2 numeric results")
+    if len(numeric) < MIN_RESULTS:
+        # Two numbers make a thin story: the model pads it with arithmetic of its own and claims the documents never make.
+        problems.append(f"fewer than {MIN_RESULTS} numeric results")
     elif len({str(r.get("value", "")).strip().lower() for r in numeric}) < 2:
         problems.append("all results are the same number, so there is nothing to compare")
     text = " ".join([str(story.get(k, "")) for k in ("question", "test", "decision", "detail", "chart_title")] +

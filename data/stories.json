@@ -31,29 +31,6 @@
     "simulated": false
   },
   {
-    "id": "job-market-lakehouse-1",
-    "subject": "Job Market Lakehouse",
-    "question": "How much data scanning is reduced when querying a single month after partitioning Hive tables by month?",
-    "test": "Tested using 60,000 synthetic job postings partitioned by month in Hive SQL through Spark, executing a query filtered specifically for June 2025.",
-    "results": [
-      {
-        "label": "Total dataset rows",
-        "value": "60,000 rows"
-      },
-      {
-        "label": "June 2025 query rows read",
-        "value": "3,015 rows"
-      }
-    ],
-    "decision": "Partitioned the Parquet table by month using dynamic partition inserts so queries can prune unneeded partitions.",
-    "chart_title": "Row Count Comparison for Full Scan versus Partition Pruned Query",
-    "detail": "The June 2025 query successfully pruned partitions and read only one partition.",
-    "sources": [
-      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
-    ],
-    "simulated": true
-  },
-  {
     "id": "fintech-credit-risk-fraud-command-center-1",
     "subject": "FinTech Credit Risk & Fraud Command Center",
     "question": "Which model delivers higher predictive performance for loan defaults?",
@@ -79,29 +56,6 @@
     "decision": "Random Forest goes to production.",
     "chart_title": "Model precision and recall comparison",
     "detail": "Both runs are tracked in MLflow and CI checks they were logged.",
-    "sources": [
-      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
-    ],
-    "simulated": false
-  },
-  {
-    "id": "fintech-credit-risk-fraud-command-center-2",
-    "subject": "FinTech Credit Risk & Fraud Command Center",
-    "question": "Does the FastAPI prediction endpoint satisfy the latency SLA?",
-    "test": "200 calls on a laptop measuring response time.",
-    "results": [
-      {
-        "label": "Median latency",
-        "value": "67 ms"
-      },
-      {
-        "label": "95th percentile latency",
-        "value": "85 ms"
-      }
-    ],
-    "decision": "CI passes because median latency is below 100 ms.",
-    "chart_title": "API latency distribution",
-    "detail": "tests/test_risk_api.py fails if the median reaches 100 ms.",
     "sources": [
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
     ],
