@@ -220,9 +220,18 @@ Rules:
 - "skills" lists the tools, languages and techniques this one test used, each written exactly as DOCUMENTS write it (for example
   "XGBoost", "MLflow", "Isolation Forest", "dbt", "partition pruning"). At most 6.
 - Two stories must not be the same test told twice.
+- "series" (optional) holds the data behind the best chart for this story, ONLY when DOCUMENTS contain every number in it:
+  * "line": a measure along an ordered axis (days, epochs, entries opened, thresholds), 1 or 2 named series of at least 3 points:
+    {{"type": "line", "title": "...", "x_label": "...", "y_label": "...", "points": [{{"x": "...", "y": "...", "series": "name"}}]}}
+  * "scatter": 3 or more options each measured on two things (accuracy against size, precision against recall):
+    {{"type": "scatter", "title": "...", "x_label": "...", "y_label": "...", "points": [{{"label": "...", "x": "...", "y": "..."}}]}}
+  * "before_after": up to 4 measures that changed (7.5 s to 0.9 s, 22 of 26 to 25 of 26):
+    {{"type": "before_after", "title": "...", "points": [{{"label": "...", "before": "...", "after": "..."}}]}}
+  Leave "series" out when none of these fits; the results alone are then charted.
 
 Return only JSON: {{"stories": [{{"question": "...", "test": "...", "results": [{{"label": "...", "value": "..."}}], "decision": "...",
-"detail": "one optional sentence of supporting detail from DOCUMENTS, or empty", "chart_title": "...", "skills": ["..."]}}]}}
+"detail": "one optional sentence of supporting detail from DOCUMENTS, or empty", "chart_title": "...", "skills": ["..."],
+"series": {{...}} or omit}}]}}
 
 DOCUMENTS:
 {docs}
@@ -247,6 +256,33 @@ def verify_story(story: dict, docs: str) -> list[str]:
     if bad:
         problems.append(f"numbers not in the documents: {bad}")
     return problems
+
+
+def verify_series(series, docs: str) -> list[str]:
+    """Problems with a story's chart data; a story whose series fails keeps its results and loses only the series."""
+    if not isinstance(series, dict) or series.get("type") not in ("line", "scatter", "before_after"):
+        return ["no usable series type"]
+    points = series.get("points")
+    if not isinstance(points, list) or not points or not all(isinstance(p, dict) for p in points):
+        return ["no points"]
+    kind = series["type"]
+    if kind == "before_after":
+        if len(points) > 4 or any(not (str(p.get("before", "")).strip() and str(p.get("after", "")).strip()) for p in points):
+            return ["before and after values missing"]
+        values = [f"{p['before']} {p['after']}" for p in points]
+    else:
+        if any(not numbers_in(str(p.get("x", ""))) or not numbers_in(str(p.get("y", ""))) for p in points):
+            return ["a point without numbers"]
+        groups = {}
+        for p in points:
+            groups.setdefault(p.get("series") or p.get("label") or "", []).append(p)
+        if kind == "line" and (len(groups) > 2 or any(len(g) < 3 for g in groups.values())):
+            return ["a line needs 1-2 series of 3+ points"]
+        if kind == "scatter" and len(points) < 3:
+            return ["a scatter needs 3+ points"]
+        values = [f"{p['x']} {p['y']}" for p in points]
+    bad = unsupported_numbers(" ".join(values), docs)
+    return [f"series numbers not in the documents: {bad}"] if bad else []
 
 
 def _same_test(a: dict, b: dict) -> bool:
@@ -285,6 +321,11 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
         story = {"id": f"{slug}-{len(stories) + 1}", "subject": item["title"], **{key: s[key] for key in
                  ("question", "test", "results", "decision", "chart_title")}, "detail": s.get("detail") or "",
                  "skills": skills, "sources": sources, "simulated": bool(item.get("simulated"))}
+        series_problems = verify_series(s.get("series"), docs) if s.get("series") else ["none"]
+        if not series_problems:
+            story["series"] = s["series"]
+        elif s.get("series"):
+            logger.info("Series for story %d of %s dropped: %s", k, item["title"], series_problems)
         if any(_same_test(story, kept) for kept in stories):
             continue
         stories.append(story)
@@ -325,7 +366,12 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
             continue
         existing = {x["id"] for x in stories}
         for st in new:
-            if any(x["subject"] == st["subject"] and _same_test(st, x) for x in stories):
+            same = next((x for x in stories if x["subject"] == st["subject"] and _same_test(st, x)), None)
+            if same:
+                # Read again: an existing story gains the chart data, skills and sources it was missing; its id stays.
+                for key in ("series", "skills", "sources"):
+                    if st.get(key) and not same.get(key):
+                        same[key] = st[key]
                 continue
             while st["id"] in existing:
                 st["id"] += "x"

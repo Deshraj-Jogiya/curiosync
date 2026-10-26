@@ -11,10 +11,10 @@ on:
     # run page with its image; it skips the approved queue and is never offered for publishing.
     inputs:
       preview:
-        description: "Preview a new draft (never posted)"
+        description: "Preview a new draft (never posted), or 'mine' to only fill the story bank"
         type: choice
         default: none
-        options: [none, project_spotlight, lesson, decision]
+        options: [none, project_spotlight, lesson, decision, mine]
       redraft:
         description: "Started automatically after a rejected draft"
         type: boolean

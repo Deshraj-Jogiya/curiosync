@@ -10,6 +10,7 @@ import tempfile
 
 from PIL import Image
 
+from app.services.post_charts import render_series
 from app.services.post_visual import (ACCENTS, BG, H, MARGIN, MUTED, TEXT, W, _accent, _canvas, _font, _footer, _header, fit_text,
                                       render_story_chart)
 
@@ -95,7 +96,7 @@ def comparison_grid(results: list[dict]) -> tuple[list[str], list[str], dict] | 
     return options, metrics, cells
 
 
-def _results_page(story: dict, item: dict, page: int, total: int) -> Image.Image | None:
+def _results_page(story: dict, item: dict, page: int, total: int, numbered: bool = True) -> Image.Image | None:
     """All of the story's results: a table of options against metrics when it is a comparison, otherwise the results chart."""
     grid = comparison_grid(story["results"])
     if not grid:
@@ -136,7 +137,8 @@ def _results_page(story: dict, item: dict, page: int, total: int) -> Image.Image
         for n, opt in enumerate(options):
             draw.text((MARGIN + label_w + n * col_w, y - 6), cells.get((opt, metric.lower()), "-"), font=vfont, fill=TEXT)
         y += row_h
-    draw.text((W - MARGIN - 90, H - 95), f"{page} / {total}", font=head, fill=MUTED)
+    if numbered:
+        draw.text((W - MARGIN - 90, H - 95), f"{page} / {total}", font=head, fill=MUTED)
     _footer(draw)
     return img
 
@@ -150,19 +152,39 @@ def _repo_line(story: dict) -> str:
     return ""
 
 
+def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str] | None:
+    """The single image for a story, in order of fit: its series chart (line, scatter or before and after), a table of options
+    against metrics, then a chart of the results the post states. Returns (path, alt text, kind)."""
+    series = render_series(story, item)
+    if series:
+        return series[0], series[1], (story.get("series") or {}).get("type", "series")
+    if comparison_grid(story["results"]):
+        page = _results_page(story, item, 0, 0, numbered=False)
+        if page:
+            fd, path = tempfile.mkstemp(prefix="curiosync_table_", suffix=".png")
+            os.close(fd)
+            page.save(path, "PNG")
+            alt = f"Table: {story['chart_title']}. " + "; ".join(f"{r['label']} {r['value']}" for r in story["results"]) + "."
+            return path, alt + (" Simulated data." if story.get("simulated") else ""), "table"
+    chart = render_story_chart(story, item, post_text)
+    return (chart[0], chart[1], "results chart") if chart else None
+
+
 def render_story_document(story: dict, item: dict, post_text: str) -> tuple[str, list[str], str] | None:
     """Return (pdf path, page png paths, document title), or None if a page cannot be drawn without cutting text."""
     item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
-    total = 5
+    series = render_series(story, item)
+    extra = [Image.open(series[0]).convert("RGB")] if series else []
+    total = 5 + len(extra)
     pages = [
         _cover(story, item, total),
         _text_page(item, "How it was tested", story["test"], 2, total, [story.get("detail") or ""]),
         # Every result in the story (all checked against the repository), not only those the post states.
         _results_page(story, item, 3, total),
-    ]
-    pages.append(_text_page(item, "The decision", story["decision"], 4, total))
+    ] + extra
+    pages.append(_text_page(item, "The decision", story["decision"], 4 + len(extra), total))
     skills = ", ".join(story.get("skills", []))
-    pages.append(_text_page(item, "Where to see it", _repo_line(story) or item["title"], 5, total,
+    pages.append(_text_page(item, "Where to see it", _repo_line(story) or item["title"], 5 + len(extra), total,
                             [f"Skills: {skills}" if skills else ""]))
     if any(p is None for p in pages):
         return None

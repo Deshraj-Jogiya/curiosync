@@ -346,6 +346,25 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
 
     _set_output("has_draft", "false")
     preview = os.getenv("PREVIEW_FORMAT", "").strip()
+    if preview == "mine":
+        # Fill the story bank only (several projects in one go, light model first); nothing is drafted.
+        import app.services.story_bank as bank
+        from app.services.post_plan import candidates, load_notes
+        from app.services.profile_source import load_profile
+
+        bank.MAX_SUBJECTS_PER_REFILL = int(os.getenv("MINE_PROJECTS", "8"))
+        bank.HEALTHY_BANK = 10_000
+        items = candidates(await load_profile(), "project", load_notes())
+        status = await bank.refill(items, load_history(), settings)
+        stories = bank.load_stories()
+        kinds = {}
+        for st in stories:
+            kind = (st.get("series") or {}).get("type", "results only")
+            kinds[kind] = kinds.get(kind, 0) + 1
+        write_run_log({"status": "mined", "steps": {"stories": status, "chart data": str(kinds)}})
+        logger.info("Story bank: %s; %d stories; chart data: %s", status, len(stories), kinds)
+        sys.exit(0)
+        return
     if preview and preview != "none":
         # A manual preview: draft a new post of this format to read on the run page. Nothing is offered for approval.
         result = await run_daily_pipeline(user_id=user_id, run_type="preview", draft_format=preview,

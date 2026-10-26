@@ -199,9 +199,11 @@ async def run_daily_pipeline(
                     document_path, document_pages, document_title = doc
                     image_path, alt_text, visual_kind = document_pages[0], f"{document_title}: {len(document_pages)}-page document", "document"
                 else:
-                    chart = render_story_chart(story, post["item"], draft_text)
-                    if chart:
-                        image_path, alt_text, visual_kind = chart[0], chart[1], "story chart"
+                    from app.services.post_document import story_image
+
+                    picture = story_image(story, post["item"], draft_text)
+                    if picture:
+                        image_path, alt_text, visual_kind = picture
             else:
                 image_path, alt_text, visual_kind = await build_visual(post["item"], settings,
                                                                        source_text(profile, post["item"], post["news"]))

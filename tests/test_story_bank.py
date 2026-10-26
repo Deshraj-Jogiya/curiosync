@@ -105,3 +105,49 @@ async def test_a_project_is_read_again_when_its_repository_changes_and_repeated_
         status = await refill(ITEMS[:1], [], settings=None, path=path, meta_path=meta)  # new commit: read again
         assert llm.await_count == 2 and "0 new" in status  # the same test is not added twice
     assert len(load_stories(path)) == 1
+
+
+def test_series_are_checked_against_the_documents():
+    from app.services.story_bank import verify_series
+
+    docs = "Accuracy on day 1 was 0.9988, on day 40 0.91 and on day 60 0.83. Latency went from 7.5 s to 0.9 s."
+    line = {"type": "line", "points": [{"x": "1", "y": "0.9988"}, {"x": "40", "y": "0.91"}, {"x": "60", "y": "0.83"}]}
+    assert verify_series(line, docs) == []
+    assert verify_series({**line, "points": line["points"][:2]}, docs)  # too short for a line
+    invented = {"type": "line", "points": [{"x": "1", "y": "0.9988"}, {"x": "40", "y": "0.95"}, {"x": "60", "y": "0.83"}]}
+    assert "not in the documents" in verify_series(invented, docs)[0]
+    assert verify_series({"type": "before_after", "points": [{"label": "Latency", "before": "7.5 s", "after": "0.9 s"}]}, docs) == []
+    assert verify_series({"type": "pie", "points": []}, docs)
+
+
+def test_the_image_follows_the_shape_of_the_data():
+    from app.services.post_document import story_image
+
+    item = ITEMS[0]
+    with_series = {**STORY, "series": {"type": "scatter", "title": "Accuracy against size", "x_label": "MB", "y_label": "%",
+                                       "points": [{"label": "A", "x": "0", "y": "63"}, {"label": "B", "x": "46", "y": "83"},
+                                                  {"label": "C", "x": "57", "y": "92.5"}]}}
+    assert story_image(with_series, item, "")[2] == "scatter"
+    grid = {**STORY, "results": [{"label": "Rule precision", "value": "1.0"}, {"label": "Model precision", "value": "0.9474"},
+                                 {"label": "Rule recall", "value": "0.9574"}, {"label": "Model recall", "value": "0.383"}]}
+    assert story_image(grid, item, "")[2] == "table"
+    assert story_image(STORY, item, "Keywords 63% and final 92.5%.")[2] == "results chart"
+
+
+@pytest.mark.asyncio
+async def test_reading_a_repo_again_adds_chart_data_to_a_story_already_in_the_bank(tmp_path):
+    path, meta = str(tmp_path / "stories.json"), str(tmp_path / "meta.json")
+    plain = json.dumps({"stories": [{k: STORY[k] for k in ("question", "test", "results", "decision", "chart_title")}]})
+    series = {"type": "before_after", "title": "t", "points": [{"label": "Final", "before": "63%", "after": "92.5%"}]}
+    richer = json.dumps({"stories": [{**{k: STORY[k] for k in ("question", "test", "results", "decision", "chart_title")},
+                                      "series": series, "skills": ["reranker"]}]})
+    sha = AsyncMock(return_value="sha1")
+    llm = AsyncMock(return_value=plain)
+    with patch("app.services.story_bank.fetch_docs", AsyncMock(return_value=(DOCS * 5, ["src"]))), \
+         patch("app.services.llm_service.call_llm_with_fallback", llm), patch("app.services.story_bank.head_sha", sha):
+        await refill(ITEMS[:1], [], settings=None, path=path, meta_path=meta)
+        llm.return_value, sha.return_value = richer, "sha2"
+        await refill(ITEMS[:1], [], settings=None, path=path, meta_path=meta)
+    stories = load_stories(path)
+    assert len(stories) == 1 and stories[0]["id"] == "project-a-1"
+    assert stories[0]["series"]["type"] == "before_after" and stories[0]["skills"] == ["reranker"]
