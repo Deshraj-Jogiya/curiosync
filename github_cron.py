@@ -157,7 +157,7 @@ def _set_output(name: str, value: str):
             f.write(f"{name}={value}\n")
 
 
-def _write_pending(result: dict):
+def _write_pending(result: dict, preview: bool = False):
     """Save the approved-to-be draft for the publish job, and show it on the run page so it can be read before approving."""
     import json
     import shutil
@@ -189,7 +189,7 @@ def _write_pending(result: dict):
                      if repo and run_id and os.path.exists(os.path.join(PENDING_DIR, "image.png")) else None)
         run_url = f"https://github.com/{repo}/actions/runs/{run_id}" if repo and run_id else ""
         with open(summary, "a", encoding="utf-8") as f:
-            f.write(review_summary(result["draft"], meta, image_url, run_url))
+            f.write(review_summary(result["draft"], meta, image_url, run_url, preview))
 
 
 def _as_markdown_text(text: str) -> str:
@@ -206,12 +206,21 @@ def _as_markdown_text(text: str) -> str:
     return "\n".join(out)
 
 
-def review_summary(text: str, meta: dict, image_url: str | None, run_url: str) -> str:
+def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, preview: bool = False) -> str:
     warnings = meta.get("warnings") or []
-    parts = [
-        f"# LinkedIn post ready for your review\n",
-        f"**{meta.get('subject')}** · {len(text.split())} words · {len(text)} characters\n",
-        "## How to post it\n",
+    if preview:
+        head = [
+            "# Preview of a new draft: this will not be posted\n",
+            f"**{meta.get('format')}** · **{meta.get('subject')}** · {len(text.split())} words · {len(text)} characters\n",
+            "A real post day shows this same page, with these steps to approve:\n",
+        ]
+    else:
+        head = [
+            "# LinkedIn post ready for your review\n",
+            f"**{meta.get('subject')}** · {len(text.split())} words · {len(text)} characters\n",
+            "## How to post it\n",
+        ]
+    parts = head + [
         f"1. Read the post and look at the image below.\n"
         f"2. Scroll to the top of {'[this run](' + run_url + ')' if run_url else 'this page'} and click **Review deployments**.\n"
         f"3. Tick **linkedin-publish**, then click **Approve and deploy** to post it exactly as shown, or **Reject** to skip today.\n\n"
@@ -261,6 +270,20 @@ async def _seed_user(access_token: str, raw_sub: str, settings) -> int:
 
 async def run_draft(user_id: int, settings, token_ok: bool = True):
     """Scheduled step: draft today's post (if one is scheduled) and write the TIL note. Never publishes."""
+    preview = os.getenv("PREVIEW_FORMAT", "").strip()
+    if preview and preview != "none":
+        # A manual preview: draft a new post of this format to read on the run page. Nothing is offered for publishing.
+        _set_output("has_draft", "false")
+        result = await run_daily_pipeline(user_id=user_id, run_type="preview", preview_format=preview)
+        if result.get("status") == "drafted":
+            _write_pending(result, preview=True)
+            _set_output("has_preview", "true")
+            logger.info("Preview drafted: %s about %s", result.get("format"), result.get("subject"))
+            sys.exit(0)
+            return
+        logger.error("Preview not drafted: %s %s", result.get("error") or result.get("reason"), result.get("steps"))
+        sys.exit(1)
+        return
     if not token_ok:
         # Nothing approved today could be posted, so no draft is offered; the TIL note is still written and the run fails so GitHub emails.
         write_run_log({"status": "failed", "steps": {"linkedin_token": "expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})

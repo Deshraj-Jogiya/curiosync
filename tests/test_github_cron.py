@@ -151,3 +151,22 @@ def test_review_summary_reads_like_the_post():
     assert "\#DataEngineering" in out  # not turned into a heading
     assert "a\_b" in out and "- one point" in out
     assert "```text\n" + text + "\n```" in out  # exact copy kept
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("sys.exit")
+async def test_preview_drafts_a_new_post_and_never_offers_it_for_publishing(mock_exit, mock_pipeline, mock_til, tmp_path, monkeypatch):
+    mock_pipeline.return_value = {"status": "drafted", "draft": "New draft.", "format": "lesson", "subject": "S", "image_path": None,
+                                  "compliance": {"issues": []}, "steps": {}}
+    out = tmp_path / "out.txt"
+    summary = tmp_path / "summary.md"
+    monkeypatch.chdir(tmp_path)
+    with patch.dict(os.environ, {**ENV, "PREVIEW_FORMAT": "lesson", "GITHUB_OUTPUT": str(out), "GITHUB_STEP_SUMMARY": str(summary)}):
+        await main("draft")
+    assert mock_pipeline.call_args.kwargs["preview_format"] == "lesson"
+    outputs = out.read_text(encoding="utf-8")
+    assert "has_draft=false" in outputs and "has_preview=true" in outputs
+    assert "will not be posted" in summary.read_text(encoding="utf-8")
+    mock_til.assert_not_called()

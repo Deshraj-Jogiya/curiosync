@@ -33,6 +33,7 @@ async def run_daily_pipeline(
     settings: Settings | None = None,
     run_type: str = "scheduled",
     publish: bool = False,
+    preview_format: str | None = None,
 ) -> dict:
     """Orchestrate the daily post pipeline.
 
@@ -42,6 +43,9 @@ async def run_daily_pipeline(
     publish=False (the default) stops after the draft and its graphic are made and returns them with status "drafted", so a person
     approves each post before it goes out; LinkedIn's API terms do not allow unattended automated posting. Only a caller acting on a
     person's explicit click (the web app's Run now button, or the approved publish job) passes publish=True.
+
+    preview_format drafts a new post of that format on any day, skipping the approved queue and the already-posted check, so the
+    model's drafts can be reviewed; the caller never publishes a preview.
     """
     settings = settings or get_settings()
     own_session = db is None
@@ -58,7 +62,7 @@ async def run_daily_pipeline(
 
     try:
         # 1. Check duplicate
-        existing = await get_today_post(session, user_id, date_for)
+        existing = None if preview_format else await get_today_post(session, user_id, date_for)
         if existing:
             steps["duplicate_check"] = "skipped — already posted today"
             logger.info("Pipeline skipped — already posted today", extra={"user_id": user_id})
@@ -79,7 +83,7 @@ async def run_daily_pipeline(
             return {"status": "failed", "error": "LinkedIn token expired. Please re-authorize.", "steps": steps}
         steps["token_check"] = "passed"
 
-        fmt = post_format_for(date_for)
+        fmt = preview_format or post_format_for(date_for)
         if fmt is None:
             steps["schedule"] = f"no post scheduled on {date_for:%A}"
             await record_scheduler_run(session, run_type, "skipped", None, steps)
@@ -88,7 +92,7 @@ async def run_daily_pipeline(
             return {"status": "skipped", "reason": f"No post is scheduled on {date_for:%A}.", "steps": steps}
         steps["schedule"] = fmt
 
-        queued = next_approved(load_history())
+        queued = None if preview_format else next_approved(load_history())
         if queued and not publish:
             steps["generate_draft"] = f"approved post {queued['id']} used as written ({len(queued['text'])} chars, 0 model calls)"
             compliance = check_compliance(queued["text"], [])

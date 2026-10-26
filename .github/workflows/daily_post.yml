@@ -7,7 +7,14 @@ on:
     # Backup in case GitHub delays or drops the first one; the once_a_day job lets only the first scheduled run of the day draft.
     - cron: '30 17 * * *'
   workflow_dispatch:
-    # Allows manual triggering from the GitHub Actions tab
+    # Allows manual triggering from the GitHub Actions tab. A preview drafts a brand-new post of the chosen type and shows it on the
+    # run page with its image; it skips the approved queue and is never offered for publishing.
+    inputs:
+      preview:
+        description: "Preview a new draft (never posted)"
+        type: choice
+        default: none
+        options: [none, project_spotlight, lesson, decision]
 
 jobs:
   once_a_day:
@@ -45,6 +52,7 @@ jobs:
       contents: write
     outputs:
       has_draft: ${{ steps.run.outputs.has_draft }}
+      has_preview: ${{ steps.run.outputs.has_preview }}
 
     steps:
     - name: Checkout CurioSync
@@ -125,8 +133,17 @@ jobs:
         LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
+        PREVIEW_FORMAT: ${{ inputs.preview || 'none' }}
       working-directory: curiosync
       run: python -m github_cron draft
+
+    - name: Keep the preview
+      if: ${{ steps.run.outputs.has_preview == 'true' }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: preview-post
+        path: curiosync/pending_post
+        retention-days: 7
 
     - name: Keep the draft for the publish job
       if: ${{ steps.run.outputs.has_draft == 'true' }}
@@ -138,7 +155,7 @@ jobs:
 
     - name: Put the image where the review page can show it
       # The run summary can only show an image by URL, so the draft's image goes to the previews branch as <run id>.png.
-      if: ${{ steps.run.outputs.has_draft == 'true' && hashFiles('curiosync/pending_post/image.png') != '' }}
+      if: ${{ (steps.run.outputs.has_draft == 'true' || steps.run.outputs.has_preview == 'true') && hashFiles('curiosync/pending_post/image.png') != '' }}
       continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
@@ -183,7 +200,7 @@ jobs:
 
     - name: Fail loudly if no TIL note could be written
       # The checkout above is continue-on-error, so an expired PAT used to skip the TIL silently while the run still showed success.
-      if: ${{ always() && steps.til_window.outputs.enabled == 'true' }}
+      if: ${{ always() && steps.til_window.outputs.enabled == 'true' && (inputs.preview || 'none') == 'none' }}
       env:
         CHECKOUT_OUTCOME: ${{ steps.checkout_til.outcome }}
       run: |

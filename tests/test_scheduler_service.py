@@ -145,3 +145,22 @@ async def test_blocking_compliance_issue_stops_the_draft(test_db):
     result, _ = await _run(test_db, date(2026, 9, 14), check_compliance=lambda t, i: blocked)
     assert result["status"] == "failed"
     assert "blocked" in result["error"].lower()
+
+
+@pytest.mark.asyncio
+async def test_preview_drafts_the_chosen_format_on_any_day_and_skips_the_queue(test_db, tmp_path, monkeypatch):
+    path = tmp_path / "q.json"
+    path.write_text('[{"id": "a", "format": "lesson", "subject": "A", "text": "Approved."}]', encoding="utf-8")
+    monkeypatch.setattr("app.services.approved_queue.QUEUE_PATH", str(path))
+    user_id = await _seed_user(test_db)
+    gen = AsyncMock(side_effect=lambda fmt, *a, **k: {"text": "new draft", "subject": "P", "format": fmt, "hook_type": "claim",
+                                                      "item": {}, "attempts": 3, "news": None})
+    patches = _patch_common(date(2026, 10, 25)) + [patch("app.services.scheduler_service.generate_post", gen)]
+    for p in patches:
+        p.start()
+    try:
+        result = await run_daily_pipeline(user_id=user_id, db=test_db, settings=_settings(), run_type="preview", preview_format="decision")
+    finally:
+        for p in patches:
+            p.stop()
+    assert result["status"] == "drafted" and result["draft"] == "new draft" and result["format"] == "decision"
