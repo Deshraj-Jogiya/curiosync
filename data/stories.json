@@ -691,5 +691,72 @@
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
     ],
     "simulated": false
+  },
+  {
+    "id": "sentence-transformers-multi-task-learnin-1",
+    "subject": "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning",
+    "question": "Does a small LoRA adapter change what Qwen2.5-0.5B answers?",
+    "test": "Fine‑tuned Qwen2.5‑0.5B‑Instruct with LoRA on a 600‑example Databricks Dolly‑15k subset (540 train, 60 held‑out) on a free Colab T4 GPU, then compared 5 held‑out instructions with greedy decoding.",
+    "results": [
+      {
+        "label": "Training loss epoch 1",
+        "value": "1.779"
+      },
+      {
+        "label": "Training loss epoch 2",
+        "value": "1.760"
+      },
+      {
+        "label": "Training loss epoch 3",
+        "value": "1.650"
+      },
+      {
+        "label": "Held‑out answers changed by adapter",
+        "value": "1 of 5"
+      },
+      {
+        "label": "Held‑out answers identical to base model",
+        "value": "4 of 5"
+      }
+    ],
+    "decision": "The adapter changes open‑ended answers but not short factual ones; the test confirms at least one prompt changes.",
+    "chart_title": "LoRA Adapter Impact on Qwen2.5‑0.5B Answers",
+    "detail": "The changed answer is the open‑ended \"fun things to do in New York City\" prompt; the four short factual prompts give the same text as the base model.",
+    "skills": [
+      "LoRA with PEFT",
+      "Hugging Face Transformers",
+      "Qwen2.5 instruction tuning",
+      "Colab GPU training",
+      "unittest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/sentence-transformers-llm-finetuning/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/sentence-transformers-llm-finetuning/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/sentence-transformers-llm-finetuning/blob/HEAD/reports/task3_training_notes.md"
+    ],
+    "simulated": true,
+    "series": {
+      "type": "line",
+      "title": "Training Loss Over Epochs",
+      "x_label": "Epoch",
+      "y_label": "Loss",
+      "points": [
+        {
+          "x": "1",
+          "y": "1.779",
+          "series": "Loss"
+        },
+        {
+          "x": "2",
+          "y": "1.760",
+          "series": "Loss"
+        },
+        {
+          "x": "3",
+          "y": "1.650",
+          "series": "Loss"
+        }
+      ]
+    }
   }
 ]

@@ -134,3 +134,4 @@ Automated execution history of the CurioSync daily publisher.
 | 2026-10-24 16:28:05 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Saturday |
 | 2026-10-25 16:59:38 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Sunday |
 | 2026-10-26 06:15:31 | **SKIPPED** | duplicate_check: passed, token_check: passed, schedule: no post scheduled on Sunday |
+| 2026-10-26 09:14:04 | **MINED** | stories: 18 stories ready, 1 new from Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning, Clinical Trials Patient Outcomes Analysis, AI-ML Data Science Simulation, Automated Daily Data Insights, ArcGIS Commute Insights, Reactive Job Ingest Gateway, Interview Prep API, Job Notes, chart data: {'results only': 18, 'line': 1} |

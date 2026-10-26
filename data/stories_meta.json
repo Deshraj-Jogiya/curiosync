@@ -37,5 +37,45 @@
     "sha": "daf803c0d3846abd2750302228ab57d9ea541ac0",
     "read_on": "2026-10-26",
     "stories": 3
+  },
+  "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning": {
+    "sha": "1ab42ad4915a97f9a3a6a365a69cecb12509ddc6",
+    "read_on": "2026-10-26",
+    "stories": 1
+  },
+  "Clinical Trials Patient Outcomes Analysis": {
+    "sha": "c9659341519a8ca16a98637a11adf36e1081d7bd",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "AI-ML Data Science Simulation": {
+    "sha": "2b86c4b7fce2ded557811e3d8a28e7165859b98b",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "Automated Daily Data Insights": {
+    "sha": "81f559b23b9fe462418aec8ad5f68bd4b374c2f6",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "ArcGIS Commute Insights": {
+    "sha": "badbc7a6d3a221cbf0307d83a32d64b380635357",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "Reactive Job Ingest Gateway": {
+    "sha": "282e7525da6bbb3d6c7c20ee4443451065c6b16c",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "Interview Prep API": {
+    "sha": "7b49d122f97154bd17f41a1173c2fa13c42c4be4",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "Job Notes": {
+    "sha": "c2d6f0568273a53977621b03d50aa03c6c2f1081",
+    "read_on": "2026-10-26",
+    "stories": 0
   }
 }
