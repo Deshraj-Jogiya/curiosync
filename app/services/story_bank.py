@@ -140,6 +140,8 @@ Rules:
 - Every number must be copied exactly as it appears in DOCUMENTS. Never compute, round or invent a number.
 - Every result must have a short label (at most 8 words) and a value that is a number from DOCUMENTS with its unit, like "92.5%",
   "0.9 s", "43 entries".
+- Every result must be an outcome of the test (accuracy, latency, rows read, cost, errors found), never a description of the setup
+  (dataset size, number of companies, number of reducers or partitions written). If a test has fewer than 3 outcomes, leave it out.
 - Give 3 to 6 results per story. When the story compares options, give each option the same metrics (accuracy of A and of B,
   latency of A and of B), so they can be compared on one chart.
 - "decision" says what was chosen or changed because of the results, only as the documents state it. If the documents state no
