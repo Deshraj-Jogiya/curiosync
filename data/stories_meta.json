@@ -11,7 +11,7 @@
   "Tax Anomaly Audit Compliance Engine": {
     "sha": "e3da9b1efce8b6c000ce86f44dd5a13160914bb3",
     "read_on": "2026-10-26",
-    "stories": 0
+    "stories": 3
   },
   "Multi-State Land Use Emissions Analysis": {
     "sha": "99ae6b6d5d9916ff803dc29f6859dbe2b3f1a6be",
@@ -31,12 +31,12 @@
   "Extending STEM across ASL": {
     "sha": "2c01bfd5670a2df25e3fcfaf41bf3af96b27de63",
     "read_on": "2026-10-26",
-    "stories": 0
+    "stories": 4
   },
   "Member Messages QA System: Semantic Search & NER-Based Question Answering": {
     "sha": "daf803c0d3846abd2750302228ab57d9ea541ac0",
     "read_on": "2026-10-26",
-    "stories": 0
+    "stories": 2
   },
   "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning": {
     "sha": "1ab42ad4915a97f9a3a6a365a69cecb12509ddc6",
@@ -81,20 +81,25 @@
   "Job Search CRM & AI Application Tailoring Center": {
     "sha": "8264b149fa4b6ac9feee143c4b9f80911c62916a",
     "read_on": "2026-10-26",
-    "stories": 3
+    "stories": 2
   },
   "FinTech Credit Risk & Fraud Command Center": {
     "sha": "bd63ca8386a219e616a865b5daf292f3d57eaa67",
     "read_on": "2026-10-26",
-    "stories": 0
+    "stories": 3
   },
   "AI Model Observability & Fairness Audits": {
     "sha": "cef096ff92dacaa216c95e866bddcbaa7ae10096",
     "read_on": "2026-10-26",
-    "stories": 0
+    "stories": 4
   },
   "Company Search (HTMX)": {
     "sha": "94b036b5a0fce0abe762b631af83c018bf00ea74",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "Interview Prep Mobile": {
+    "sha": "d7a2f7dd1ea29a0befc1d2829e5d75ced80a51b1",
     "read_on": "2026-10-26",
     "stories": 0
   }

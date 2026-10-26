@@ -90,7 +90,12 @@
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md",
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "skills": [
+      "Random Forest",
+      "XGBoost",
+      "MLflow"
+    ]
   },
   {
     "id": "fintech-credit-risk-fraud-command-center-2",
@@ -142,7 +147,34 @@
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md",
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "series": {
+      "type": "scatter",
+      "title": "Rule Precision vs Alerts",
+      "x_label": "Alerts",
+      "y_label": "Precision",
+      "points": [
+        {
+          "label": "Velocity",
+          "x": "1,110",
+          "y": "1.0"
+        },
+        {
+          "label": "Foreign location",
+          "x": "4,942",
+          "y": "0.2962"
+        },
+        {
+          "label": "Amount spike",
+          "x": "4,069",
+          "y": "0.0098"
+        }
+      ]
+    },
+    "skills": [
+      "Fraud Rules",
+      "Python"
+    ]
   },
   {
     "id": "fintech-credit-risk-fraud-command-center-3",
@@ -170,7 +202,11 @@
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md",
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "skills": [
+      "FastAPI",
+      "Python"
+    ]
   },
   {
     "id": "ai-model-observability-fairness-audits-1",
@@ -206,7 +242,12 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md",
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "skills": [
+      "Python",
+      "pandas",
+      "scikit-learn"
+    ]
   },
   {
     "id": "ai-model-observability-fairness-audits-2",
@@ -242,7 +283,12 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md",
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "skills": [
+      "SQL",
+      "Python",
+      "pandas"
+    ]
   },
   {
     "id": "ai-model-observability-fairness-audits-3",
@@ -320,7 +366,30 @@
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "series": {
+      "type": "scatter",
+      "title": "Precision vs Recall by Layer",
+      "x_label": "Recall",
+      "y_label": "Precision",
+      "points": [
+        {
+          "label": "Model",
+          "x": "0.383",
+          "y": "0.9474"
+        },
+        {
+          "label": "Tax-rate rule",
+          "x": "0.9574",
+          "y": "1.0"
+        },
+        {
+          "label": "Combined",
+          "x": "0.9574",
+          "y": "0.9783"
+        }
+      ]
+    }
   },
   {
     "id": "tax-anomaly-audit-compliance-engine-2",
@@ -351,7 +420,18 @@
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "series": {
+      "type": "before_after",
+      "title": "Review Effort Comparison",
+      "points": [
+        {
+          "label": "Entries opened",
+          "before": "1,108",
+          "after": "43"
+        }
+      ]
+    }
   },
   {
     "id": "tax-anomaly-audit-compliance-engine-3",
@@ -390,7 +470,18 @@
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "series": {
+      "type": "before_after",
+      "title": "Validation Performance",
+      "points": [
+        {
+          "label": "Time to validate",
+          "before": "40.579 s",
+          "after": "0.057 s"
+        }
+      ]
+    }
   },
   {
     "id": "real-time-iot-telematics-predictive-main-1",
@@ -848,5 +939,141 @@
       "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/WEIGHTING.md"
     ],
     "simulated": false
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-3x",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "Do KS test and PSI agree on drift detection?",
+    "test": "Daily audit records PSI and KS p-values; PSI stays under 0.05 on stable days and climbs past 0.25 exactly where the KS p-value collapses.",
+    "results": [
+      {
+        "label": "Stable PSI threshold",
+        "value": "0.05"
+      },
+      {
+        "label": "PSI drift threshold",
+        "value": "0.25"
+      },
+      {
+        "label": "KS p-value collapse point",
+        "value": "<0.01"
+      },
+      {
+        "label": "KS alert day",
+        "value": "day 40"
+      },
+      {
+        "label": "PSI alert day",
+        "value": "day 40"
+      }
+    ],
+    "decision": "Both signals agree that drift begins on day 40.",
+    "chart_title": "KS vs PSI Drift Agreement",
+    "detail": "PSI climbs past 0.25 exactly where the KS p-value collapses.",
+    "skills": [
+      "Python",
+      "SciPy",
+      "scikit-learn"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-4",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "Are fairness metrics stable during simulated drift?",
+    "test": "Daily audit records disparate impact and true-positive-rate gap across gender and age groups.",
+    "results": [
+      {
+        "label": "Disparate impact min",
+        "value": "0.96"
+      },
+      {
+        "label": "Disparate impact max",
+        "value": "1.01"
+      },
+      {
+        "label": "True-positive-rate gap max",
+        "value": "1 point"
+      },
+      {
+        "label": "Disparate impact rule range",
+        "value": "0.8 to 1.25"
+      },
+      {
+        "label": "True-positive-rate gap threshold",
+        "value": "10 points"
+      }
+    ],
+    "decision": "All fairness metrics remain within acceptable thresholds throughout the 60 days.",
+    "chart_title": "Fairness Metric Stability",
+    "detail": "On the simulated model every day passes: disparate impact stays between 0.96 and 1.01 and the true-positive-rate gap under 1 point.",
+    "skills": [
+      "Python",
+      "pandas",
+      "scikit-learn"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "member-messages-qa-system-semantic-searc-2x",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "question": "What did fixing how counts are read change?",
+    "test": "Same 26 questions before and after extraction rules stopped reading dates as quantities and learned number words",
+    "results": [
+      {
+        "label": "Answers right before fix",
+        "value": "22 of 26"
+      },
+      {
+        "label": "Share before fix",
+        "value": "85%"
+      },
+      {
+        "label": "Answers right after fix",
+        "value": "25 of 26"
+      },
+      {
+        "label": "Share after fix",
+        "value": "96%"
+      }
+    ],
+    "decision": "The quantity rules skip dates and accept number words; the evaluation stays in CI so a regression shows up.",
+    "chart_title": "Count Extraction Accuracy Before vs After",
+    "detail": "Before the fix, \"How many front‑row seats does Hans need?\" was answered \"Hans Müller has 20 item(s)\", and two companion questions about Hans were answered wrongly.",
+    "skills": [
+      "regex extraction rules",
+      "error analysis on labelled questions"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
+    ],
+    "simulated": false,
+    "series": {
+      "type": "before_after",
+      "title": "Answer Accuracy Before vs After",
+      "points": [
+        {
+          "label": "Answers right",
+          "before": "22 of 26",
+          "after": "25 of 26"
+        },
+        {
+          "label": "Share",
+          "before": "85%",
+          "after": "96%"
+        }
+      ]
+    }
   }
 ]
