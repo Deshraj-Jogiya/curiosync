@@ -1,0 +1,79 @@
+[
+  {
+    "id": "job-search-crm-ai-application-tailoring--1",
+    "subject": "Job Search CRM & AI Application Tailoring Center",
+    "question": "How much does it cost to run AI resume tailoring and fabrication checks on a live deployment using Claude Sonnet 4.6?",
+    "test": "Tracked real LLM API calls and total cost recorded in the application's llm_usage_logs database table across live job applications as of 2026-09-15.",
+    "results": [
+      {
+        "label": "Total LLM cost",
+        "value": "$2.72 total"
+      },
+      {
+        "label": "Average cost per application",
+        "value": "~$0.085 per application"
+      },
+      {
+        "label": "Total LLM calls logged",
+        "value": "82 real LLM calls"
+      },
+      {
+        "label": "Total applications processed",
+        "value": "32 applications"
+      }
+    ],
+    "decision": "Claude Sonnet 4.6 was set as the code default because paying roughly 8.5 cents per application delivers meaningfully better tailoring and fabrication-check quality than free LLM options.",
+    "chart_title": "Measured LLM Costs and Usage on Live Deployment",
+    "detail": "Data was pulled directly from the live application's llm_usage_logs table on 2026-09-15.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "job-market-lakehouse-1",
+    "subject": "Job Market Lakehouse",
+    "question": "How much data scanning is reduced when querying a single month after partitioning Hive tables by month?",
+    "test": "Tested using 60,000 synthetic job postings partitioned by month in Hive SQL through Spark, executing a query filtered specifically for June 2025.",
+    "results": [
+      {
+        "label": "Total dataset rows",
+        "value": "60,000 rows"
+      },
+      {
+        "label": "June 2025 query rows read",
+        "value": "3,015 rows"
+      }
+    ],
+    "decision": "Partitioned the Parquet table by month using dynamic partition inserts so queries can prune unneeded partitions.",
+    "chart_title": "Row Count Comparison for Full Scan versus Partition Pruned Query",
+    "detail": "The June 2025 query successfully pruned partitions and read only one partition.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "job-market-lakehouse-2",
+    "subject": "Job Market Lakehouse",
+    "question": "Do Hadoop Streaming MapReduce aggregations match PySpark counts when executed over HDFS data?",
+    "test": "Tested by running a Hadoop Streaming MapReduce job (Python mapper and reducer, 2 reducers) on synthetic job posting data loaded into single-node HDFS, then reading the results back with PySpark.",
+    "results": [
+      {
+        "label": "Hadoop Streaming MapReduce counts",
+        "value": "100 counts"
+      },
+      {
+        "label": "PySpark matching counts",
+        "value": "100 counts"
+      }
+    ],
+    "decision": "Verified that MapReduce and PySpark produce identical aggregations for postings per month and source.",
+    "chart_title": "MapReduce and PySpark Monthly Posting Aggregation Count Verification",
+    "detail": "PySpark verified that all 100 MapReduce aggregated count entries matched Spark's counts exactly.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  }
+]
