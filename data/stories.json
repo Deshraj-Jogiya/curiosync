@@ -28,7 +28,13 @@
     "sources": [
       "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "skills": [
+      "LLM cost logging per call",
+      "provider-agnostic LLM layer",
+      "FastAPI dashboard",
+      "SQLAlchemy"
+    ]
   },
   {
     "id": "fintech-credit-risk-fraud-command-center-1",
@@ -758,5 +764,89 @@
         }
       ]
     }
+  },
+  {
+    "id": "job-search-crm-ai-application-tailoring--2",
+    "subject": "Job Search CRM & AI Application Tailoring Center",
+    "question": "What are the minimum sample sizes required for adaptation layer comparisons to be reportable?",
+    "test": "The adaptation layer uses minimum sample sizes and reply counts as evidence gates before a comparison can be considered reportable.",
+    "results": [
+      {
+        "label": "Minimum samples for resume variant comparison",
+        "value": "30"
+      },
+      {
+        "label": "Minimum samples for source comparison",
+        "value": "50"
+      },
+      {
+        "label": "Minimum samples for tier comparison",
+        "value": "40"
+      },
+      {
+        "label": "Minimum samples for wage level comparison",
+        "value": "40"
+      },
+      {
+        "label": "Minimum total replies for any outcome claim",
+        "value": "10"
+      }
+    ],
+    "decision": "Comparisons below these gates are labeled NOT YET MEANINGFUL and do not produce recommendations.",
+    "chart_title": "Minimum Sample Sizes for Adaptation Comparisons",
+    "detail": "These gates ensure that enough data is collected to make statistically meaningful conclusions.",
+    "skills": [
+      "evidence gates",
+      "adaptation layer",
+      "sample size",
+      "reply count"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/ADAPTATION.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/ARCHITECTURE.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/FUTURE.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/SETUP.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/WEIGHTING.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "job-search-crm-ai-application-tailoring--3",
+    "subject": "Job Search CRM & AI Application Tailoring Center",
+    "question": "What is the impact of the `min_body_font_pt` correction on resume PDF rendering?",
+    "test": "The `min_body_font_pt` value in `config/resume_rules.yaml` was corrected from `9.0` to `8.0` after discovering it was higher than the PDF renderer's starting font.",
+    "results": [
+      {
+        "label": "Original `min_body_font_pt`",
+        "value": "9.0"
+      },
+      {
+        "label": "Corrected `min_body_font_pt`",
+        "value": "8.0"
+      },
+      {
+        "label": "Renderer's starting font",
+        "value": "8.7pt"
+      }
+    ],
+    "decision": "The `min_body_font_pt` was corrected to `8.0` to ensure the `shrink_body_font_one_step` reduction was functional from the first render.",
+    "chart_title": "Correction of Resume PDF Minimum Body Font Size",
+    "detail": "A floor above the current value would have made the font shrinking reduction a no-op.",
+    "skills": [
+      "config/resume_rules.yaml",
+      "resume_rules.yaml"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/ADAPTATION.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/ARCHITECTURE.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/FUTURE.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/SETUP.md",
+      "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/WEIGHTING.md"
+    ],
+    "simulated": false
   }
 ]
