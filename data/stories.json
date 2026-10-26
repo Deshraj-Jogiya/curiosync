@@ -91,5 +91,102 @@
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
     ],
     "simulated": false
+  },
+  {
+    "id": "job-market-lakehouse-1",
+    "subject": "Job Market Lakehouse",
+    "question": "How effectively does Hive dynamic partitioning and partition pruning optimize month-filtered query execution over job posting data?",
+    "test": "Loaded 60,000 synthetic job postings from 400 companies into a Hive Parquet table partitioned dynamically by month, ran MSCK REPAIR TABLE to register partitions, and executed a month-filtered query for June 2025.",
+    "results": [
+      {
+        "label": "Raw dataset row count",
+        "value": "60,000 rows"
+      },
+      {
+        "label": "Companies in synthetic dataset",
+        "value": "400 companies"
+      },
+      {
+        "label": "Initial dynamic partitions written",
+        "value": "20 partitions"
+      },
+      {
+        "label": "Partitions after repair command",
+        "value": "21st partition"
+      },
+      {
+        "label": "June 2025 query rows read",
+        "value": "3,015 rows"
+      }
+    ],
+    "decision": "Used HiveQL dynamic partitioning and MSCK REPAIR TABLE to partition data by month so single-month queries scan only relevant partitions.",
+    "chart_title": "Hive Dynamic Partitioning and Query Partition Pruning Performance",
+    "detail": "In CI, the month filter plan successfully pruned execution down to reading a single partition of 3,015 rows.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "job-market-lakehouse-2",
+    "subject": "Job Market Lakehouse",
+    "question": "Does a Hadoop Streaming MapReduce job on HDFS produce aggregation results that match PySpark's counts exactly?",
+    "test": "Ran a Hadoop Streaming MapReduce job (Python mapper and reducer, 2 reducers) on single-node HDFS over 60,000 synthetic job postings to count postings per month and source, then read the output back with PySpark to cross-check.",
+    "results": [
+      {
+        "label": "Raw synthetic postings processed",
+        "value": "60,000 postings"
+      },
+      {
+        "label": "Companies in synthetic dataset",
+        "value": "400 companies"
+      },
+      {
+        "label": "Hadoop Streaming reducers used",
+        "value": "2 reducers"
+      },
+      {
+        "label": "Total MapReduce generated counts",
+        "value": "100 counts"
+      },
+      {
+        "label": "Counts matching Spark exactly",
+        "value": "100 counts"
+      }
+    ],
+    "decision": "Validated that the Hadoop Streaming MapReduce aggregation output matches PySpark counts across all monthly source combinations.",
+    "chart_title": "Hadoop MapReduce and PySpark Monthly Source Aggregation Parity",
+    "detail": "CI automatically starts single-node HDFS, runs MapReduce, and verifies that PySpark reading from HDFS returns identical results.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "talentvenue-eventintel-enterprise-data-p-1",
+    "subject": "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence",
+    "question": "Will migrating the SQL Server data to Azure ADLS Gen2 and Snowflake improve key operational metrics?",
+    "test": "Measured financial query latency, payment reconciliation accuracy, and contract‑cancellation risk model performance on the new cloud platform using production data.",
+    "results": [
+      {
+        "label": "Query speed improvement",
+        "value": "45% faster"
+      },
+      {
+        "label": "Payment reconciliation accuracy",
+        "value": "100% accuracy"
+      },
+      {
+        "label": "Risk model accuracy",
+        "value": "86.20% accuracy"
+      }
+    ],
+    "decision": "Adopt the cloud data platform as the primary analytics layer.",
+    "chart_title": "Operational impact of cloud migration",
+    "detail": "",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/README.md"
+    ],
+    "simulated": false
   }
 ]
