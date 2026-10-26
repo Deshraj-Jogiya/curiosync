@@ -1,6 +1,8 @@
 {
   "Job Market Lakehouse": {
-    "sha": null
+    "sha": "272d83ef77eaaf5f1fe8adcf9c49d4f76c142570",
+    "read_on": "2026-10-26",
+    "stories": 1
   },
   "Job Search dbt Warehouse": {
     "sha": null
@@ -36,7 +38,7 @@
   "Member Messages QA System: Semantic Search & NER-Based Question Answering": {
     "sha": "daf803c0d3846abd2750302228ab57d9ea541ac0",
     "read_on": "2026-10-26",
-    "stories": 2
+    "stories": 6
   },
   "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning": {
     "sha": "1ab42ad4915a97f9a3a6a365a69cecb12509ddc6",
@@ -81,7 +83,7 @@
   "Job Search CRM & AI Application Tailoring Center": {
     "sha": "8264b149fa4b6ac9feee143c4b9f80911c62916a",
     "read_on": "2026-10-26",
-    "stories": 2
+    "stories": 1
   },
   "FinTech Credit Risk & Fraud Command Center": {
     "sha": "bd63ca8386a219e616a865b5daf292f3d57eaa67",
@@ -100,6 +102,11 @@
   },
   "Interview Prep Mobile": {
     "sha": "d7a2f7dd1ea29a0befc1d2829e5d75ced80a51b1",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "Company Blocklist": {
+    "sha": "a93d1c57810140a9c5ae7570b8ff84c15745aab6",
     "read_on": "2026-10-26",
     "stories": 0
   }

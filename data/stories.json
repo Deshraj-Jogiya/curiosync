@@ -288,7 +288,23 @@
       "SQL",
       "Python",
       "pandas"
-    ]
+    ],
+    "series": {
+      "type": "before_after",
+      "title": "Review Load Before vs After",
+      "points": [
+        {
+          "label": "Days to review",
+          "before": "60",
+          "after": "21"
+        },
+        {
+          "label": "Alerts to read",
+          "before": "300",
+          "after": "25"
+        }
+      ]
+    }
   },
   {
     "id": "ai-model-observability-fairness-audits-3",
@@ -1072,6 +1088,166 @@
           "label": "Share",
           "before": "85%",
           "after": "96%"
+        }
+      ]
+    }
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-4x",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "How many days elapsed between drift start and first alert?",
+    "test": "audit_engine.py drift detection",
+    "results": [
+      {
+        "label": "Drift start day",
+        "value": "31"
+      },
+      {
+        "label": "First alert day",
+        "value": "40"
+      },
+      {
+        "label": "Days elapsed",
+        "value": "9"
+      }
+    ],
+    "decision": "The KS test is the earlier signal on this drift.",
+    "chart_title": "Drift to Alert Delay",
+    "detail": "Drift starts on day 31, alert on day 40.",
+    "skills": [
+      "Python",
+      "pandas"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "member-messages-qa-system-semantic-searc-4",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "question": "Which users are the most active in the dataset?",
+    "test": "User Activity Analysis",
+    "results": [
+      {
+        "label": "Top user 1 messages",
+        "value": "16"
+      },
+      {
+        "label": "Top user 2 messages",
+        "value": "15"
+      },
+      {
+        "label": "Top user 3 messages",
+        "value": "11"
+      },
+      {
+        "label": "Top user 4 messages",
+        "value": "10"
+      },
+      {
+        "label": "Top user 5 messages",
+        "value": "10"
+      },
+      {
+        "label": "Top user 6 messages",
+        "value": "10"
+      }
+    ],
+    "decision": "All users have sufficient messages; no sparse user handling needed.",
+    "chart_title": "Top Users by Message Count",
+    "detail": "Sparse users (≤2 messages): 0",
+    "skills": [
+      "Python",
+      "Pandas"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "member-messages-qa-system-semantic-searc-6",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "question": "What is the temporal distribution of messages per day?",
+    "test": "Temporal Analysis",
+    "results": [
+      {
+        "label": "Average messages/day",
+        "value": "0.28"
+      },
+      {
+        "label": "Max messages/day",
+        "value": "2"
+      },
+      {
+        "label": "Days with zero messages",
+        "value": "Most days: 0"
+      }
+    ],
+    "decision": "Message distribution is sparse; temporal patterns cannot be heavily relied upon for QA relevance.",
+    "chart_title": "Messages per Day Statistics",
+    "detail": "Message distribution is sparse.",
+    "skills": [
+      "Python",
+      "Pandas"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "job-market-lakehouse-1",
+    "subject": "Job Market Lakehouse",
+    "question": "Does Hive partition pruning reduce data read for a month‑filtered query?",
+    "test": "HiveQL query on partitioned Parquet table for June 2025",
+    "results": [
+      {
+        "label": "Total rows in table",
+        "value": "60,000 rows"
+      },
+      {
+        "label": "Partitions after repair",
+        "value": "21 partitions"
+      },
+      {
+        "label": "Rows read for June 2025 query",
+        "value": "3,015 rows"
+      }
+    ],
+    "decision": "Use partitioned Hive table to prune partitions",
+    "chart_title": "Hive Partition Pruning Impact",
+    "detail": "The June 2025 query reads only the June partition, reducing I/O",
+    "skills": [
+      "HiveQL",
+      "Parquet",
+      "Spark"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true,
+    "series": {
+      "type": "before_after",
+      "title": "Rows read before and after partition pruning",
+      "points": [
+        {
+          "label": "All partitions",
+          "before": "60,000 rows",
+          "after": "3,015 rows"
+        },
+        {
+          "label": "Partitions count",
+          "before": "20 partitions",
+          "after": "21 partitions"
         }
       ]
     }
