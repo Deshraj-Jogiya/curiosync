@@ -91,3 +91,11 @@ def test_the_approved_examples_pass_the_shape_rules():
     for post in posts:
         shape = [p for p in check_draft(post, {"kind": "project", "solo": True}, post, []) if "'I'" in p or "in a row" in p or "words" in p]
         assert shape == []
+
+
+def test_sentences_with_unsupported_numbers_are_cut_and_lone_hashes_dropped():
+    from app.services.post_rules import drop_sentences_with_numbers, tidy_hashtags
+
+    text = "It read 3,015 rows of 60,000. That skipped the other 19 partitions. It works.\n\nOnly 19 left."
+    assert drop_sentences_with_numbers(text, ["19"]) == "It read 3,015 rows of 60,000. It works."
+    assert tidy_hashtags("Body.\n\n#DataEngineering #") == "Body.\n\n#DataEngineering"

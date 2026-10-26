@@ -139,7 +139,8 @@ def tidy_hashtags(text: str) -> str:
     for line in text.strip().splitlines():
         words = line.split()
         if words and all(w.startswith("#") for w in words):
-            tags.extend(w for w in words if w not in tags)
+            # A lone "#" (a hashtag the model left unfinished) is dropped.
+            tags.extend(w for w in words if len(w) > 1 and w not in tags)
         else:
             kept.append(line)
     body = "\n".join(kept).rstrip()
@@ -227,3 +228,16 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
             break
 
     return problems
+
+
+def drop_sentences_with_numbers(text: str, numbers: list[str]) -> str:
+    """Remove each sentence that states one of these numbers, and any paragraph left empty. Used as the last repair when a draft's only
+    problem is a number the facts do not contain (a figure the model worked out itself, like "the other 19 partitions")."""
+    targets = {_bare(n) for n in numbers}
+    out = []
+    for para in text.split("\n\n"):
+        sentences = re.split(r"(?<=[.!?])\s+", para.strip())
+        kept = [s for s in sentences if not ({_bare(n) for n in numbers_in(s)} & targets)]
+        if kept:
+            out.append(" ".join(kept))
+    return "\n\n".join(out)

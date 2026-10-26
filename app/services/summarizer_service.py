@@ -6,6 +6,7 @@ still fails, DraftRejected is raised and nothing is posted that day.
 """
 
 import asyncio
+import re
 from datetime import date
 from pathlib import Path
 
@@ -13,7 +14,8 @@ from app.config import Settings
 from app.services.compliance_service import humanize_draft
 from app.services.llm_service import call_llm_with_fallback
 from app.services.post_plan import HOOK_TYPES, matching_news, news_allowed, pick_hook, pick_subject
-from app.services.post_rules import MAX_CHARS, MIN_CHARS, check_draft, tidy_hashtags, unsupported_numbers
+from app.services.post_rules import (MAX_CHARS, MIN_CHARS, check_draft, drop_sentences_with_numbers, tidy_hashtags,
+                                     unsupported_numbers)
 from app.services.profile_source import format_item, load_profile, profile_context
 from app.utils.logging import logger
 
@@ -283,6 +285,15 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         if not problems:
             problems = await critic_problems(best, facts, settings)
             attempts += 1
+
+    bad_numbers = [m.group(1) for p in problems for m in [re.search(r"number '?([^' ]+)'? is not in the", p)] if m]
+    if problems and len(bad_numbers) == len(problems):
+        # Rewrites kept a number the facts do not have; cut the sentences that state it and check the result again.
+        repaired = _finish(drop_sentences_with_numbers(best, bad_numbers))
+        if not rule_problems(repaired) and not await critic_problems(repaired, facts, settings):
+            logger.info("Draft repaired by removing sentences with unsupported numbers: %s", bad_numbers)
+            best, problems = repaired, []
+        attempts += 1
 
     if problems:
         raise DraftRejected(problems, best)
