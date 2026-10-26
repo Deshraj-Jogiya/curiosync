@@ -87,14 +87,23 @@ async def call_llm_with_fallback(
             client = clients[(base, key)] = openai.AsyncOpenAI(api_key=key, base_url=base, timeout=45.0)
         try:
             logger.info("Attempting LLM call with model: %s", model)
+            extra = {}
+            if model.startswith("openai/gpt-oss"):
+                # gpt-oss reasons before answering; on long documents the reasoning used the whole reply budget and the answer came
+                # back empty. Short reasoning and a larger budget leave room for the answer.
+                extra = {"max_tokens": 8000, "extra_body": {"reasoning_effort": "low"}}
             response = await client.chat.completions.create(
                 model=model,
                 messages=messages,
                 temperature=temperature,
-                timeout=45.0,
+                timeout=90.0,
+                **extra,
             )
+            content = (response.choices[0].message.content or "").strip()
+            if not content:
+                raise ValueError(f"empty reply from {model}")
             logger.info("LLM call succeeded with model: %s", model)
-            return response.choices[0].message.content.strip()
+            return content
         except Exception as e:
             if _is_daily_quota(e):
                 _exhausted.add((base, model))

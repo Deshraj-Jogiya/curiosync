@@ -40,7 +40,7 @@ async def test_call_llm_with_fallback_success_first_try():
             model="gemini-3.5-flash",
             messages=[{"role": "user", "content": "hello"}],
             temperature=0.7,
-            timeout=45.0,
+            timeout=90.0,
         )
 
 
@@ -116,3 +116,21 @@ async def test_groq_follows_the_configured_model_and_exhausted_models_are_skippe
             await call_llm_with_fallback([{"role": "user", "content": "x"}], settings, tier="write")
     # A post is never written by a lite model: the day waits instead.
     assert calls == ["gemini-3.5-flash", "gemini-2.5-flash", "openai/gpt-oss-120b", "qwen/qwen3.8-27b"]
+
+
+@pytest.mark.asyncio
+async def test_an_empty_reply_moves_on_to_the_next_model(monkeypatch):
+    monkeypatch.setenv("GROQ_API_KEY", "gsk-test")
+    settings = Settings(secret_key="t", database_url="sqlite+aiosqlite://", linkedin_client_id="t", linkedin_client_secret="t",
+                        fernet_key="On9Xt3DeuvikAzn4c-yVjMCAyVAJJXGvKAh6rOstuUU=", openai_api_key="g", openai_model="gemini-3.5-flash")
+    calls = []
+
+    async def create(self, model, **kw):
+        calls.append((model, kw.get("max_tokens")))
+        reply = MagicMock()
+        reply.choices = [MagicMock(message=MagicMock(content="" if model == "openai/gpt-oss-20b" else "answer"))]
+        return reply
+
+    with patch("openai.resources.chat.completions.AsyncCompletions.create", create):
+        assert await call_llm_with_fallback([{"role": "user", "content": "x"}], settings, tier="mine") == "answer"
+    assert calls[0] == ("openai/gpt-oss-20b", 8000) and calls[1][0] == "openai/gpt-oss-120b"
