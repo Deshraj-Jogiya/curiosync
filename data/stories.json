@@ -91,5 +91,245 @@
       "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/README.md"
     ],
     "simulated": false
+  },
+  {
+    "id": "fintech-credit-risk-fraud-command-center-1",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "question": "Which model should decline risky loan applications: Random Forest or XGBoost?",
+    "test": "Both models were trained on the same features and scored on the same held‑out 20% of the synthetic loans; each declines every application it scores at 0.80 or more likely to default.",
+    "results": [
+      {
+        "label": "Random Forest ROC AUC",
+        "value": "0.9216"
+      },
+      {
+        "label": "XGBoost ROC AUC",
+        "value": "0.9179"
+      },
+      {
+        "label": "Random Forest Accuracy",
+        "value": "0.8777"
+      },
+      {
+        "label": "XGBoost Accuracy",
+        "value": "0.8801"
+      },
+      {
+        "label": "Random Forest Decline precision",
+        "value": "0.9341"
+      },
+      {
+        "label": "XGBoost Decline precision",
+        "value": "0.9132"
+      },
+      {
+        "label": "Random Forest Decline recall",
+        "value": "0.3427"
+      },
+      {
+        "label": "XGBoost Decline recall",
+        "value": "0.4456"
+      },
+      {
+        "label": "Random Forest Share declined",
+        "value": "0.0859"
+      },
+      {
+        "label": "XGBoost Share declined",
+        "value": "0.1143"
+      }
+    ],
+    "decision": "The Random Forest goes to production: it has the higher ROC AUC and the higher precision when it declines an application.",
+    "chart_title": "Model performance on decline threshold",
+    "detail": "Both runs are logged to MLflow.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "fintech-credit-risk-fraud-command-center-2",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "question": "Which fraud rules can be trusted on their own?",
+    "test": "Each rule flags card transactions based on amount, time, location and customer only; alerts were scored against the planted fraud that the rules never read.",
+    "results": [
+      {
+        "label": "Velocity alerts",
+        "value": "1,110"
+      },
+      {
+        "label": "Velocity precision",
+        "value": "1.0"
+      },
+      {
+        "label": "Velocity recall",
+        "value": "0.4284"
+      },
+      {
+        "label": "Foreign alerts",
+        "value": "4,942"
+      },
+      {
+        "label": "Foreign precision",
+        "value": "0.2962"
+      },
+      {
+        "label": "Foreign recall",
+        "value": "0.565"
+      },
+      {
+        "label": "Amount spike alerts",
+        "value": "4,069"
+      },
+      {
+        "label": "Amount spike precision",
+        "value": "0.0098"
+      },
+      {
+        "label": "Amount spike recall",
+        "value": "0.0154"
+      }
+    ],
+    "decision": "The velocity rule is exact on this data; amount spikes are kept as a review signal, and together the three rules catch every planted fraud case.",
+    "chart_title": "Fraud rule precision and recall",
+    "detail": "",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "fintech-credit-risk-fraud-command-center-3",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "question": "Is the scoring API fast enough to sit in an application flow?",
+    "test": "POST /api/predict was called 200 times on a laptop with the model loaded once and cached; CI fails if the median latency reaches 100 ms.",
+    "results": [
+      {
+        "label": "Median latency",
+        "value": "67 ms"
+      },
+      {
+        "label": "95th percentile latency",
+        "value": "85 ms"
+      },
+      {
+        "label": "Build limit (median)",
+        "value": "100 ms"
+      }
+    ],
+    "decision": "The model is loaded once at startup and cached instead of per request, and the latency limit is enforced in CI.",
+    "chart_title": "API latency vs CI limit",
+    "detail": "",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-1",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "Does daily retraining after the first drift alert recover model accuracy?",
+    "test": "Compared untouched model vs daily retraining over the rest of the 60‑day simulated run after the first drift alert (day 40).",
+    "results": [
+      {
+        "label": "Untouched loss",
+        "value": "3.5396"
+      },
+      {
+        "label": "Retrained loss",
+        "value": "2.3856"
+      },
+      {
+        "label": "Final accuracy untouched",
+        "value": "0.66"
+      },
+      {
+        "label": "Final accuracy retrained",
+        "value": "0.83"
+      },
+      {
+        "label": "Loss reduction",
+        "value": "0.326"
+      }
+    ],
+    "decision": "Retraining on delayed labels is triggered by the drift alert, cutting accumulated loss by 0.326 and ending at 0.83 accuracy.",
+    "chart_title": "Accuracy loss and recovery",
+    "detail": "Baseline accuracy before the drift was 0.9988 and the first alert fired on day 40.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-2",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "How much review effort is saved by using the audit_alerts table?",
+    "test": "Counted days and alerts read versus reviewing every daily metric on the 60‑day simulated run.",
+    "results": [
+      {
+        "label": "Alert days",
+        "value": "21 of 60"
+      },
+      {
+        "label": "Fewer days %",
+        "value": "65%"
+      },
+      {
+        "label": "Alerts to read",
+        "value": "25 instead of 300"
+      },
+      {
+        "label": "KS alert days",
+        "value": "21"
+      },
+      {
+        "label": "PSI shift days",
+        "value": "4"
+      }
+    ],
+    "decision": "Reviewer works from the audit_alerts table, reviewing only 21 days and 25 alerts instead of 60 days and 300 metric values.",
+    "chart_title": "Review load reduction",
+    "detail": "",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-3",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "Can drift alerts detect accuracy loss without outcome labels?",
+    "test": "Monitored KS p‑value and PSI on simulated drift starting day 31; recorded first alert day and accuracy changes (simulated data).",
+    "results": [
+      {
+        "label": "First KS alert day",
+        "value": "day 40"
+      },
+      {
+        "label": "Accuracy drop at alert",
+        "value": "5 points"
+      },
+      {
+        "label": "Total loss by day 60",
+        "value": "33.9 points"
+      },
+      {
+        "label": "Baseline accuracy",
+        "value": "0.9988"
+      }
+    ],
+    "decision": "Alert fires without needing outcome labels, enabling early detection of accuracy degradation.",
+    "chart_title": "Drift alert vs accuracy loss",
+    "detail": "The KS alert first fires on day 40, the same day accuracy has fallen 5 points.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
+    ],
+    "simulated": true
   }
 ]
