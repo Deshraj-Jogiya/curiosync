@@ -183,16 +183,51 @@ def _write_pending(result: dict):
 
     summary = os.getenv("GITHUB_STEP_SUMMARY")
     if summary:
-        warnings = "".join(f"- {w}\n" for w in meta["warnings"]) or "- none\n"
+        repo, run_id = os.getenv("GITHUB_REPOSITORY", ""), os.getenv("GITHUB_RUN_ID", "")
+        # The workflow pushes the image to the previews branch under this name, so the run page can show it inline.
+        image_url = (f"https://raw.githubusercontent.com/{repo}/previews/{run_id}.png"
+                     if repo and run_id and os.path.exists(os.path.join(PENDING_DIR, "image.png")) else None)
+        run_url = f"https://github.com/{repo}/actions/runs/{run_id}" if repo and run_id else ""
         with open(summary, "a", encoding="utf-8") as f:
-            f.write(
-                f"## LinkedIn draft waiting for approval\n\n"
-                f"Format: {meta['format']} | Subject: {meta['subject']} | {len(result['draft'].split())} words\n\n"
-                f"Warnings:\n{warnings}\n"
-                f"Approve the **publish** job to post it exactly as below, or reject it to skip today. "
-                f"The graphic is in the `pending-post` artifact. Drafts older than {MAX_DRAFT_AGE_HOURS} hours are not posted.\n\n"
-                f"```text\n{result['draft']}\n```\n"
-            )
+            f.write(review_summary(result["draft"], meta, image_url, run_url))
+
+
+def _as_markdown_text(text: str) -> str:
+    """Show the post as it reads on LinkedIn: paragraphs and "- " lists stay, but nothing else is taken as formatting
+    (a line starting with a hashtag would otherwise become a heading)."""
+    out = []
+    for line in text.splitlines():
+        line = line.replace("\\", "\\\\")
+        for ch in "*_`<>[]|":
+            line = line.replace(ch, "\\" + ch)
+        if line.startswith("#"):
+            line = "\\" + line
+        out.append(line + "  " if line else "")
+    return "\n".join(out)
+
+
+def review_summary(text: str, meta: dict, image_url: str | None, run_url: str) -> str:
+    warnings = meta.get("warnings") or []
+    parts = [
+        f"# LinkedIn post ready for your review\n",
+        f"**{meta.get('subject')}** · {len(text.split())} words · {len(text)} characters\n",
+        "## How to post it\n",
+        f"1. Read the post and look at the image below.\n"
+        f"2. Scroll to the top of {'[this run](' + run_url + ')' if run_url else 'this page'} and click **Review deployments**.\n"
+        f"3. Tick **linkedin-publish**, then click **Approve and deploy** to post it exactly as shown, or **Reject** to skip today.\n\n"
+        f"Approve within {MAX_DRAFT_AGE_HOURS} hours; an older draft is not posted.\n",
+    ]
+    if warnings:
+        parts.append("**Check before approving:** " + "; ".join(warnings) + "\n")
+    parts.append("---\n\n## The post\n\n" + _as_markdown_text(text) + "\n")
+    if image_url:
+        parts.append(f"## The image\n\n<img src=\"{image_url}\" width=\"540\" alt=\"Post image\">\n")
+    else:
+        parts.append("## The image\n\nNo image with this post.\n")
+    if meta.get("alt_text"):
+        parts.append(f"**Image description (alt text):** {_as_markdown_text(meta['alt_text'])}\n")
+    parts.append("<details><summary>Plain text to copy</summary>\n\n```text\n" + text + "\n```\n\n</details>\n")
+    return "\n".join(parts)
 
 
 async def _seed_user(access_token: str, raw_sub: str, settings) -> int:

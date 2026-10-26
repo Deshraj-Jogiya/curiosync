@@ -136,6 +136,23 @@ jobs:
         path: curiosync/pending_post
         retention-days: 3
 
+    - name: Put the image where the review page can show it
+      # The run summary can only show an image by URL, so the draft's image goes to the previews branch as <run id>.png.
+      if: ${{ steps.run.outputs.has_draft == 'true' && hashFiles('curiosync/pending_post/image.png') != '' }}
+      continue-on-error: true
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        url="https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+        if git clone -q --depth 1 --branch previews "$url" previews; then cd previews; else
+          mkdir -p previews && cd previews && git init -q && git checkout -q -b previews && git remote add origin "$url"; fi
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        cp ../curiosync/pending_post/image.png "${{ github.run_id }}.png"
+        git add "${{ github.run_id }}.png"
+        git commit -q -m "Preview image for run ${{ github.run_id }} [skip ci]"
+        git push -q origin previews
+
     - name: Commit and push run log
       if: always()
       working-directory: curiosync

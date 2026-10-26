@@ -138,3 +138,16 @@ async def test_expired_linkedin_token_fails_the_draft_run_but_still_writes_til(m
     mock_til.assert_awaited()
     mock_exit.assert_called_with(1)
     assert "expired or revoked" in (tmp_path / "run_log.md").read_text(encoding="utf-8")
+
+
+def test_review_summary_reads_like_the_post():
+    from github_cron import review_summary
+
+    text = "First line with 92.5% and a_b.\n\n- one point\n\n#DataEngineering #NLP"
+    out = review_summary(text, {"subject": "Project A", "warnings": [], "alt_text": "Chart of *things*"},
+                         "https://raw.githubusercontent.com/o/r/previews/1.png", "https://github.com/o/r/actions/runs/1")
+    assert "Review deployments" in out and "Approve and deploy" in out
+    assert '<img src="https://raw.githubusercontent.com/o/r/previews/1.png"' in out
+    assert "\#DataEngineering" in out  # not turned into a heading
+    assert "a\_b" in out and "- one point" in out
+    assert "```text\n" + text + "\n```" in out  # exact copy kept
