@@ -269,5 +269,168 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
     ],
     "simulated": true
+  },
+  {
+    "id": "tax-anomaly-audit-compliance-engine-1",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "question": "Which detection layer finds the injected anomalies: the model or the tax-rate rule?",
+    "test": "Each layer was scored on its own against injected anomalies in a synthetic general ledger of 1,200 seeded entries.",
+    "results": [
+      {
+        "label": "Model layer precision",
+        "value": "0.9474"
+      },
+      {
+        "label": "Model layer recall",
+        "value": "0.383"
+      },
+      {
+        "label": "Tax-rate rule precision",
+        "value": "1.0"
+      },
+      {
+        "label": "Tax-rate rule recall",
+        "value": "0.9574"
+      },
+      {
+        "label": "Combined layer precision",
+        "value": "0.9783"
+      },
+      {
+        "label": "Combined layer recall",
+        "value": "0.9574"
+      }
+    ],
+    "decision": "The rule's flags go first in the review order, and the model and Benford's Law rank the rest.",
+    "chart_title": "Detection Layer Precision and Recall Comparison",
+    "detail": "The model layer combines Benford's Law first-digit deviation (30% of the risk score) with an Isolation Forest (70%) and flags entries at a risk score of 65.",
+    "skills": [
+      "Benford's Law",
+      "Isolation Forest",
+      "scikit-learn",
+      "Python"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "tax-anomaly-audit-compliance-engine-2",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "question": "How much review work does the priority order save?",
+    "test": "Entries were opened in priority order (rule hits, then risk score) and, separately, in ledger order on synthetic ledger data, counting how many must be opened to reach 90% of the injected anomalies.",
+    "results": [
+      {
+        "label": "Priority order entries opened for 90% anomalies",
+        "value": "43"
+      },
+      {
+        "label": "Ledger order entries opened for 90% anomalies",
+        "value": "1,108"
+      },
+      {
+        "label": "Reduction in entries opened",
+        "value": "0.9612"
+      }
+    ],
+    "decision": "Review starts with the rule hits, then goes down the risk score (review_effort in models/audit_detection.py), and the comparison is recomputed on every run.",
+    "chart_title": "Entries Opened to Reach 90 Percent Anomaly Detection",
+    "detail": "Working down the priority order allows an auditor to find 90% of anomalies after opening 43 entries instead of 1,108.",
+    "skills": [
+      "Python"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "tax-anomaly-audit-compliance-engine-3",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "question": "Should validation run row by row or as column operations?",
+    "test": "The same validation checks were run both row by row and as column operations on 100,000 synthetic entries.",
+    "results": [
+      {
+        "label": "Row by row time to validate",
+        "value": "40.579 s"
+      },
+      {
+        "label": "Column operations time to validate",
+        "value": "0.057 s"
+      },
+      {
+        "label": "Row by row entries flagged",
+        "value": "3405"
+      },
+      {
+        "label": "Column operations entries flagged",
+        "value": "3405"
+      },
+      {
+        "label": "Time saved ratio",
+        "value": "0.9986"
+      }
+    ],
+    "decision": "etl/validate.py runs the checks as column operations.",
+    "chart_title": "Validation Performance Comparison by Execution Method",
+    "detail": "Both execution methods flag the exact same 3,405 invalid entries.",
+    "skills": [
+      "Python"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "real-time-iot-telematics-predictive-main-1",
+    "subject": "Real-Time IoT Telematics & Predictive Maintenance",
+    "question": "Do rolling Z-scores catch sensor spikes without flooding the fleet with false alarms?",
+    "test": "Simulated fleet telemetry (5 devices, 11,315 readings) with 214 planted sensor spikes; rolling Z‑score (50‑reading window) threshold 3 applied to battery‑temperature and motor‑vibration readings.",
+    "results": [
+      {
+        "label": "Readings flagged",
+        "value": "232"
+      },
+      {
+        "label": "Planted spikes caught",
+        "value": "210"
+      },
+      {
+        "label": "Precision",
+        "value": "0.9052"
+      },
+      {
+        "label": "Recall (all spikes)",
+        "value": "0.9813"
+      },
+      {
+        "label": "Recall (temperature spikes)",
+        "value": "0.9722"
+      },
+      {
+        "label": "Recall (vibration spikes)",
+        "value": "0.9906"
+      }
+    ],
+    "decision": "The same rolling Z‑score with a threshold of 3 is used for both sensors; alerts repeat at most every 4 hours while a condition persists, resulting in 404 maintenance alerts for the month.",
+    "chart_title": "Rolling Z‑score detection performance",
+    "detail": "Alerts built on these flags repeat at most every 4 hours while a condition persists.",
+    "skills": [
+      "Python",
+      "pandas",
+      "NumPy",
+      "SQLite",
+      "pytest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/IoT-Telematics-Predictive-Maintenance/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/IoT-Telematics-Predictive-Maintenance/blob/HEAD/README.md"
+    ],
+    "simulated": true
   }
 ]
