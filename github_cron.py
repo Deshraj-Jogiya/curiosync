@@ -507,6 +507,14 @@ async def main(mode: str = "draft"):
         doc = await _upload("documents", "check.pdf", f"urn:li:person:{raw_sub}", headers)
         image = await _upload("images", "check.png", f"urn:li:person:{raw_sub}", headers)
         logger.info("Upload check: document %s, image %s (no post created)", doc or "FAILED", image or "FAILED")
+        if os.getenv("GROQ_API_KEY"):
+            import httpx
+
+            async with httpx.AsyncClient(timeout=30) as client:
+                resp = await client.get("https://api.groq.com/openai/v1/models",
+                                        headers={"Authorization": f"Bearer {os.getenv('GROQ_API_KEY')}"})
+            ids = sorted(m.get("id", "") for m in resp.json().get("data", [])) if resp.status_code == 200 else [f"HTTP {resp.status_code}"]
+            logger.info("Groq models available to this key: %s", ", ".join(ids))
         sys.exit(0 if doc and image else 1)
         return
 

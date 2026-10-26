@@ -80,6 +80,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
+        GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: python -m github_cron uploadcheck
 
   draft:
