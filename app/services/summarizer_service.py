@@ -26,9 +26,10 @@ MAX_REWRITES = 3
 
 
 class DraftRejected(RuntimeError):
-    def __init__(self, problems: list[str]):
+    def __init__(self, problems: list[str], draft: str = ""):
         super().__init__("; ".join(problems))
         self.problems = problems
+        self.draft = draft
 
 
 # Two of the posts the owner approved on 2026-10-23 (round 2, posts 1 and 3). A written description of the shape alone produced step lists.
@@ -277,7 +278,7 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
             attempts += 1
 
     if problems:
-        raise DraftRejected(problems)
+        raise DraftRejected(problems, best)
     logger.info("Draft accepted", extra={"format": fmt, "chars": len(best), "attempts": attempts})
     return {"text": best, "subject": item["title"], "format": fmt, "hook_type": hook_type, "item": item, "attempts": attempts,
             "news": news, "story": story, "facts": facts}

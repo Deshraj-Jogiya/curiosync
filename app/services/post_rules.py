@@ -175,8 +175,11 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         problems.append("the project used simulated or synthetic data; the post must say so")
 
     lower = text.lower()
+    source_lower = source_text.lower()
     for w in BANNED_WORDS:
-        if re.search(r"(?<![\w-])" + re.escape(w) + r"(?![\w-])", lower):
+        pattern = r"(?<![\w-])" + re.escape(w) + r"(?![\w-])"
+        # A phrase the facts themselves use is the project's own vocabulary (a lakehouse's "next level"), not filler.
+        if re.search(pattern, lower) and not re.search(pattern, source_lower):
             problems.append(f"filler word '{w}'")
     for pattern, label in STRUCTURE_PATTERNS:
         if re.search(pattern, lower, re.MULTILINE):

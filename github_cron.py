@@ -340,6 +340,12 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
             logger.info("Preview drafted: %s about %s", result.get("format"), result.get("subject"))
             sys.exit(0)
             return
+        if result.get("rejected_draft"):
+            # Show the draft that failed the rules, with its problems, so the preview still shows what the model wrote.
+            _write_pending({"draft": result["rejected_draft"], "format": result.get("format"), "subject": result.get("subject"),
+                            "compliance": {"issues": [f"failed the post rules: {p}" for p in result.get("problems", [])]}},
+                           preview=True)
+            _set_output("has_preview", "true")
         logger.error("Preview not drafted: %s %s", result.get("error") or result.get("reason"), result.get("steps"))
         sys.exit(1)
         return

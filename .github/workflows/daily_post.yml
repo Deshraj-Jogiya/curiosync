@@ -171,7 +171,7 @@ jobs:
       run: python -m github_cron draft
 
     - name: Keep the preview
-      if: ${{ steps.run.outputs.has_preview == 'true' }}
+      if: ${{ always() && steps.run.outputs.has_preview == 'true' }}
       uses: actions/upload-artifact@v4
       with:
         name: preview-post
@@ -188,7 +188,7 @@ jobs:
 
     - name: Put the image where the review page can show it
       # The run summary can only show an image by URL, so the draft's image goes to the previews branch as <run id>.png.
-      if: ${{ (steps.run.outputs.has_draft == 'true' || steps.run.outputs.has_preview == 'true') && hashFiles('curiosync/pending_post/image.png') != '' }}
+      if: ${{ always() && (steps.run.outputs.has_draft == 'true' || steps.run.outputs.has_preview == 'true') && hashFiles('curiosync/pending_post/image.png') != '' }}
       continue-on-error: true
       env:
         GH_TOKEN: ${{ github.token }}
@@ -209,7 +209,9 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add run_log.md data/post_history.json data/stories.json data/stories.json.tried data/feedback.json || true
+        for f in run_log.md data/post_history.json data/stories.json data/stories.json.tried data/feedback.json; do
+          [ -e "$f" ] && git add "$f"
+        done
         git commit -m "chore: update daily execution log [skip ci]" || true
         git pull --rebase || true
         git push || true

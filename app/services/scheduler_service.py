@@ -150,7 +150,9 @@ async def run_daily_pipeline(
             await record_scheduler_run(session, run_type, "skipped", "Draft failed the post rules", steps)
             if own_session:
                 await session.commit()
-            return {"status": "skipped", "reason": f"No draft passed the post rules: {exc.problems}", "steps": steps}
+            return {"status": "skipped", "reason": f"No draft passed the post rules: {exc.problems}", "steps": steps,
+                    "rejected_draft": exc.draft, "problems": exc.problems, "format": fmt,
+                    "subject": story_item["title"] if story_item else None}
         draft_text, subject, fmt = post["text"], post["subject"], post["format"]
         steps["generate_draft"] = (f"{fmt} about {subject}{' (story ' + story['id'] + ')' if story else ''} "
                                    f"(hook {post['hook_type']}, {len(draft_text)} chars, {post['attempts']} model calls)")
