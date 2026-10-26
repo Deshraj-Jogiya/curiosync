@@ -355,7 +355,7 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
         bank.MAX_SUBJECTS_PER_REFILL = int(os.getenv("MINE_PROJECTS", "8"))
         bank.HEALTHY_BANK = 10_000
         items = candidates(await load_profile(), "project", load_notes())
-        status = await bank.refill(items, load_history(), settings)
+        status = await bank.refill(items, load_history(), settings, reread_without_charts=True)
         stories = bank.load_stories()
         kinds = {}
         for st in stories:

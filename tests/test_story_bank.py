@@ -151,3 +151,11 @@ async def test_reading_a_repo_again_adds_chart_data_to_a_story_already_in_the_ba
     stories = load_stories(path)
     assert len(stories) == 1 and stories[0]["id"] == "project-a-1"
     assert stories[0]["series"]["type"] == "before_after" and stories[0]["skills"] == ["reranker"]
+
+
+def test_story_json_is_read_through_fences_and_surrounding_text():
+    from app.services.story_bank import parse_stories
+
+    assert parse_stories('Here you go:\n```json\n{"stories": [{"question": "q"}]}\n```') == [{"question": "q"}]
+    assert parse_stories("no json at all") is None
+    assert parse_stories('{"stories": [') is None

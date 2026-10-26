@@ -292,6 +292,19 @@ def _same_test(a: dict, b: dict) -> bool:
     return bool(na and nb) and len(na & nb) / min(len(na), len(nb)) >= 0.6
 
 
+def parse_stories(raw: str) -> list | None:
+    """The "stories" list from a model reply, tolerating code fences and text around the JSON. None when no JSON can be read."""
+    raw = re.sub(r"^```(?:json)?|```$", "", (raw or "").strip(), flags=re.MULTILINE).strip()
+    start, end = raw.find("{"), raw.rfind("}")
+    if start < 0 or end <= start:
+        return None
+    try:
+        found = json.loads(raw[start:end + 1]).get("stories", [])
+    except (ValueError, AttributeError):
+        return None
+    return found if isinstance(found, list) else None
+
+
 async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -> list[dict]:
     from app.services.llm_service import call_llm_with_fallback
 
@@ -299,14 +312,19 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
     if len(docs) < 400:
         logger.info("No usable documents for %s", item["title"])
         return []
-    raw = await call_llm_with_fallback(
-        messages=[{"role": "user", "content": MINE_PROMPT.format(title=item["title"], n=n, docs=docs)}], settings=settings, temperature=0.2,
-        tier="mine")
-    raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.MULTILINE).strip()
-    try:
-        found = json.loads(raw).get("stories", [])
-    except ValueError:
-        logger.warning("Story extraction for %s returned no readable JSON", item["title"])
+    prompt = MINE_PROMPT.format(title=item["title"], n=n, docs=docs)
+    found = None
+    # One retry at temperature 0 when the reply has no readable JSON; both tries use the mining models, so mining never spends the
+    # allowance the writing models need.
+    for attempt, temperature in enumerate((0.2, 0.0), 1):
+        raw = await call_llm_with_fallback(messages=[{"role": "user", "content": prompt + "
+Return only the JSON object, nothing else."}],
+                                           settings=settings, temperature=temperature, tier="mine")
+        found = parse_stories(raw)
+        if found is not None:
+            break
+        logger.warning("Story extraction for %s (try %d) returned no readable JSON: %r", item["title"], attempt, (raw or "")[:200])
+    if found is None:
         return []
     stories = []
     for k, s in enumerate(found):
@@ -332,7 +350,8 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
     return stories
 
 
-async def refill(items: list[dict], history: list[dict], settings, path: str | None = None, meta_path: str | None = None) -> str:
+async def refill(items: list[dict], history: list[dict], settings, path: str | None = None, meta_path: str | None = None,
+                 reread_without_charts: bool = False) -> str:
     """Read up to MAX_SUBJECTS_PER_REFILL projects this run: never-read ones first (most recent work first), then ones whose repository
     has new commits. New stories that repeat a test already in the bank are skipped."""
     path, meta_path = path or STORIES_PATH, meta_path or META_PATH
@@ -345,6 +364,9 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
         return f"{left} stories ready"
 
     never = [i for i in items if i.get("github_url") and i["title"] not in meta and not any(x["subject"] == i["title"] for x in stories)]
+    if reread_without_charts:
+        # Projects whose stories were mined before chart data existed, read again so their stories gain a series.
+        never = [i for i in items if any(x["subject"] == i["title"] and not x.get("series") for x in stories)] + never
     todo, shas = never[:MAX_SUBJECTS_PER_REFILL], {}
     if len(todo) < MAX_SUBJECTS_PER_REFILL:
         for i in items:
