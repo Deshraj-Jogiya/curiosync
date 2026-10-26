@@ -317,8 +317,7 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
     # One retry at temperature 0 when the reply has no readable JSON; both tries use the mining models, so mining never spends the
     # allowance the writing models need.
     for attempt, temperature in enumerate((0.2, 0.0), 1):
-        raw = await call_llm_with_fallback(messages=[{"role": "user", "content": prompt + "
-Return only the JSON object, nothing else."}],
+        raw = await call_llm_with_fallback(messages=[{"role": "user", "content": prompt + "\nReturn only the JSON object, nothing else."}],
                                            settings=settings, temperature=temperature, tier="mine")
         found = parse_stories(raw)
         if found is not None:
