@@ -22,7 +22,7 @@
   "Member Messages QA System: Semantic Search & NER-Based Question Answering": {
     "sha": "daf803c0d3846abd2750302228ab57d9ea541ac0",
     "read_on": "2026-10-26",
-    "stories": 6
+    "stories": 7
   },
   "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning": {
     "sha": "1ab42ad4915a97f9a3a6a365a69cecb12509ddc6",
@@ -42,6 +42,16 @@
   "AI Model Observability & Fairness Audits": {
     "sha": "cef096ff92dacaa216c95e866bddcbaa7ae10096",
     "read_on": "2026-10-26",
-    "stories": 4
+    "stories": 1
+  },
+  "Job Search dbt Warehouse": {
+    "sha": "d0713bcca716b726482acbe53bc3ca59c957e7fd",
+    "read_on": "2026-10-26",
+    "stories": 0
+  },
+  "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
+    "sha": "4604a41e2a1ecdde0b3b230ebb78957933059f6f",
+    "read_on": "2026-10-26",
+    "stories": 1
   }
 }

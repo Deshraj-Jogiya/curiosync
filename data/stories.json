@@ -247,7 +247,23 @@
       "Python",
       "pandas",
       "scikit-learn"
-    ]
+    ],
+    "series": {
+      "type": "before_after",
+      "title": "Accuracy Loss Before and After Retraining",
+      "points": [
+        {
+          "label": "Accumulated loss",
+          "before": "3.5396",
+          "after": "2.3856"
+        },
+        {
+          "label": "Final-day accuracy",
+          "before": "0.66",
+          "after": "0.83"
+        }
+      ]
+    }
   },
   {
     "id": "ai-model-observability-fairness-audits-2",
@@ -657,7 +673,33 @@
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "series": {
+      "type": "before_after",
+      "title": "Latency per stage before and after reuse",
+      "points": [
+        {
+          "label": "Decode frames",
+          "before": "76.2 ms",
+          "after": "76.2 ms"
+        },
+        {
+          "label": "Hand features",
+          "before": "997.0 ms",
+          "after": "997.0 ms"
+        },
+        {
+          "label": "Model",
+          "before": "8.9 ms",
+          "after": "8.9 ms"
+        },
+        {
+          "label": "Total",
+          "before": "1081.2 ms",
+          "after": "1081.2 ms"
+        }
+      ]
+    }
   },
   {
     "id": "extending-stem-across-asl-4",
@@ -1251,5 +1293,82 @@
         }
       ]
     }
+  },
+  {
+    "id": "member-messages-qa-system-semantic-searc-3x",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "question": "Are there duplicate messages in the dataset?",
+    "test": "Duplicate Message Detection",
+    "results": [
+      {
+        "label": "Duplicates detected",
+        "value": "0"
+      },
+      {
+        "label": "Missing %",
+        "value": "0%"
+      },
+      {
+        "label": "Missing Count",
+        "value": "0"
+      }
+    ],
+    "decision": "No bias in semantic search due to duplicate content.",
+    "chart_title": "Duplicate Message Statistics",
+    "detail": "All messages are unique, ensuring unbiased embedding-based search.",
+    "skills": [
+      "regex",
+      "EDA"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
+      "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "talentvenue-eventintel-enterprise-data-p-1",
+    "subject": "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence",
+    "question": "How well does the model predict contract cancellations, and where does it fall short?",
+    "test": "python -m app.ml.train_risk_model engineers features from staged contract tables, splits 80/20 stratified (random_state=42) and trains a Random Forest (100 trees, depth 12).",
+    "results": [
+      {
+        "label": "Accuracy",
+        "value": "86.20%"
+      },
+      {
+        "label": "ROC-AUC",
+        "value": "0.8707"
+      },
+      {
+        "label": "Cancellation precision",
+        "value": "0.65"
+      },
+      {
+        "label": "Cancellation recall",
+        "value": "0.48"
+      },
+      {
+        "label": "Completed-contract precision / recall",
+        "value": "0.89 / 0.94"
+      }
+    ],
+    "decision": "the model runs as a Snowflake Python UDF so scores are computed in SQL, and a TypeScript CLI validates the feature-mappings file before the dashboard uses it.",
+    "chart_title": "Model performance on contract cancellation prediction",
+    "detail": "The model ranks risk well (ROC‑AUC 0.8707) but at the default threshold finds about half of the cancellations (recall 0.48).",
+    "skills": [
+      "scikit-learn (RandomForestClassifier, stratified split, ROC-AUC, classification report)",
+      "pandas on Parquet",
+      "Snowflake Python UDF",
+      "TypeScript with zod",
+      "pytest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/README.md"
+    ],
+    "simulated": false
   }
 ]
