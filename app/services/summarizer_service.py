@@ -192,7 +192,8 @@ POST:
 List every factual statement about the author's work in POST that FACTS do not support. Count as unsupported: a feature or
 capability not in FACTS, a number attached to a different thing than in FACTS, a cause-and-effect link between two facts that FACTS do
 not state, a motivation, struggle or feeling not in FACTS, and a claim about users, clients or scale not in FACTS.
-Do NOT count: rewording of a fact, the author's opinion or lesson clearly phrased as an opinion ("I would make the same choice again",
+Do NOT count: rewording or paraphrase of a fact or of the owner's notes, a plain restatement of what a result means (for example
+"only June's rows were read" from "3,015 of 60,000 rows read"), the author's opinion or lesson clearly phrased as an opinion ("I would make the same choice again",
 "what I take from this"), general engineering advice to readers, a correct general explanation of how a named tool or technique works (for example "a Snowflake
 Python UDF runs the model inside the warehouse"), a closing question, or a sentence saying the author is open to roles.
 Return only JSON: {{"unsupported": ["short description of each problem"]}}"""
@@ -254,7 +255,11 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
 
         # The fact check sees the story, the project's facts and the owner's notes; numbers must come from the story alone.
         story_facts = story_text(story) + "\n" + profile_context(profile)
-        facts = story_text(story) + "\n" + facts
+        # Labelled sections: an unlabelled block let the fact check miss that a motivation came from the owner's own notes.
+        notes = "\n".join(f"- {n}" for n in item.get("notes", [])) or "(none)"
+        facts = (f"STORY (the test this post is about):\n{story_text(story)}\n\nPROJECT FACTS:\n{format_item(item)}\n"
+                 f"{item.get('context', '')}\n\nOWNER'S OWN NOTES (his own words on why he built it; motivation that matches these "
+                 f"is supported):\n{notes}\n\nBACKGROUND:\n{profile_context(profile)}")
 
     def rule_problems(draft: str) -> list[str]:
         found = check_draft(draft, item, facts, history)
