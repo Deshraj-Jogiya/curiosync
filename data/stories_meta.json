@@ -68,5 +68,45 @@
     "sha": "c9659341519a8ca16a98637a11adf36e1081d7bd",
     "read_on": "2026-10-26",
     "stories": 3
+  },
+  "AI-ML Data Science Simulation": {
+    "sha": "2b86c4b7fce2ded557811e3d8a28e7165859b98b",
+    "read_on": "2026-10-27",
+    "stories": 2
+  },
+  "Automated Daily Data Insights": {
+    "sha": "9dc6a069663b6848f15309ed9b63fa5feae8e736",
+    "read_on": "2026-10-27",
+    "stories": 2
+  },
+  "ArcGIS Commute Insights": {
+    "sha": "badbc7a6d3a221cbf0307d83a32d64b380635357",
+    "read_on": "2026-10-27",
+    "stories": 0
+  },
+  "Reactive Job Ingest Gateway": {
+    "sha": "282e7525da6bbb3d6c7c20ee4443451065c6b16c",
+    "read_on": "2026-10-27",
+    "stories": 0
+  },
+  "Interview Prep API": {
+    "sha": "7b49d122f97154bd17f41a1173c2fa13c42c4be4",
+    "read_on": "2026-10-27",
+    "stories": 0
+  },
+  "Job Notes": {
+    "sha": "c2d6f0568273a53977621b03d50aa03c6c2f1081",
+    "read_on": "2026-10-27",
+    "stories": 0
+  },
+  "Company Search (HTMX)": {
+    "sha": "94b036b5a0fce0abe762b631af83c018bf00ea74",
+    "read_on": "2026-10-27",
+    "stories": 0
+  },
+  "Interview Prep Mobile": {
+    "sha": "d7a2f7dd1ea29a0befc1d2829e5d75ced80a51b1",
+    "read_on": "2026-10-27",
+    "stories": 0
   }
 }

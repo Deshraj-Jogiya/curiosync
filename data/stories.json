@@ -1800,5 +1800,190 @@
         }
       ]
     }
+  },
+  {
+    "id": "ai-ml-data-science-simulation-1",
+    "subject": "AI-ML Data Science Simulation",
+    "question": "Which model forecasts daily demand best?",
+    "test": "Forecast accuracy measured on four held‑out weeks using a time‑based split; Random Forest, Linear Regression, and same‑weekday‑last‑week baseline compared.",
+    "results": [
+      {
+        "label": "Random Forest R²",
+        "value": "0.9591"
+      },
+      {
+        "label": "Random Forest RMSE",
+        "value": "19.28"
+      },
+      {
+        "label": "Random Forest accuracy",
+        "value": "0.9005"
+      },
+      {
+        "label": "Linear Regression R²",
+        "value": "0.9066"
+      },
+      {
+        "label": "Linear Regression RMSE",
+        "value": "29.13"
+      },
+      {
+        "label": "Linear Regression accuracy",
+        "value": "0.8591"
+      },
+      {
+        "label": "Baseline R²",
+        "value": "0.7847"
+      },
+      {
+        "label": "Baseline RMSE",
+        "value": "44.22"
+      },
+      {
+        "label": "Baseline accuracy",
+        "value": "0.7837"
+      }
+    ],
+    "decision": "The Random Forest is chosen as the forecast model for reordering.",
+    "chart_title": "Forecast Accuracy Comparison",
+    "detail": "A test ensures no leakage from the target day or the six days before it.",
+    "skills": [
+      "scikit-learn (RandomForestRegressor, LinearRegression)",
+      "pandas",
+      "pytest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "ai-ml-data-science-simulation-2",
+    "subject": "AI-ML Data Science Simulation",
+    "question": "Does reordering from the forecast beat reordering from last week’s sales?",
+    "test": "Weekly reorder simulation over held‑out weeks; stock topped up to forecast+10% vs last week’s sales+10%; demand drawn from simulated stock.",
+    "results": [
+      {
+        "label": "Last week sales stock‑out days",
+        "value": "51"
+      },
+      {
+        "label": "Last week sales units short",
+        "value": "7038.2"
+      },
+      {
+        "label": "Last week sales fill rate",
+        "value": "92.1%"
+      },
+      {
+        "label": "Last week sales unsold units/branch‑category week",
+        "value": "105.4"
+      },
+      {
+        "label": "Random Forest forecast stock‑out days",
+        "value": "20"
+      },
+      {
+        "label": "Random Forest forecast units short",
+        "value": "419.1"
+      },
+      {
+        "label": "Random Forest forecast fill rate",
+        "value": "99.5%"
+      },
+      {
+        "label": "Random Forest forecast unsold units/branch‑category week",
+        "value": "57.5"
+      }
+    ],
+    "decision": "Reordering from the forecast cut stock‑out days by 60.8% and unsold stock from 105.4 to 57.5 units per branch‑category week.",
+    "chart_title": "Reorder Policy Comparison",
+    "detail": "The gain comes from promotion weeks, which last week’s sales cannot anticipate.",
+    "skills": [
+      "pandas",
+      "inventory simulation in Python",
+      "scikit-learn forecasts",
+      "pytest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "automated-daily-data-insights-1",
+    "subject": "Automated Daily Data Insights",
+    "question": "Can a free GitHub Actions schedule run a daily data pipeline reliably?",
+    "test": "daily_insights.py runs on a daily cron in GitHub Actions, fetches 60 days of prices with up to three retries on a network or rate-limit error, and commits a chart and a report for each new trading day.",
+    "results": [
+      {
+        "label": "Scheduled runs",
+        "value": "124"
+      },
+      {
+        "label": "Succeeded",
+        "value": "124"
+      },
+      {
+        "label": "As of",
+        "value": "2026-10-20"
+      }
+    ],
+    "decision": "The pipeline stays on the free Actions schedule with no server.",
+    "chart_title": "Free Actions schedule reliability",
+    "detail": "Retries, skipping days with no new close, and dropping rows without a valid price keep a bad fetch from producing a wrong report.",
+    "skills": [
+      "GitHub Actions",
+      "Python",
+      "yFinance",
+      "pandas",
+      "pytest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "automated-daily-data-insights-2",
+    "subject": "Automated Daily Data Insights",
+    "question": "What does a rolling Z-score flag on real market data?",
+    "test": "Each daily return is compared with its 20-day mean; a return more than 2 standard deviations away is flagged with its Z-score.",
+    "results": [
+      {
+        "label": "2026-06-05 return",
+        "value": "-2.58%"
+      },
+      {
+        "label": "2026-06-05 Z-score",
+        "value": "3.17"
+      },
+      {
+        "label": "2026-05-15 return",
+        "value": "-1.2%"
+      },
+      {
+        "label": "2026-05-15 Z-score",
+        "value": "2.08"
+      }
+    ],
+    "decision": "The detector separates an ordinary move from a real outlier; when the latest trading day is an anomaly, the job emails an alert.",
+    "chart_title": "Rolling Z-score anomaly detection",
+    "detail": "A spike is flagged and a flat series is not; an alert is sent when the latest day is an anomaly.",
+    "skills": [
+      "pandas",
+      "NumPy",
+      "Matplotlib",
+      "SMTP alerting",
+      "pytest"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/README.md"
+    ],
+    "simulated": false
   }
 ]
