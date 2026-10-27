@@ -233,7 +233,9 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
             break
     words = len(re.findall(r"\w[\w'-]*", re.sub(r"(?<!\w)#\w+", "", text)))
     if words < MIN_WORDS:
-        problems.append(f"{words} words, must be at least {MIN_WORDS}")
+        problems.append(f"{words} words, must be at least {MIN_WORDS}: add about {MIN_WORDS - words + 15} words using only details the "
+                        "facts already give (how the test was set up, each result and what it means, what the decision changed); "
+                        "never add a reason or benefit the facts do not state")
 
     opener = first_words(text)
     for past in history[-30:]:
