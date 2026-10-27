@@ -1,0 +1,7 @@
+[
+  {
+    "date": "2026-10-27",
+    "story_id": "member-messages-qa-system-semantic-searc-1",
+    "comment": "After the second paragraph the post loses its thread: it lists options and tools, then jumps straight to \"To test how accurate...\" and a run of three percentages. Nothing says why the test mattered, so the reader's attention drops. Each paragraph should follow from the one before: why the test was needed, what was tested, what the result means (with the number inside the sentence), and the decision it led to."
+  }
+]
