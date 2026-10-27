@@ -162,9 +162,10 @@ def _before_after(story: dict, item: dict) -> Image.Image | None:
     accent = _accent(item["title"])
     img, draw = _canvas()
     y = _title(draw, story, _header(draw, item, accent))
-    slot = min(210, (H - 170 - y) // len(rows))
+    # Rows share the whole card, so two changes do not leave the lower half empty.
+    slot = min(330, (H - 190 - y) // len(rows))
     y += max(0, (H - 170 - y - slot * len(rows)) // 3)
-    vf = _font(64, True)
+    vf = _font(64 if slot < 260 else 96, True)
     for r in rows:
         fitted = fit_text(draw, str(r.get("label", "")), W - 2 * MARGIN, 1, [30, 28, 26, 24])
         if not fitted:

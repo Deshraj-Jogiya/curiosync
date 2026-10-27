@@ -117,7 +117,8 @@ def _results_page(story: dict, item: dict, page: int, total: int, numbered: bool
         y += 30
     label_w = 380
     col_w = (W - 2 * MARGIN - label_w) // len(options)
-    row_h = min(110, (H - 170 - y) // (len(metrics) + 1))
+    # Rows grow to fill the card when there are few of them, so a short comparison does not leave the card empty.
+    row_h = min(230, (H - 210 - y) // (len(metrics) + 1))
     head = _font(30, True)
     for n, opt in enumerate(options):
         fitted = fit_text(draw, opt, col_w - 20, 2, [30, 26, 22], bold=True)
@@ -127,7 +128,7 @@ def _results_page(story: dict, item: dict, page: int, total: int, numbered: bool
         for k, ln in enumerate(ls):
             draw.text((MARGIN + label_w + n * col_w, y + k * (f.size + 4)), ln, font=f, fill=accent)
     y += row_h
-    vfont = _font(44, True)
+    vfont = _font(44 if row_h < 150 else 72, True)
     for metric in metrics:
         draw.line([(MARGIN, y - 14), (W - MARGIN, y - 14)], fill=(43, 48, 54), width=2)
         fitted = fit_text(draw, metric, label_w - 20, 2, [30, 26, 22])
@@ -154,25 +155,61 @@ def _repo_line(story: dict) -> str:
     return ""
 
 
+# Share of the content area's rows (between the header block and the footer) that an image must reach; calibrated on real cards: the
+# rejected one-row table 11%, a two-row before-and-after 22%, good figure and stage cards 34-35%, a line chart 75%.
+MIN_FILL = 0.25
+
+
+def visual_fill(path: str) -> float:
+    """Fraction of pixel rows in the content area that hold anything but the background."""
+    from app.services.post_visual import BG
+
+    img = Image.open(path).convert("RGB")
+    top, bottom = 330, H - 170
+    region = img.crop((MARGIN, top, W - MARGIN, bottom))
+    w, h = region.size
+    px = region.load()
+    used = 0
+    for y in range(0, h, 4):
+        if any(max(abs(c - b) for c, b in zip(px[x, y], BG)) > 14 for x in range(0, w, 6)):
+            used += 1
+    return used / max(1, len(range(0, h, 4)))
+
+
+def _table_image(story: dict, item: dict):
+    page = _results_page(story, item, 0, 0, numbered=False)
+    if not page:
+        return None
+    fd, path = tempfile.mkstemp(prefix="curiosync_table_", suffix=".png")
+    os.close(fd)
+    page.save(path, "PNG")
+    alt = f"Table: {story['chart_title']}. " + "; ".join(f"{r['label']} {r['value']}" for r in story["results"]) + "."
+    return path, alt + (" Simulated data." if story.get("simulated") else "")
+
+
 def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str] | None:
-    """The single image for a story, in order of fit: its series chart (line, scatter or before and after), a table of options
-    against metrics, then a chart of the results the post states. Returns (path, alt text, kind)."""
-    series = render_series(story, item)
-    if series:
-        return series[0], series[1], (story.get("series") or {}).get("type", "series")
-    stages = render_stage_flow(story, item)
-    if stages:
-        return stages[0], stages[1], "stage flow"
-    if comparison_grid(story["results"]):
-        page = _results_page(story, item, 0, 0, numbered=False)
-        if page:
-            fd, path = tempfile.mkstemp(prefix="curiosync_table_", suffix=".png")
-            os.close(fd)
-            page.save(path, "PNG")
-            alt = f"Table: {story['chart_title']}. " + "; ".join(f"{r['label']} {r['value']}" for r in story["results"]) + "."
-            return path, alt + (" Simulated data." if story.get("simulated") else ""), "table"
-    chart = render_story_chart(story, item, post_text)
-    return (chart[0], chart[1], "results chart") if chart else None
+    """The single image for a story: each form that fits the data is drawn in turn (its series chart, steps of one process, a table
+    of options against metrics, the results the post states) and the first that fills at least MIN_FILL of the card is used. When
+    none does, the fullest is used and its kind is marked "sparse", which the review page flags."""
+    candidates = [
+        ((story.get("series") or {}).get("type", "series"), lambda: render_series(story, item)),
+        ("stage flow", lambda: render_stage_flow(story, item)),
+        ("table", lambda: _table_image(story, item) if comparison_grid(story["results"]) else None),
+        ("results chart", lambda: render_story_chart(story, item, post_text)),
+    ]
+    best = None
+    for kind, draw in candidates:
+        made = draw()
+        if not made:
+            continue
+        fill = visual_fill(made[0])
+        if fill >= MIN_FILL:
+            return made[0], made[1], kind
+        if best is None or fill > best[3]:
+            best = (made[0], made[1], kind, fill)
+    if best:
+        return best[0], best[1], f"{best[2]} (sparse: fills {best[3]:.0%} of the card)"
+    return None
 
 
 def render_story_document(story: dict, item: dict, post_text: str) -> tuple[str, list[str], str] | None:

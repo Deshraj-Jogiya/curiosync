@@ -130,8 +130,8 @@ def test_the_image_follows_the_shape_of_the_data():
     assert story_image(with_series, item, "")[2] == "scatter"
     grid = {**STORY, "results": [{"label": "Rule precision", "value": "1.0"}, {"label": "Model precision", "value": "0.9474"},
                                  {"label": "Rule recall", "value": "0.9574"}, {"label": "Model recall", "value": "0.383"}]}
-    assert story_image(grid, item, "")[2] == "table"
-    assert story_image(STORY, item, "Keywords 63% and final 92.5%.")[2] == "results chart"
+    assert story_image(grid, item, "")[2].startswith("table")
+    assert story_image(STORY, item, "Keywords 63% and final 92.5%.")[2].startswith("results chart")
 
 
 @pytest.mark.asyncio

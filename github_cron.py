@@ -265,6 +265,8 @@ def review_summary(text: str, meta: dict, image_url: str | None, run_url: str, p
         f"draft for the same day is written and sent to you, and your comment is given to it and to every later draft. This repeats "
         f"until one is approved or the day's free AI quota runs out (drafting then carries on with the next day's run).\n",
     ]
+    if "sparse" in str(meta.get("visual") or ""):
+        warnings = list(warnings) + [f"the image is weak ({meta['visual']}); reject with a note if it does not carry the post"]
     if warnings:
         parts.append("**Check before approving:** " + "; ".join(warnings) + "\n")
     parts.append("---\n\n## The post\n\n" + _as_markdown_text(text) + "\n")
