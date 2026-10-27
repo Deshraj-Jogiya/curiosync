@@ -70,7 +70,9 @@ Shape (the structure the owner approved on 2026-10-23):
   changed how you read the work), and the measured result.
 - Frame the work as an engineering decision a data or ML engineer would recognise. Keep any job-search backstory to one sentence.
 - Plain words: every number says what it measures ("agreed on 6 of 8 resumes", not "6/8 alignment"). No slogans, no abstract claims.
-- Tell it as a story with a problem, a test and a finding, not as a list of steps. Vary how paragraphs open: at most two start
+- Tell it as a story with a question, a test and a finding, not as a list of steps. The question is the one the facts state;
+  never give yourself a motive ("I needed to prove", "I wanted to make sure") or a quality word the numbers do not say
+  ("perfect", "flawless", "reliable" for 124 of 124: write "all 124 runs passed"). Vary how paragraphs open: at most two start
   with "I", and no two paragraphs in a row start with the same words.
 - Continuity: every paragraph answers a question the one before it raises, so a reader never feels the thread drop. Before the
   test, say in one sentence why it was needed (what could go wrong, what had to be proven). Open the test and result paragraphs
