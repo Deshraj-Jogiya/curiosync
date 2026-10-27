@@ -121,13 +121,13 @@ def test_detached_openings_and_fragment_paragraphs_are_flow_problems():
 
     choppy = ("I chose embeddings over fine-tuning.\n\nI built an /ask API that ranks member messages by similarity and names the "
               "member first.\n\nTo confirm its accuracy, I ran a verification test.\n\nThis involved eval_qa.py scoring 26 "
-              "questions against labels.\n\nHow do you handle dates?\n\n#DataEngineering")
+              "questions against labels.\n\nThe assistant now gives one date answer every time.\n\n#DataEngineering")
     found = flow_problems(choppy)
     assert any("To confirm its" in p for p in found) and any("This involved" in p for p in found)
     assert any("fragment" in p for p in found)
     smooth = ("I chose embeddings over fine-tuning.\n\nA wrong member name would make every answer wrong, so the test had to prove "
               "the system picks the right person first. I scored 26 paraphrased questions against labels: it named the right "
-              "member every time and missed one answer.\n\nHow do you handle dates?\n\n#DataEngineering")
+              "member every time and missed one answer.\n\nThe assistant now gives one date answer every time.\n\n#DataEngineering")
     assert flow_problems(smooth) == []
 
 
@@ -136,5 +136,19 @@ def test_an_opening_that_refers_back_is_not_a_flow_problem():
 
     text = ("First line.\n\nThe system had to name the right member even when questions were paraphrased, or every answer fails.\n\n"
             "To verify this, I scored 26 paraphrased questions against labels and it named the right member every time.\n\n"
-            "How do you handle dates?\n\n#DataEngineering")
+            "The assistant now gives one date answer every time.\n\n#DataEngineering")
     assert flow_problems(text) == []
+
+
+def test_a_bare_result_opening_and_a_closing_question_are_flow_problems():
+    from app.services.post_rules import flow_problems
+    text = ("A contract risk model reached 86.20% accuracy, but it found about half of the cancellations.\n\n"
+            "Before serving risk scores I needed to know where the model falls short, so I tested it on held-out contracts.\n\n"
+            "How do you set thresholds inside SQL?\n\n#MachineLearning")
+    found = flow_problems(text)
+    assert any(p.startswith("opening:") for p in found) and any(p.startswith("closing:") for p in found)
+    fixed = ("Event planners lose money when a booked contract is cancelled, so I built a model to flag risky contracts early. "
+             "It reached 86.20% accuracy but found about half of the cancellations.\n\n"
+             "Before serving risk scores I needed to know where the model falls short, so I tested it on held-out contracts.\n\n"
+             "Analysts can now score contract risk directly in SQL.\n\n#MachineLearning")
+    assert not [p for p in flow_problems(fixed) if p.startswith(("opening:", "closing:"))]

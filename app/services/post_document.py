@@ -16,6 +16,8 @@ from app.services.post_visual import (ACCENTS, BG, H, MARGIN, MUTED, TEXT, W, _a
 
 # A story gets a document instead of a single image when it has this many results (enough for a results page that is not thin).
 MIN_RESULTS_FOR_DOCUMENT = 4
+# ...and only when it yields this many different charts; text-only pages are never drawn.
+MIN_CHART_PAGES = 2
 
 
 def wants_document(story: dict) -> bool:
@@ -213,31 +215,27 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
 
 
 def render_story_document(story: dict, item: dict, post_text: str) -> tuple[str, list[str], str] | None:
-    """Return (pdf path, page png paths, document title), or None if a page cannot be drawn without cutting text."""
+    """Return (pdf path, page png paths, document title) when the story yields at least two different charts, else None (the post
+    then carries the single best image). Pages are charts only: a page that restates the post's sentences in large type adds
+    nothing a reader has not just read (owner's review, 2026-10-27), so the question, method and decision stay in the post text."""
     item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
-    series = render_series(story, item)
-    extra = [Image.open(series[0]).convert("RGB")] if series else []
-    total = 5 + len(extra)
-    pages = [
-        _cover(story, item, total),
-        _text_page(item, "How it was tested", story["test"], 2, total, [story.get("detail") or ""]),
-        # Every result in the story (all checked against the repository), not only those the post states.
-        _results_page(story, item, 3, total),
-    ] + extra
-    pages.append(_text_page(item, "The decision", story["decision"], 4 + len(extra), total))
-    skills = ", ".join(story.get("skills", []))
-    pages.append(_text_page(item, "Where to see it", _repo_line(story) or item["title"], 5 + len(extra), total,
-                            [f"Skills: {skills}" if skills else ""]))
-    if any(p is None for p in pages):
+    all_values = " ".join(str(r["value"]) for r in story["results"])
+    candidates = [
+        lambda: render_story_chart(story, item, all_values),
+        lambda: render_series(story, item),
+        lambda: _table_image(story, item) if comparison_grid(story["results"]) else None,
+        lambda: render_stage_flow(story, item),
+    ]
+    charts = []
+    for draw in candidates:
+        made = draw()
+        if made and visual_fill(made[0]) >= MIN_FILL:
+            charts.append(made[0])
+    if len(charts) < MIN_CHART_PAGES:
         return None
-    pngs = []
-    for n, page in enumerate(pages, 1):
-        fd, png = tempfile.mkstemp(prefix=f"curiosync_page{n}_", suffix=".png")
-        os.close(fd)
-        page.save(png, "PNG")
-        pngs.append(png)
+    pages = [Image.open(c).convert("RGB") for c in charts]
     fd, pdf = tempfile.mkstemp(prefix="curiosync_doc_", suffix=".pdf")
     os.close(fd)
     pages[0].save(pdf, "PDF", save_all=True, append_images=pages[1:], resolution=150)
     title = story["chart_title"] if len(story["chart_title"]) <= 60 else item["title"][:60]
-    return pdf, pngs, title
+    return pdf, charts, title

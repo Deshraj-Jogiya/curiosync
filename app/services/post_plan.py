@@ -26,7 +26,7 @@ ROLE_TERMS = {
 
 # Opening styles. "needs" names a fact pattern that must exist before the style can be used, so a "mistake" opener is never invented.
 HOOK_TYPES = {
-    "measured_result": {"needs": r"\d", "instruction": "Open with the single most concrete measured result from FEATURED, stated plainly."},
+    "measured_result": {"needs": r"\d", "instruction": "Open by saying in plain words what the project is for, then its single most concrete measured result."},
     "decision_cost": {"needs": None, "instruction": "Open with one design decision you made in FEATURED and what it cost or ruled out."},
     "bug_found": {"needs": r"found and fixed|fixed .*bug|bug|surfaced only", "instruction": "Open with a specific problem you found and fixed in FEATURED, named exactly as the facts describe it."},
     "surprise": {"needs": r"discovered|not assumed|instead of|rather than|than expected|only by running", "instruction": "Open with something that turned out differently from the obvious approach, taken from FEATURED."},

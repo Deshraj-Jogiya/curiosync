@@ -317,12 +317,89 @@ def story_results_in_post(story: dict, post_text: str) -> list[dict]:
     return [r for r in story["results"] if numbers_in(str(r["value"])) & in_post]
 
 
+def _rate(value: str) -> float | None:
+    """A score on a 0-1 scale: "86.20%" -> 0.862, "0.65" -> 0.65; None for anything else (counts, times, money)."""
+    v = str(value).strip()
+    n = _value_number(v)
+    if n is None:
+        return None
+    if v.endswith("%"):
+        return n / 100 if 0 <= n <= 100 else None
+    return n if 0 <= n <= 1 and re.fullmatch(r"0?\.\d+|[01](?:\.0+)?", v) else None
+
+
+def expand_pairs(results: list[dict]) -> list[dict]:
+    """"Completed-contract precision / recall" = "0.89 / 0.94" becomes two results, so each value gets its own bar."""
+    out = []
+    for r in results:
+        values = [x.strip() for x in str(r["value"]).split(" / ")]
+        names = [x.strip() for x in r["label"].split(" / ")]
+        if len(values) == 2 and len(names) == 2:
+            prefix = names[0].rsplit(" ", 1)[0] if " " in names[0] else ""
+            second = names[1] if " " in names[1] or not prefix else f"{prefix} {names[1]}"
+            out += [{**r, "label": names[0], "value": values[0]}, {**r, "label": second, "value": values[1]}]
+        else:
+            out.append(r)
+    return out
+
+
+def _rate_bars(story: dict, item: dict, results: list[dict]) -> tuple[str, str] | None:
+    """Bars on one fixed 0-1 axis (100% for percentages) with grid lines, so close scores look close and a weak one stands out:
+    the lowest bar is drawn in the accent, the rest muted."""
+    accent = _accent(item["title"])
+    img, draw = _canvas()
+    y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)
+    width = W - 2 * MARGIN
+    fitted = fit_text(draw, story["chart_title"], width, 2, [40, 36, 32, 28], bold=True)
+    if fitted:
+        font, lines = fitted
+        for ln in lines:
+            draw.text((MARGIN, y), ln, font=font, fill=TEXT)
+            y += font.size + 10
+        y += 20
+    rates = [_rate(r["value"]) for r in results]
+    low = min(rates)
+    top, bottom = y + 40, H - 190
+    slot = (bottom - top) // len(results)
+    bar_h = min(56, slot - 52)
+    tick_font = _font(26)
+    for k in range(5):  # 0, 0.25, 0.5, 0.75, 1
+        x = MARGIN + int(width * k / 4)
+        label = f"{k * 25}%" if any(str(r["value"]).endswith("%") for r in results) else f"{k / 4:g}"
+        tw = draw.textlength(label, font=tick_font)
+        draw.text((min(max(x - tw / 2, MARGIN), W - MARGIN - tw), bottom + 12), label, font=tick_font, fill=MUTED)
+    for n, (r, v) in enumerate(zip(results, rates)):
+        ty = top + n * slot
+        lf = fit_text(draw, r["label"], width - 160, 1, [30, 28, 26, 24])
+        if not lf:
+            return None
+        draw.text((MARGIN, ty), lf[1][0], font=lf[0], fill=TEXT)
+        by = ty + lf[0].size + 12
+        draw.rounded_rectangle([MARGIN, by, MARGIN + width, by + bar_h], radius=6, fill=PANEL)
+        for k in range(1, 4):  # quarter marks inside the track only, clear of the labels
+            gx = MARGIN + int(width * k / 4)
+            draw.line([(gx, by), (gx, by + bar_h)], fill=(52, 58, 64), width=2)
+        draw.rounded_rectangle([MARGIN, by, MARGIN + max(8, int(width * v)), by + bar_h], radius=6,
+                               fill=accent if v == low else (96, 110, 104))
+        vf = _font(34, True)
+        value = str(r["value"])
+        draw.text((W - MARGIN - draw.textlength(value, font=vf), ty - 2), value, font=vf, fill=accent if v == low else TEXT)
+    _footer(draw)
+    alt = f"Bar chart, {story['chart_title']}: " + "; ".join(f"{r['label']} {r['value']}" for r in results) + "."
+    if story.get("simulated"):
+        alt += " Simulated data."
+    return _save(img), alt
+
+
 def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, str] | None:
     """A chart of the story's results that the post mentions: bars when they share a unit, otherwise one figure per result.
     Returns None when fewer than two of them appear in the post."""
     results = story_results_in_post(story, post_text)
     if len(results) < 2:
         return None
+    pairs = expand_pairs(results)
+    if 2 <= len(pairs) <= 7 and all(_rate(r["value"]) is not None for r in pairs):
+        return _rate_bars(story, item, pairs)
     accent = _accent(item["title"])
     img, draw = _canvas()
     y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)

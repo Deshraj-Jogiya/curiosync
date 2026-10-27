@@ -107,10 +107,10 @@ FORMAT_TASKS = {
                  "it changes for people who build with that tool, tied to one specific thing you did in FEATURED.",
 }
 
-# Every format ends the same way: a concrete closing line, then one question only a practitioner could answer. The question is how
-# engineers and hiring managers start a conversation; asking for likes or comments is penalised and stays banned above.
-_CLOSE = ("End with two short paragraphs. First, one concrete sentence about what the work now lets you or its user do. Then one "
-          "specific technical question that only someone who has built something similar could answer.")
+# Every format ends the same way: one concrete closing line with the practical result. No closing question of any kind (owner's
+# rule, 2026-10-22: a generic question read as filler); asking for likes or comments stays banned above.
+_CLOSE = ("End with one short paragraph: one concrete sentence about what the work now lets you or its user do. Do not end with a "
+          "question.")
 ENDINGS = {fmt: _CLOSE for fmt in ("project_spotlight", "lesson", "decision", "news_take")}
 
 
@@ -132,7 +132,9 @@ def source_text(profile: dict, item: dict, news: dict | None = None) -> str:
 
 
 STORY_RULES = """
-STORY below is the one measured test this post is about. Build the whole post on it: open with its question or its most telling result,
+STORY below is the one measured test this post is about. Build the whole post on it. The first paragraph must give the reader the
+setting before any figure: what the project is and what problem it solves, for whom, in plain words, then the most telling result
+(never open on a bare result such as "A model reached 86% accuracy"; a reader who does not know the project cannot weigh it). Then
 explain how it was tested, give the results, and end with the decision it led to. FEATURED only tells you what the project is; do not
 add any other fact from FEATURED. Every number in the post must come from STORY, written as STORY writes it: never work out a new
 number from them (no differences, totals, ratios or percentages STORY does not state), and never add a speed, size or scale claim

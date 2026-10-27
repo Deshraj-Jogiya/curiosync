@@ -283,12 +283,22 @@ _DETACHED_OPENING = re.compile(r"^(to (test|confirm|check|verify|validate|measur
 FRAGMENT_CHARS = 70
 
 
+_METRIC = re.compile(r"\d+(?:\.\d+)?\s?%|\b0\.\d+|\b\d+(?:\.\d+)?x\b")
+
+
 def flow_problems(text: str) -> list[str]:
     """Places where the reading thread drops, judged without a model: body paragraphs that open by announcing a step, and
     one-sentence fragments in the middle of the post (the first line, the closing question and the hashtags are left alone)."""
     paras = [p.strip() for p in text.strip().split("\n\n") if p.strip() and not p.strip().startswith("#")]
-    body = paras[1:-1]  # skip the first line and the closing question
+    body = paras[1:-1]  # skip the first line and the closing line
     problems = []
+    if paras and paras[-1].rstrip().endswith("?"):
+        problems.append("closing: the post ends on a question; end with one plain sentence on what the work now lets someone do")
+    if paras:
+        opening = [s for s in re.split(r"(?<=[.!?])\s+", paras[0]) if s]
+        if len(opening) == 1 and _METRIC.search(opening[0]):
+            problems.append("opening: the first paragraph is a bare result; say first what the project is and what problem it "
+                            "solves, then the result")
     for p in body:
         if _DETACHED_OPENING.search(p):
             problems.append(f"reading flow: a paragraph opens with \"{' '.join(p.split()[:4])}...\"; link it to the paragraph before "
