@@ -392,8 +392,10 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
 
     never = [i for i in items if i.get("github_url") and i["title"] not in meta and not any(x["subject"] == i["title"] for x in stories)]
     if reread_without_charts:
-        # Projects whose stories were mined before chart data existed, read again so their stories gain a series.
-        never = [i for i in items if any(x["subject"] == i["title"] and not x.get("series") for x in stories)] + never
+        # Projects whose stories were mined before chart data existed, read again so their stories gain a series. Projects never
+        # read come first: a re-read only adds charts, a first read adds a whole project.
+        never = never + [i for i in items if i not in never and
+                         any(x["subject"] == i["title"] and not x.get("series") for x in stories)]
     todo, shas = never[:MAX_SUBJECTS_PER_REFILL], {}
     if len(todo) < MAX_SUBJECTS_PER_REFILL and not healthy:
         for i in items:
