@@ -49,6 +49,18 @@ def test_chart_shows_only_numbers_the_post_states():
     assert render_story_chart(STORY, ITEMS[0], "Only 63% here.") is None
 
 
+def test_rates_stored_as_decimals_still_chart_when_the_post_writes_percentages():
+    # The IoT draft (2026-10-27) wrote 98.13% for a stored 0.9813, so only the two counts matched and the card showed two
+    # bare numbers instead of a chart.
+    story = {**STORY, "chart_title": "Detection", "results": [
+        {"label": "Readings flagged", "value": "232"}, {"label": "Planted spikes caught", "value": "210"},
+        {"label": "Precision", "value": "0.9052"}, {"label": "Recall", "value": "0.9813"}]}
+    post = "It flagged 232 readings and caught 210 spikes: 98.13% recall at 90.52% precision."
+    assert len(story_results_in_post(story, post)) == 4
+    path, alt = render_story_chart(story, ITEMS[0], post)
+    assert alt.startswith("Bar chart") and "98.13%" in alt and "232" not in alt
+
+
 @pytest.mark.asyncio
 async def test_refill_reads_project_documents_and_keeps_only_verified_stories(tmp_path):
     path = str(tmp_path / "stories.json")

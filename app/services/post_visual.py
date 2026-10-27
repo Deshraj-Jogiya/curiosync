@@ -311,9 +311,10 @@ def _unit(value: str) -> str:
 
 def story_results_in_post(story: dict, post_text: str) -> list[dict]:
     """The story's results whose number the post itself states, so the image never shows a figure the text does not."""
-    from app.services.post_rules import numbers_in
+    from app.services.post_rules import _exact_conversions, numbers_in
 
     in_post = numbers_in(post_text)
+    in_post |= _exact_conversions(in_post)  # the post may write 0.9813 as 98.13%
     return [r for r in story["results"] if numbers_in(str(r["value"])) & in_post]
 
 
@@ -343,7 +344,18 @@ def expand_pairs(results: list[dict]) -> list[dict]:
     return out
 
 
-def _rate_bars(story: dict, item: dict, results: list[dict]) -> tuple[str, str] | None:
+def _as_written(value: str, post_text: str) -> str:
+    """0.9813 shown as "98.13%" when that is how the post writes it, so the image and the text read the same."""
+    from app.services.post_rules import _exact_conversions, numbers_in
+
+    v = str(value).strip()
+    if v.endswith("%") or not post_text:
+        return v
+    shown = [n for n in _exact_conversions(numbers_in(v)) if n.endswith("%")]
+    return shown[0] if shown and shown[0] in numbers_in(post_text) else v
+
+
+def _rate_bars(story: dict, item: dict, results: list[dict], post_text: str = "") -> tuple[str, str] | None:
     """Bars on one fixed 0-1 axis (100% for percentages) with grid lines, so close scores look close and a weak one stands out:
     the lowest bar is drawn in the accent, the rest muted."""
     accent = _accent(item["title"])
@@ -357,10 +369,12 @@ def _rate_bars(story: dict, item: dict, results: list[dict]) -> tuple[str, str] 
             draw.text((MARGIN, y), ln, font=font, fill=TEXT)
             y += font.size + 10
         y += 20
+    results = [{**r, "value": _as_written(r["value"], post_text)} for r in results]
     rates = [_rate(r["value"]) for r in results]
     low = min(rates)
-    top, bottom = y + 40, H - 190
-    slot = (bottom - top) // len(results)
+    top = y + 40
+    slot = min((H - 190 - top) // len(results), 190)  # keep a few bars together instead of spreading them over the card
+    bottom = top + slot * len(results)
     bar_h = min(56, slot - 52)
     tick_font = _font(26)
     for k in range(5):  # 0, 0.25, 0.5, 0.75, 1
@@ -398,8 +412,10 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
     if len(results) < 2:
         return None
     pairs = expand_pairs(results)
-    if 2 <= len(pairs) <= 7 and all(_rate(r["value"]) is not None for r in pairs):
-        return _rate_bars(story, item, pairs)
+    rates = [r for r in pairs if _rate(r["value"]) is not None]
+    if 2 <= len(rates) <= 7:
+        # Counts next to the rates stay in the post text; the chart compares the scores on one scale.
+        return _rate_bars(story, item, rates, post_text)
     accent = _accent(item["title"])
     img, draw = _canvas()
     y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)
@@ -417,9 +433,6 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
     values = [_value_number(str(r["value"])) for r in results]
     same_unit = len({_unit(str(r["value"])) for r in results}) == 1 and all(v is not None for v in values)
     top = max(values) if same_unit and max(values) > 0 else None
-    if top and min(values) > 0 and top / min(values) < 1.25:
-        # Bars drawn from zero make close values (0.91 against 0.93) look identical; show the figures instead.
-        top = None
     for r, v in zip(results, values):
         label_fit = fit_text(draw, r["label"], width, 2, [30, 28, 26, 24])
         if not label_fit:
