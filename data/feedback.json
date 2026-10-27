@@ -102,5 +102,15 @@
     "rules": [
       "144 words, must be at least 150: add about 21 words using only details the facts already give (how the test was set up, each result and what it means, what the decision changed); never add a reason or benefit the facts do not state"
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "multi-state-land-use-emissions-analysis-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claims that the baseline will be used as the reference point for future state‑level emission projections, which is not mentioned in the provided facts.",
+      "reading flow: The paragraph describing the Python ETL does not explain why the ETL was needed for the forecasting task, creating a jump in the narrative.",
+      "reading flow: The results paragraph lists accuracy numbers without explaining what those numbers represent or why they matter, breaking the logical flow."
+    ]
   }
 ]
