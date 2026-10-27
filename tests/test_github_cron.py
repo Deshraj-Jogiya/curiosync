@@ -324,3 +324,22 @@ async def test_the_review_page_waits_for_the_image_push_and_uses_a_run_specific_
     page = (work / "pending_post" / "summary.md").read_text(encoding="utf-8")
     assert "previews/77.png?v=77" in page
     assert not summary.exists()  # the workflow appends it after the push
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("sys.exit")
+async def test_a_draft_that_fails_the_rules_starts_another_try_up_to_three_a_day(mock_exit, mock_pipeline, mock_til, tmp_path, monkeypatch):
+    mock_pipeline.return_value = {"status": "skipped", "reason": "No draft passed the post rules: ['x']", "steps": {},
+                                  "story_id": "s-1", "problems": ["x"]}
+    monkeypatch.chdir(tmp_path)
+    _queue(tmp_path, monkeypatch, [])
+    _day(monkeypatch, date(2026, 10, 27))
+    for attempt, expect in (("0", True), ("1", True), ("2", False)):
+        out = tmp_path / f"out{attempt}.txt"
+        with patch.dict(os.environ, dict(ENV, GITHUB_OUTPUT=str(out), DRAFT_ATTEMPT=attempt)):
+            await main("draft")
+        assert ("retry=true" in out.read_text()) is expect
+    from app.services.story_bank import load_feedback
+    assert [f["story_id"] for f in load_feedback()] == ["s-1", "s-1"]

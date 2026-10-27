@@ -147,6 +147,17 @@ async def check_linkedin_token(access_token: str) -> tuple[bool, str]:
 
 
 PENDING_DIR = "pending_post"
+# A draft that fails the post rules after its rewrites is retried by a new run, at most this many tries a day in all.
+MAX_DRAFT_TRIES = 3
+
+
+def _rule_failed_story(result: dict) -> str | None:
+    import re as _re
+
+    if result.get("story_id"):
+        return result["story_id"]
+    m = _re.search(r"\(story ([^)]+)\)", str((result.get("steps") or {}).get("generate_draft", "")))
+    return m.group(1) if m else None
 
 
 def _set_output(name: str, value: str):
@@ -432,6 +443,18 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
             result["post_day"] = str(day)
             _write_pending(result)
             _set_output("has_draft", "true")
+        elif str(result.get("reason", "")).startswith("No draft passed the post rules"):
+            # A draft that failed the rules offers nothing to approve or reject, so the run starts another try itself, up to
+            # MAX_DRAFT_TRIES a day; a story rejected by the rules twice is not offered again (story_bank), so a retry tries another.
+            attempt = int(os.getenv("DRAFT_ATTEMPT", "0") or 0)
+            if attempt + 1 < MAX_DRAFT_TRIES:
+                _set_output("retry", "true")
+                _set_output("next_attempt", str(attempt + 1))
+                from app.services.story_bank import add_feedback
+                from app.utils.timezone import today_phoenix as _today
+
+                add_feedback({"date": str(_today()), "story_id": _rule_failed_story(result), "comment": "",
+                              "rules": result.get("problems", [])})
 
     if publish_failed or result.get("status") == "failed":
         status = "failed"

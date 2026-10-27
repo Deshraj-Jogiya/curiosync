@@ -31,6 +31,10 @@ on:
         description: "The story the rejected draft was written from"
         type: string
         default: ""
+      attempt:
+        description: "How many drafts already failed the post rules today (set by the retry)"
+        type: string
+        default: "0"
 
 jobs:
   once_a_day:
@@ -95,6 +99,8 @@ jobs:
     outputs:
       has_draft: ${{ steps.run.outputs.has_draft }}
       has_preview: ${{ steps.run.outputs.has_preview }}
+      retry: ${{ steps.run.outputs.retry }}
+      next_attempt: ${{ steps.run.outputs.next_attempt }}
 
     steps:
     - name: Checkout CurioSync
@@ -196,6 +202,7 @@ jobs:
         REDRAFT: ${{ inputs.redraft || false }}
         REJECT_COMMENT: ${{ inputs.reject_comment }}
         REJECTED_STORY: ${{ inputs.rejected_story }}
+        DRAFT_ATTEMPT: ${{ inputs.attempt || '0' }}
         GITHUB_TOKEN: ${{ github.token }}
         WAITING_APPROVALS: ${{ steps.waiting.outputs.count }}
       working-directory: curiosync
@@ -346,21 +353,30 @@ jobs:
         for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
 
   redraft:
-    # A rejected draft fails the approve job; this starts a new run that writes another draft for the same post day. It stops on its own
-    # when the day's free model quota runs out, since a run that cannot draft offers nothing to reject.
+    # A rejected draft fails the approve job, and a draft that failed the post rules sets retry; either way a new run writes another
+    # draft for the same post day. Rejections repeat until one is approved or the day's free model quota runs out; rule failures
+    # retry at most 3 times a day.
     needs: [draft, approve]
-    if: ${{ always() && needs.draft.outputs.has_draft == 'true' && needs.approve.result == 'failure' }}
+    if: ${{ always() && ((needs.draft.outputs.has_draft == 'true' && needs.approve.result == 'failure') || needs.draft.outputs.retry == 'true') }}
     runs-on: ubuntu-latest
     permissions:
       actions: write
     steps:
+    - name: Retry a draft that failed the post rules
+      if: ${{ needs.draft.outputs.retry == 'true' }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: gh workflow run daily_post.yml -R "${{ github.repository }}" -f redraft=true -f attempt="${{ needs.draft.outputs.next_attempt }}"
+
     - name: Fetch the rejected draft
+      if: ${{ needs.draft.outputs.retry != 'true' }}
       uses: actions/download-artifact@v4
       with:
         name: pending-post
         path: pending_post
 
     - name: Start a new draft, passing on the reason for the reject
+      if: ${{ needs.draft.outputs.retry != 'true' }}
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
