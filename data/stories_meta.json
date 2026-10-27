@@ -108,5 +108,10 @@
     "sha": "d7a2f7dd1ea29a0befc1d2829e5d75ced80a51b1",
     "read_on": "2026-10-27",
     "stories": 0
+  },
+  "Company Blocklist": {
+    "sha": "a93d1c57810140a9c5ae7570b8ff84c15745aab6",
+    "read_on": "2026-10-27",
+    "stories": 0
   }
 }
