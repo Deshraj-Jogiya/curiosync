@@ -57,5 +57,13 @@
       "unsupported by the facts: Describes the dataset as \"synthetic\" – the facts only say a 600‑example subset, not that it was synthetic.",
       "unsupported by the facts: Claims the adapter is \"cheap\" and can be attached to steer creative generation while preserving factual consistency – the facts do not mention cost or deployment capability."
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "clinical-trials-patient-outcomes-analysi-3",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claims that researchers can now refresh the Tableau report in under seven seconds and trust that the underlying data remain unchanged, which is not stated in the provided facts."
+    ]
   }
 ]
