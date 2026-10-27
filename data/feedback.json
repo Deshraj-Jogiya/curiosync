@@ -65,5 +65,13 @@
     "rules": [
       "unsupported by the facts: Claims that researchers can now refresh the Tableau report in under seven seconds and trust that the underlying data remain unchanged, which is not stated in the provided facts."
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "clinical-trials-patient-outcomes-analysi-3",
+    "comment": "",
+    "rules": [
+      "143 words, must be at least 150"
+    ]
   }
 ]
