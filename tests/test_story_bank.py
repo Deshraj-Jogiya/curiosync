@@ -168,3 +168,15 @@ def test_documents_are_read_in_pieces_that_fit_the_free_tier():
     chunks = doc_chunks(docs, size=14000)
     assert all(len(c) <= 14000 for c in chunks) and len(chunks) >= 2
     assert chunks[0].startswith("# FILE: docs/FINDINGS.md") and "Short readme." in chunks[-1]
+
+
+def test_steps_scored_on_one_measure_become_a_stage_flow_not_a_one_row_table():
+    from app.services.post_document import comparison_grid, story_image
+
+    steps = {**STORY, "detail": "The one miss asks for a Thursday booking.", "chart_title": "Accuracy",
+             "results": [{"label": "Member identification accuracy", "value": "100%"},
+                         {"label": "Message retrieval accuracy", "value": "96%"},
+                         {"label": "Answer extraction accuracy", "value": "96%"}]}
+    assert comparison_grid(steps["results"]) is None
+    path, alt, kind = story_image(steps, ITEMS[0], "")
+    assert kind == "stage flow" and "Thursday" in alt

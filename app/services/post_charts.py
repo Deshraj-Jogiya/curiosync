@@ -188,6 +188,75 @@ def _before_after(story: dict, item: dict) -> Image.Image | None:
 RENDERERS = {"line": _line, "scatter": _scatter, "before_after": _before_after}
 
 
+def stage_flow_results(story: dict) -> list[dict] | None:
+    """Results that are steps of one process each scored on the same measure ("Member identification accuracy", "Message retrieval
+    accuracy", ...): 2 to 5 results, all percentages, all labels ending in the same word. None otherwise."""
+    results = story.get("results") or []
+    if not 2 <= len(results) <= 5:
+        return None
+    if not all(str(r.get("value", "")).strip().endswith("%") for r in results):
+        return None
+    last = {r["label"].split()[-1].lower() for r in results if r.get("label")}
+    return results if len(last) == 1 and all(len(r["label"].split()) >= 2 for r in results) else None
+
+
+def render_stage_flow(story: dict, item: dict) -> tuple[str, str] | None:
+    """The steps of a process as connected blocks down the card, each with its score as a large figure and a bar out of 100%, and
+    the story's own detail (for example the one miss) as a note at the bottom, so a short result set still fills the card."""
+    results = stage_flow_results(story)
+    if not results:
+        return None
+    item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
+    accent = _accent(item["title"])
+    img, draw = _canvas()
+    y = _title(draw, story, _header(draw, item, accent))
+    metric = results[0]["label"].split()[-1]
+    detail = (story.get("detail") or "").strip()
+    note_room = 170 if detail else 0
+    slot = (H - 190 - y - note_room) // len(results)
+    box_h = min(170, slot - 44)
+    width = W - 2 * MARGIN
+    for n, r in enumerate(results, 1):
+        stage = " ".join(r["label"].split()[:-1])
+        value = str(r["value"]).strip()
+        pct = max(0.0, min(100.0, number(value) or 0.0))
+        draw.rounded_rectangle([MARGIN, y, MARGIN + width, y + box_h], radius=14, fill=(24, 27, 31))
+        draw.text((MARGIN + 28, y + 22), f"{n}", font=_font(30, True), fill=accent)
+        fitted = fit_text(draw, stage, width - 330, 2, [34, 30, 28, 26], bold=True)
+        if not fitted:
+            return None
+        sf, sl = fitted
+        for k, ln in enumerate(sl):
+            draw.text((MARGIN + 70, y + 20 + k * (sf.size + 4)), ln, font=sf, fill=TEXT)
+        vf = _font(64, True)
+        draw.text((MARGIN + width - 28 - draw.textlength(value, font=vf), y + 14), value, font=vf, fill=accent)
+        bar_y = y + box_h - 40
+        draw.rounded_rectangle([MARGIN + 70, bar_y, MARGIN + width - 28, bar_y + 14], radius=7, fill=GRID)
+        draw.rounded_rectangle([MARGIN + 70, bar_y, MARGIN + 70 + int((width - 98) * pct / 100), bar_y + 14], radius=7, fill=accent)
+        if n < len(results):
+            cx = MARGIN + 40
+            draw.line([(cx, y + box_h + 6), (cx, y + slot - 6)], fill=MUTED, width=3)
+            draw.polygon([(cx - 9, y + slot - 16), (cx + 9, y + slot - 16), (cx, y + slot - 4)], fill=MUTED)
+        y += slot
+    draw.text((MARGIN, y - 24), f"{metric} of each step", font=_font(22), fill=MUTED)
+    if detail:
+        fitted = fit_text(draw, detail, width, 3, [30, 28, 26, 24])
+        if fitted:
+            df, dl = fitted
+            ny = H - 170 - note_room + 20
+            draw.line([(MARGIN, ny - 14), (MARGIN + 120, ny - 14)], fill=accent, width=4)
+            for k, ln in enumerate(dl):
+                draw.text((MARGIN, ny + k * (df.size + 8)), ln, font=df, fill=TEXT)
+    _footer(draw)
+    alt = (f"Process chart: {story['chart_title']}. " + "; then ".join(f"{' '.join(r['label'].split()[:-1])} {r['value']}"
+                                                                        for r in results) + f" ({metric}).")
+    if detail:
+        alt += " " + detail
+    if story.get("simulated"):
+        alt += " Simulated data."
+    return _save(img), alt
+
+
 def series_alt(story: dict) -> str:
     s = story["series"]
     if s["type"] == "before_after":

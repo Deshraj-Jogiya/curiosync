@@ -10,7 +10,7 @@ import tempfile
 
 from PIL import Image
 
-from app.services.post_charts import render_series
+from app.services.post_charts import render_series, render_stage_flow
 from app.services.post_visual import (ACCENTS, BG, H, MARGIN, MUTED, TEXT, W, _accent, _canvas, _font, _footer, _header, fit_text,
                                       render_story_chart)
 
@@ -91,7 +91,9 @@ def comparison_grid(results: list[dict]) -> tuple[list[str], list[str], dict] | 
         if metric.lower() not in [m.lower() for m in metrics]:
             metrics.append(metric)
         cells[(option, metric.lower())] = str(r["value"])
-    if len(options) < 2 or len(options) > 3:
+    # A comparison needs at least two options measured on at least two things; three stages each scored once is not a table (a
+    # one-row table left most of the card empty).
+    if len(options) < 2 or len(options) > 3 or len(metrics) < 2:
         return None
     return options, metrics, cells
 
@@ -158,6 +160,9 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
     series = render_series(story, item)
     if series:
         return series[0], series[1], (story.get("series") or {}).get("type", "series")
+    stages = render_stage_flow(story, item)
+    if stages:
+        return stages[0], stages[1], "stage flow"
     if comparison_grid(story["results"]):
         page = _results_page(story, item, 0, 0, numbered=False)
         if page:
