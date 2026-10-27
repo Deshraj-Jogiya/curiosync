@@ -1739,5 +1739,66 @@
       "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/README.md"
     ],
     "simulated": false
+  },
+  {
+    "id": "multi-state-land-use-emissions-analysis-3x",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "question": "Is the vectorised shock detector faster, and does it flag the same days?",
+    "test": "Timing the rolling‑median detector as a Python function per series and as grouped pandas operations on the project’s own records and on a 50‑state, 3‑year version; a test checks equivalence of flagged days.",
+    "results": [
+      {
+        "label": "5,350 records per series time",
+        "value": "19.6 ms"
+      },
+      {
+        "label": "5,350 records vectorised time",
+        "value": "9.5 ms"
+      },
+      {
+        "label": "Time saved",
+        "value": "0.5165"
+      },
+      {
+        "label": "273,750 records per series time",
+        "value": "406.1 ms"
+      },
+      {
+        "label": "273,750 records vectorised time",
+        "value": "307.6 ms"
+      },
+      {
+        "label": "Time saved",
+        "value": "0.2424"
+      }
+    ],
+    "decision": "The grouped pandas version is the one the pipeline uses.",
+    "chart_title": "Vectorised vs Per‑Series Shock Detection Timing",
+    "detail": "Both versions flag exactly the same days.",
+    "skills": [
+      "pandas groupby",
+      "rolling windows",
+      "benchmarking"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
+    ],
+    "simulated": true,
+    "series": {
+      "type": "before_after",
+      "title": "Timing Comparison",
+      "points": [
+        {
+          "label": "5,350 records",
+          "before": "19.6 ms",
+          "after": "9.5 ms"
+        },
+        {
+          "label": "273,750 records",
+          "before": "406.1 ms",
+          "after": "307.6 ms"
+        }
+      ]
+    }
   }
 ]

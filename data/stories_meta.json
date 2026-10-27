@@ -11,13 +11,13 @@
   },
   "Real-Time IoT Telematics & Predictive Maintenance": {
     "sha": "82bd56fd6e04cfe5087f161747e6866d22f2274e",
-    "read_on": "2026-10-26",
+    "read_on": "2026-10-27",
     "stories": 1
   },
   "Extending STEM across ASL": {
     "sha": "2c01bfd5670a2df25e3fcfaf41bf3af96b27de63",
-    "read_on": "2026-10-26",
-    "stories": 4
+    "read_on": "2026-10-27",
+    "stories": 3
   },
   "Member Messages QA System: Semantic Search & NER-Based Question Answering": {
     "sha": "daf803c0d3846abd2750302228ab57d9ea541ac0",
@@ -30,19 +30,19 @@
     "stories": 1
   },
   "Job Search CRM & AI Application Tailoring Center": {
-    "sha": "8264b149fa4b6ac9feee143c4b9f80911c62916a",
-    "read_on": "2026-10-26",
+    "sha": "d71dec580f094f7c1dfa09b9cb1b3254183453e4",
+    "read_on": "2026-10-27",
     "stories": 1
   },
   "FinTech Credit Risk & Fraud Command Center": {
     "sha": "bd63ca8386a219e616a865b5daf292f3d57eaa67",
-    "read_on": "2026-10-26",
+    "read_on": "2026-10-27",
     "stories": 3
   },
   "AI Model Observability & Fairness Audits": {
     "sha": "cef096ff92dacaa216c95e866bddcbaa7ae10096",
-    "read_on": "2026-10-26",
-    "stories": 1
+    "read_on": "2026-10-27",
+    "stories": 2
   },
   "Job Search dbt Warehouse": {
     "sha": "d0713bcca716b726482acbe53bc3ca59c957e7fd",
@@ -51,17 +51,17 @@
   },
   "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
     "sha": "4604a41e2a1ecdde0b3b230ebb78957933059f6f",
-    "read_on": "2026-10-26",
+    "read_on": "2026-10-27",
     "stories": 1
   },
   "Multi-State Land Use Emissions Analysis": {
     "sha": "99ae6b6d5d9916ff803dc29f6859dbe2b3f1a6be",
-    "read_on": "2026-10-26",
+    "read_on": "2026-10-27",
     "stories": 6
   },
   "Sales Analytics & RFM Customer Segmentation Pipeline": {
     "sha": "03e792a2f861636348933cc7bfe3b7fb54ec6b9c",
-    "read_on": "2026-10-26",
+    "read_on": "2026-10-27",
     "stories": 1
   },
   "Clinical Trials Patient Outcomes Analysis": {
