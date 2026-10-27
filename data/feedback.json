@@ -30,5 +30,22 @@
     "rules": [
       "unsupported by the facts: Claim that reliably detecting sensor spikes and preventing device failures without false alarms was 'the engineering challenge'."
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "real-time-iot-telematics-predictive-main-1",
+    "comment": "Rejected for the image only. The card showed two bare numbers (232, 210) instead of a chart because the post's 98.13% / 90.52% did not match the stored 0.9813 / 0.9052. Fixed in eda6b42: rates now chart as bars in the post's own notation. The text was acceptable: setting first, no closing question, all numbers from the facts. Keep the same story and that shape."
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "sentence-transformers-multi-task-learnin-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claim that testing tiny adapters on LLMs is the fastest way to see real impact.",
+      "unsupported by the facts: Motivation statement that the LoRA experiment was needed to fit on a free Colab T4 GPU.",
+      "unsupported by the facts: Assertion that the author can now reliably test a LoRA adapter on a small synthetic set and know exactly which types of prompts it will affect before any production use.",
+      "reading flow: Opening claim about speed (“fastest way to see real impact”) is presented without supporting explanation.",
+      "reading flow: Conclusion that the adapter can be reliably tested and its effect on prompt types known before production jumps from a five‑prompt test without a clear logical bridge."
+    ]
   }
 ]
