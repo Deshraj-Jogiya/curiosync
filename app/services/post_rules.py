@@ -276,10 +276,11 @@ def drop_sentences_with_numbers(text: str, numbers: list[str]) -> str:
 
 # Openings that drop the thread: they announce a step instead of answering what the paragraph before raised. The owner rejected a
 # draft whose third paragraph began "To test how accurate..." and a later one whose test came in two fragments ("To confirm its
-# accuracy..., I ran a verification test." / "This involved eval_qa.py...").
-_DETACHED_OPENING = re.compile(r"^(to (test|confirm|check|verify|validate|measure|evaluate)\b|this (involved|included|meant running)\b)",
-                               re.IGNORECASE)
-FRAGMENT_CHARS = 110
+# accuracy..., I ran a verification test." / "This involved eval_qa.py..."). "To verify this..." refers back, so it is allowed.
+_DETACHED_OPENING = re.compile(r"^(to (test|confirm|check|verify|validate|measure|evaluate)\b(?!\s+(this|that|it)\b)"
+                               r"|this (involved|included|meant running)\b)", re.IGNORECASE)
+# A one-sentence paragraph is a fragment only when it is this short; a full sentence saying why the test mattered can stand alone.
+FRAGMENT_CHARS = 70
 
 
 def flow_problems(text: str) -> list[str]:

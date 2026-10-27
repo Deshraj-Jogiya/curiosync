@@ -129,3 +129,12 @@ def test_detached_openings_and_fragment_paragraphs_are_flow_problems():
               "the system picks the right person first. I scored 26 paraphrased questions against labels: it named the right "
               "member every time and missed one answer.\n\nHow do you handle dates?\n\n#DataEngineering")
     assert flow_problems(smooth) == []
+
+
+def test_an_opening_that_refers_back_is_not_a_flow_problem():
+    from app.services.post_rules import flow_problems
+
+    text = ("First line.\n\nThe system had to name the right member even when questions were paraphrased, or every answer fails.\n\n"
+            "To verify this, I scored 26 paraphrased questions against labels and it named the right member every time.\n\n"
+            "How do you handle dates?\n\n#DataEngineering")
+    assert flow_problems(text) == []
