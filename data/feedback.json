@@ -47,5 +47,15 @@
       "reading flow: Opening claim about speed (“fastest way to see real impact”) is presented without supporting explanation.",
       "reading flow: Conclusion that the adapter can be reliably tested and its effect on prompt types known before production jumps from a five‑prompt test without a clear logical bridge."
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "sentence-transformers-multi-task-learnin-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: States a motivation: needed a way to test without rebuilding the whole model – not mentioned in the facts.",
+      "unsupported by the facts: Describes the dataset as \"synthetic\" – the facts only say a 600‑example subset, not that it was synthetic.",
+      "unsupported by the facts: Claims the adapter is \"cheap\" and can be attached to steer creative generation while preserving factual consistency – the facts do not mention cost or deployment capability."
+    ]
   }
 ]
