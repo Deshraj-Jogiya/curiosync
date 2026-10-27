@@ -46,5 +46,36 @@
       "story_id": "member-messages-qa-system-semantic-searc-1"
     },
     "approved_by": "owner in chat 2026-10-27 (text from run 40464599596, image redrawn as a stage flow)"
+  },
+  {
+    "id": "draft-40578570120",
+    "format": "project_spotlight",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nI built a geospatial ETL system to process daily land-cover data for five U.S. states. The daily files are simulated, but the underlying emission factors and historical inventory come from the EPA. This setup allowed me to test if complex models add value over a simple rule when predicting year-ahead shifts.\n\nThe core challenge is that land-use change is often slow. A naive baseline that predicts next year's value as identical to last year's is a strong competitor. To see if learning patterns from history helps more than just repetition, I compared Linear Regression and Random Forest against this baseline.\n\nThe test used the EPA's 25 annual series. I trained the models on data up to 2017 and scored their predictions for 2018 through 2022. The Linear Regression reached an accuracy of 0.9418. The Random Forest scored 0.9329. The naive baseline, which simply used the previous year's value, achieved 0.947.\n\nThe result was clear: neither model outperformed the simple baseline. The decision was to report the baseline alongside model scores. This ensures that any deployment or further analysis accounts for the fact that historical inertia is the dominant signal in this specific dataset.\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/draft-40578570120.png",
+    "alt_text": "Bar chart, EPA real land‑use flux forecast accuracy: Linear Regression accuracy 0.9418; Random Forest accuracy 0.9329; Last year's value accuracy 0.947. Simulated data.",
+    "post_day": "2026-11-02",
+    "history_entry": {
+      "date": "2026-11-02",
+      "format": "project_spotlight",
+      "subject": "Multi-State Land Use Emissions Analysis",
+      "hook_type": "claim",
+      "opener_words": [
+        "forecasting",
+        "emissions",
+        "by",
+        "copying",
+        "last",
+        "year",
+        "beats",
+        "two",
+        "standard",
+        "models"
+      ],
+      "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nI built a geospatial ETL system to process daily land-cover data for five U.S. states. The daily files are simulated, but the underlying emission factors and historical inventory come from the EPA. This setup allowed me to test if complex models add value over a simple rule when predicting year-ahead shifts.\n\nThe core challenge is that land-use change is often slow. A naive baseline that predicts next year's value as identical to last year's is a strong competitor. To see if learning patterns from history helps more than just repetition, I compared Linear Regression and Random Forest against this baseline.\n\nThe test used the EPA's 25 annual series. I trained the models on data up to 2017 and scored their predictions for 2018 through 2022. The Linear Regression reached an accuracy of 0.9418. The Random Forest scored 0.9329. The naive baseline, which simply used the previous year's value, achieved 0.947.\n\nThe result was clear: neither model outperformed the simple baseline. The decision was to report the baseline alongside model scores. This ensures that any deployment or further analysis accounts for the fact that historical inertia is the dominant signal in this specific dataset.\n\n#DataEngineering #MachineLearning",
+      "story_id": "multi-state-land-use-emissions-analysis-1"
+    },
+    "document": null,
+    "document_title": null
   }
 ]
