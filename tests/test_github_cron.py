@@ -300,3 +300,27 @@ async def test_a_failed_media_upload_posts_nothing(tmp_path):
     assert result["success"] is False and "nothing was posted" in result["error"]
     up.assert_awaited_once()
     post.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("sys.exit")
+async def test_the_review_page_waits_for_the_image_push_and_uses_a_run_specific_image_address(mock_exit, mock_pipeline, mock_til,
+                                                                                            tmp_path, monkeypatch):
+    img = tmp_path / "img.png"
+    img.write_bytes(b"\x89PNG")
+    mock_pipeline.return_value = {"status": "drafted", "draft": "Post", "format": "lesson", "subject": "S", "image_path": str(img),
+                                  "compliance": {"issues": []}, "steps": {}}
+    summary = tmp_path / "summary_out.md"
+    work = tmp_path / "w"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    _queue(work, monkeypatch, [])
+    _day(monkeypatch, date(2026, 10, 27))
+    env = dict(ENV, GITHUB_STEP_SUMMARY=str(summary), GITHUB_REPOSITORY="o/r", GITHUB_RUN_ID="77", CURIOSYNC_SUMMARY_AFTER_PUSH="1")
+    with patch.dict(os.environ, env):
+        await main("draft")
+    page = (work / "pending_post" / "summary.md").read_text(encoding="utf-8")
+    assert "previews/77.png?v=77" in page
+    assert not summary.exists()  # the workflow appends it after the push

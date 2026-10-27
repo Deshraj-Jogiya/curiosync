@@ -190,17 +190,22 @@ def _write_pending(result: dict, preview: bool = False):
     with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
+    # The review page is saved as pending_post/summary.md; the workflow adds it to the run page only after the image has been
+    # pushed to the previews branch. Written before the push, GitHub's image proxy fetched a 404 and kept showing it. The ?v= query
+    # gives every run its own address, so no cached copy is reused.
+    repo, run_id = os.getenv("GITHUB_REPOSITORY", ""), os.getenv("GITHUB_RUN_ID", "")
+    base = f"https://raw.githubusercontent.com/{repo}/previews"
+    image_url = (f"{base}/{run_id}.png?v={run_id}"
+                 if repo and run_id and os.path.exists(os.path.join(PENDING_DIR, "image.png")) else None)
+    run_url = f"https://github.com/{repo}/actions/runs/{run_id}" if repo and run_id else ""
+    page_urls = [f"{base}/{run_id}-p{n}.png?v={run_id}" for n in range(1, meta["pages"] + 1)] if repo and run_id and meta["pages"] else []
+    page = review_summary(result["draft"], meta, image_url, run_url, preview, page_urls)
+    with open(os.path.join(PENDING_DIR, "summary.md"), "w", encoding="utf-8") as f:
+        f.write(page)
     summary = os.getenv("GITHUB_STEP_SUMMARY")
-    if summary:
-        repo, run_id = os.getenv("GITHUB_REPOSITORY", ""), os.getenv("GITHUB_RUN_ID", "")
-        # The workflow pushes the image to the previews branch under this name, so the run page can show it inline.
-        image_url = (f"https://raw.githubusercontent.com/{repo}/previews/{run_id}.png"
-                     if repo and run_id and os.path.exists(os.path.join(PENDING_DIR, "image.png")) else None)
-        run_url = f"https://github.com/{repo}/actions/runs/{run_id}" if repo and run_id else ""
-        page_urls = [f"https://raw.githubusercontent.com/{repo}/previews/{run_id}-p{n}.png"
-                     for n in range(1, meta["pages"] + 1)] if repo and run_id and meta["pages"] else []
+    if summary and not os.getenv("CURIOSYNC_SUMMARY_AFTER_PUSH"):
         with open(summary, "a", encoding="utf-8") as f:
-            f.write(review_summary(result["draft"], meta, image_url, run_url, preview, page_urls))
+            f.write(page)
 
 
 def _as_markdown_text(text: str) -> str:

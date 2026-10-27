@@ -99,3 +99,13 @@ async def test_decision_without_owner_notes_becomes_a_lesson():
     with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")):
         result = await ss.generate_post("decision", SAMPLE_PROFILE, object(), date(2026, 11, 20), [], [])
     assert result["format"] == "lesson"
+
+
+@pytest.mark.asyncio
+async def test_the_fact_check_also_reports_where_the_reading_flow_drops():
+    async def llm(messages, settings, temperature, tier="any"):
+        return '{"unsupported": [], "flow": ["paragraph 3 jumps to the test without saying why it was needed"]}'
+
+    with patch.object(ss, "call_llm_with_fallback", llm):
+        problems = await ss.critic_problems("post", "facts", object())
+    assert problems == ["reading flow: paragraph 3 jumps to the test without saying why it was needed"]

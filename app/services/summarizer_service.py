@@ -72,6 +72,11 @@ Shape (the structure the owner approved on 2026-10-23):
 - Plain words: every number says what it measures ("agreed on 6 of 8 resumes", not "6/8 alignment"). No slogans, no abstract claims.
 - Tell it as a story with a problem, a test and a finding, not as a list of steps. Vary how paragraphs open: at most two start
   with "I", and no two paragraphs in a row start with the same words.
+- Continuity: every paragraph answers a question the one before it raises, so a reader never feels the thread drop. Before the
+  test, say in one sentence why it was needed (what could go wrong, what had to be proven). Open the test and result paragraphs
+  with a link to what came before ("So I checked...", "That meant...", "The answer was..."), never with a bare "To test..." or a
+  list of numbers. Give results as what they mean ("it named the right member every time, and missed one answer of 26"), with
+  the number inside the sentence, not as a run of percentages. The decision follows from the result in the same breath.
 - {ending}
 - Total length {min_chars} to {max_chars} characters including spaces (at least 150 words), then one last line with 2 relevant
   hashtags.
@@ -201,7 +206,11 @@ Do NOT count: rewording or paraphrase of a fact or of the owner's notes, a plain
 "only June's rows were read" from "3,015 of 60,000 rows read"), the author's opinion or lesson clearly phrased as an opinion ("I would make the same choice again",
 "what I take from this"), general engineering advice to readers, a correct general explanation of how a named tool or technique works (for example "a Snowflake
 Python UDF runs the model inside the warehouse"), a closing question, or a sentence saying the author is open to roles.
-Return only JSON: {{"unsupported": ["short description of each problem"]}}"""
+Also judge the reading flow, the way the owner reads: list as "flow" every place where the thread drops. That covers a paragraph
+that does not follow from the one before it; a test described without saying why it was needed; results given as a run of
+numbers without saying what they mean; and a decision that does not visibly follow from a result. The owner rejected a draft
+whose third paragraph jumped to "To test how accurate..." and whose fourth listed three percentages.
+Return only JSON: {{"unsupported": ["short description of each problem"], "flow": ["short description of each flow problem"]}}"""
 
 
 async def critic_problems(text: str, facts: str, settings: Settings) -> list[str]:
@@ -218,10 +227,12 @@ async def critic_problems(text: str, facts: str, settings: Settings) -> list[str
         return [f"fact check could not run ({type(exc).__name__})"]
     raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.MULTILINE).strip()
     try:
-        found = json.loads(raw).get("unsupported", [])
-    except ValueError:
+        data = json.loads(raw)
+        found, flow = data.get("unsupported", []), data.get("flow", [])
+    except (ValueError, AttributeError):
         return ["fact check returned no readable answer"]
-    return [f"unsupported by the facts: {p}" for p in found if isinstance(p, str) and p.strip()]
+    return ([f"unsupported by the facts: {p}" for p in found if isinstance(p, str) and p.strip()] +
+            [f"reading flow: {p}" for p in flow if isinstance(p, str) and p.strip()])
 
 
 def _finish(text: str) -> str:

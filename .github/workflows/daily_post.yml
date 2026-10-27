@@ -192,6 +192,7 @@ jobs:
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
         GITHUB_USERNAME: ${{ secrets.GH_USERNAME }}
         PREVIEW_FORMAT: ${{ inputs.preview || 'none' }}
+        CURIOSYNC_SUMMARY_AFTER_PUSH: "1"
         REDRAFT: ${{ inputs.redraft || false }}
         REJECT_COMMENT: ${{ inputs.reject_comment }}
         REJECTED_STORY: ${{ inputs.rejected_story }}
@@ -238,6 +239,11 @@ jobs:
         done
         git commit -q -m "Preview image for run ${{ github.run_id }} [skip ci]"
         git push -q origin previews
+
+    - name: Show the draft for review
+      # After the image push, so the run page's image loads on the first try.
+      if: ${{ always() && (steps.run.outputs.has_draft == 'true' || steps.run.outputs.has_preview == 'true') && hashFiles('curiosync/pending_post/summary.md') != '' }}
+      run: cat curiosync/pending_post/summary.md >> "$GITHUB_STEP_SUMMARY"
 
     - name: Commit and push run log
       if: always()
