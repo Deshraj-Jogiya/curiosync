@@ -343,3 +343,23 @@ async def test_a_draft_that_fails_the_rules_starts_another_try_up_to_three_a_day
         assert ("retry=true" in out.read_text()) is expect
     from app.services.story_bank import load_feedback
     assert [f["story_id"] for f in load_feedback()] == ["s-1", "s-1"]
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("sys.exit")
+async def test_the_owner_name_in_image_links_cannot_be_masked_as_a_secret(mock_exit, mock_pipeline, mock_til, tmp_path, monkeypatch):
+    img = tmp_path / "img.png"
+    img.write_bytes(b"\x89PNG")
+    mock_pipeline.return_value = {"status": "drafted", "draft": "Post", "format": "lesson", "subject": "S", "image_path": str(img),
+                                  "compliance": {"issues": []}, "steps": {}}
+    work = tmp_path / "w"
+    work.mkdir()
+    monkeypatch.chdir(work)
+    _queue(work, monkeypatch, [])
+    _day(monkeypatch, date(2026, 10, 27))
+    with patch.dict(os.environ, dict(ENV, GITHUB_REPOSITORY="Deshraj-Jogiya/curiosync", GITHUB_RUN_ID="5", CURIOSYNC_SUMMARY_AFTER_PUSH="1")):
+        await main("draft")
+    page = (work / "pending_post" / "summary.md").read_text(encoding="utf-8")
+    assert "raw.githubusercontent.com/Deshraj%2DJogiya/curiosync/previews/5.png" in page and "Deshraj-Jogiya" not in page

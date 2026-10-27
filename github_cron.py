@@ -201,10 +201,13 @@ def _write_pending(result: dict, preview: bool = False):
     with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
         json.dump(meta, f, indent=2)
 
-    # The review page is saved as pending_post/summary.md; the workflow adds it to the run page only after the image has been
-    # pushed to the previews branch. Written before the push, GitHub's image proxy fetched a 404 and kept showing it. The ?v= query
-    # gives every run its own address, so no cached copy is reused.
+    # The review page is saved as pending_post/summary.md; the workflow adds it to the run page after the image is pushed to the
+    # previews branch, and the ?v= query gives every run its own address. The owner's name is percent-encoded: it is also stored as a
+    # repository secret (GH_USERNAME), so GitHub masked it to "***" on the run page and every image link there was a 404.
     repo, run_id = os.getenv("GITHUB_REPOSITORY", ""), os.getenv("GITHUB_RUN_ID", "")
+    if "/" in repo:
+        owner, name = repo.split("/", 1)
+        repo = owner.replace("-", "%2D") + "/" + name
     base = f"https://raw.githubusercontent.com/{repo}/previews"
     image_url = (f"{base}/{run_id}.png?v={run_id}"
                  if repo and run_id and os.path.exists(os.path.join(PENDING_DIR, "image.png")) else None)
