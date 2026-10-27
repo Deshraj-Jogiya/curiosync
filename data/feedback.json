@@ -22,5 +22,13 @@
       "unsupported by the facts: Claim that predicting cancellations 'improved' with a new model (FACTS describe building a new model, not improving an existing one).",
       "unsupported by the facts: Causal link between the model's good ROC-AUC and the decision to deploy it (FACTS state both the ROC-AUC and the deployment decision, but do not explicitly state that the ROC-AUC was the reason for the deployment)."
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "real-time-iot-telematics-predictive-main-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claim that reliably detecting sensor spikes and preventing device failures without false alarms was 'the engineering challenge'."
+    ]
   }
 ]
