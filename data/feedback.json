@@ -81,5 +81,13 @@
     "rules": [
       "unsupported by the facts: Claims \"perfect reliability\" which is not supported by the facts (facts only show 124/124 successes, not absolute perfection)."
     ]
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "automated-daily-data-insights-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Mentions personal motivation (“I needed to prove…”) which is not present in the provided facts"
+    ]
   }
 ]
