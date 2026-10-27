@@ -192,3 +192,18 @@ def test_steps_scored_on_one_measure_become_a_stage_flow_not_a_one_row_table():
     assert comparison_grid(steps["results"]) is None
     path, alt, kind = story_image(steps, ITEMS[0], "")
     assert kind == "stage flow" and "Thursday" in alt
+
+
+def test_signed_changes_are_not_charted_as_shares():
+    # A draft (2026-10-27) drew daily returns of -2.58% and -1.2% as near-empty bars on a 0-100% axis.
+    from app.services.post_visual import _rate
+    assert _rate("-2.58%") is None and _rate("+5%") is None and _rate("2.58%") == 0.0258
+
+
+def test_mixed_results_chart_the_shared_measure_as_bars():
+    story = {**STORY, "chart_title": "Z", "results": [
+        {"label": "2026-06-05 return", "value": "-2.58%"}, {"label": "2026-06-05 Z-score", "value": "3.17"},
+        {"label": "2026-05-15 return", "value": "-1.2%"}, {"label": "2026-05-15 Z-score", "value": "2.08"}]}
+    post = "On 2026-06-05 the return was -2.58% with a Z-score of 3.17; on 2026-05-15 it was -1.2% with a Z-score of 2.08."
+    path, alt = render_story_chart(story, ITEMS[0], post)
+    assert "3.17" in alt and "2.08" in alt and "-2.58%" not in alt

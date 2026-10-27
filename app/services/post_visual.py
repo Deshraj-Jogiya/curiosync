@@ -322,7 +322,7 @@ def _rate(value: str) -> float | None:
     """A score on a 0-1 scale: "86.20%" -> 0.862, "0.65" -> 0.65; None for anything else (counts, times, money)."""
     v = str(value).strip()
     n = _value_number(v)
-    if n is None:
+    if n is None or v[:1] in "-+−":  # a signed figure is a change (a return of -2.58%), not a share of a whole
         return None
     if v.endswith("%"):
         return n / 100 if 0 <= n <= 100 else None
@@ -405,6 +405,20 @@ def _rate_bars(story: dict, item: dict, results: list[dict], post_text: str = ""
     return _save(img), alt
 
 
+def _measure_group(results: list[dict]) -> list[dict] | None:
+    """The largest set (2+) of results that measure the same thing in the same unit, read from the label's last word: "2026-06-05
+    Z-score" and "2026-05-15 Z-score" chart together as bars, while the returns beside them, a different measure, stay in the text.
+    Signed changes are left out (a bar from zero cannot show a negative return)."""
+    groups: dict[tuple[str, str], list[dict]] = {}
+    for r in results:
+        value = str(r["value"]).strip()
+        if _value_number(value) is None or value[:1] in "-+−":
+            continue
+        groups.setdefault((r["label"].split()[-1].lower(), _unit(value)), []).append(r)
+    best = max(groups.values(), key=len, default=[])
+    return best if 2 <= len(best) < len(results) else None
+
+
 def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, str] | None:
     """A chart of the story's results that the post mentions: bars when they share a unit, otherwise one figure per result.
     Returns None when fewer than two of them appear in the post."""
@@ -416,6 +430,9 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
     if 2 <= len(rates) <= 7:
         # Counts next to the rates stay in the post text; the chart compares the scores on one scale.
         return _rate_bars(story, item, rates, post_text)
+    group = _measure_group(results)
+    if group:
+        results = group
     accent = _accent(item["title"])
     img, draw = _canvas()
     y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)
@@ -429,7 +446,7 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
         y += 30
     footer_top = H - 150
     results = results[:5]
-    slot = (footer_top - y) // len(results)
+    slot = min((footer_top - y) // len(results), 200)  # a few results sit together instead of spreading over the card
     values = [_value_number(str(r["value"])) for r in results]
     same_unit = len({_unit(str(r["value"])) for r in results}) == 1 and all(v is not None for v in values)
     top = max(values) if same_unit and max(values) > 0 else None

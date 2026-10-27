@@ -152,3 +152,9 @@ def test_a_bare_result_opening_and_a_closing_question_are_flow_problems():
              "Before serving risk scores I needed to know where the model falls short, so I tested it on held-out contracts.\n\n"
              "Analysts can now score contract risk directly in SQL.\n\n#MachineLearning")
     assert not [p for p in flow_problems(fixed) if p.startswith(("opening:", "closing:"))]
+
+
+def test_hyphenated_words_count_once_like_the_compliance_check():
+    # Non-breaking hyphens split "Z‑score" into two words here but not in compliance_service, so a 140-word draft passed.
+    text = "Z‑score on 2026‑06‑05. " * 35  # 105 whitespace words, 210 if each hyphen split a word
+    assert any("must be at least 150" in p for p in check_draft(text, SOLO_SIM, FACTS, []))

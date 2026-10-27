@@ -231,7 +231,8 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         if len(a) == 2 and a == b:
             problems.append(f"two paragraphs in a row open with '{' '.join(a)}'")
             break
-    words = len(re.findall(r"\w[\w'-]*", re.sub(r"(?<!\w)#\w+", "", text)))
+    # Whitespace words, as compliance_service counts them: "Z‑score" and "2026‑06‑05" are one word each, not three.
+    words = len([w for w in re.sub(r"(?<!\w)#\w+", "", text).split() if re.search(r"\w", w)])
     if words < MIN_WORDS:
         problems.append(f"{words} words, must be at least {MIN_WORDS}: add about {MIN_WORDS - words + 15} words using only details the "
                         "facts already give (how the test was set up, each result and what it means, what the decision changed); "
