@@ -114,3 +114,18 @@ def test_exact_decimal_percent_conversions_pass_and_rounded_ones_fail():
     source = "recall 0.9813, precision 93.4%"
     assert unsupported_numbers("Recall reached 98.13% and precision 0.934.", source) == []
     assert unsupported_numbers("Recall reached 98.1%.", source) == ["98.1%"]
+
+
+def test_detached_openings_and_fragment_paragraphs_are_flow_problems():
+    from app.services.post_rules import flow_problems
+
+    choppy = ("I chose embeddings over fine-tuning.\n\nI built an /ask API that ranks member messages by similarity and names the "
+              "member first.\n\nTo confirm its accuracy, I ran a verification test.\n\nThis involved eval_qa.py scoring 26 "
+              "questions against labels.\n\nHow do you handle dates?\n\n#DataEngineering")
+    found = flow_problems(choppy)
+    assert any("To confirm its" in p for p in found) and any("This involved" in p for p in found)
+    assert any("fragment" in p for p in found)
+    smooth = ("I chose embeddings over fine-tuning.\n\nA wrong member name would make every answer wrong, so the test had to prove "
+              "the system picks the right person first. I scored 26 paraphrased questions against labels: it named the right "
+              "member every time and missed one answer.\n\nHow do you handle dates?\n\n#DataEngineering")
+    assert flow_problems(smooth) == []

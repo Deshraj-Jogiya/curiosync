@@ -206,6 +206,7 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
             problems.append(f"AI-tell: {label}")
     if ENGAGEMENT_BAIT.search(text):
         problems.append("asks for likes, shares, follows or comments (engagement bait)")
+    problems += flow_problems(text)
     src_lower = source_text.lower()
     for term in INVENTED_STORY_TERMS:
         if term in lower and term not in src_lower:
@@ -271,3 +272,27 @@ def drop_sentences_with_numbers(text: str, numbers: list[str]) -> str:
         if kept:
             out.append(" ".join(kept))
     return "\n\n".join(out)
+
+
+# Openings that drop the thread: they announce a step instead of answering what the paragraph before raised. The owner rejected a
+# draft whose third paragraph began "To test how accurate..." and a later one whose test came in two fragments ("To confirm its
+# accuracy..., I ran a verification test." / "This involved eval_qa.py...").
+_DETACHED_OPENING = re.compile(r"^(to (test|confirm|check|verify|validate|measure|evaluate)\b|this (involved|included|meant running)\b)",
+                               re.IGNORECASE)
+FRAGMENT_CHARS = 110
+
+
+def flow_problems(text: str) -> list[str]:
+    """Places where the reading thread drops, judged without a model: body paragraphs that open by announcing a step, and
+    one-sentence fragments in the middle of the post (the first line, the closing question and the hashtags are left alone)."""
+    paras = [p.strip() for p in text.strip().split("\n\n") if p.strip() and not p.strip().startswith("#")]
+    body = paras[1:-1]  # skip the first line and the closing question
+    problems = []
+    for p in body:
+        if _DETACHED_OPENING.search(p):
+            problems.append(f"reading flow: a paragraph opens with \"{' '.join(p.split()[:4])}...\"; link it to the paragraph before "
+                            "(say why the test was needed, or what it showed)")
+        sentences = [s for s in re.split(r"(?<=[.!?])\s+", p) if s]
+        if len(sentences) == 1 and len(p) < FRAGMENT_CHARS:
+            problems.append(f"reading flow: \"{p[:60]}\" is a one-sentence fragment; merge it into the paragraph it belongs to")
+    return problems
