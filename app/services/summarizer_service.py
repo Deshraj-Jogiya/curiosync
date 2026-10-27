@@ -133,7 +133,9 @@ def source_text(profile: dict, item: dict, news: dict | None = None) -> str:
 
 STORY_RULES = """
 STORY below is the one measured test this post is about. Build the whole post on it. The first paragraph must give the reader the
-setting before any figure: what the project is and what problem it solves, for whom, in plain words, then the most telling result
+setting before any figure: what the project is and what it was built to do, in plain words, taken only from STORY's question and
+FEATURED, then the most telling result. Never invent a reason, motivation, constraint, audience or "challenge" the facts do not state
+(no "needed to fit on a free GPU", no "the hardest part was"); if the facts give no reason, say what the project does and move on
 (never open on a bare result such as "A model reached 86% accuracy"; a reader who does not know the project cannot weigh it). Then
 explain how it was tested, give the results, and end with the decision it led to. FEATURED only tells you what the project is; do not
 add any other fact from FEATURED. Every number in the post must come from STORY, written as STORY writes it: never work out a new
