@@ -16,5 +16,35 @@
     "text": "An auditor checking a ledger in order opens 1,108 entries to find 90% of the problems. Sorted by my risk score, they open 43.\n\nThe ledger is simulated. I generated the entries and planted 47 problems, listed in a separate table that the detection code never reads, so every result can be checked against the right answers.\n\nEach entry gets three checks. Benford's Law: in many real financial datasets about 30% of amounts start with 1, so amounts that break that pattern score higher. An Isolation Forest, a model that flags amounts and tax ratios unlike the rest. And a tax-rate rule that flags any claim whose rate doesn't match its category. The pipeline runs in Dagster, so each step can be rerun on its own.\n\nScoring each check on its own changed how I read the results. The plain tax-rate rule found 45 of the 47 problems and flagged nothing wrongly. The model found 18, and the rule had already found all 18.\n\nSo the rule's 45 flags go first, and every one is a real problem: that alone gets an auditor to 90% in 43 entries. The model and Benford's Law rank the rest, and the 2 problems the rule missed come up at entries 131 and 137 of 1,200.\n\nOn a real ledger I would start the same way: measure the simple rules alone first, then use a model to rank what they leave.\n\nHow do you get labels for a real ledger when nobody plants the answers?\n\n#DataEngineering #AnomalyDetection",
     "image": "assets/approved/round2_post3_tax.png",
     "alt_text": "Line chart of planted anomalies found against entries opened, on simulated data. In risk order, 90 percent of anomalies are found after 43 entries; in ledger order it takes 1,108. 96 percent less review work for the same 90 percent."
+  },
+  {
+    "id": "draft-40464599596",
+    "format": "decision",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/draft-40464599596.png",
+    "alt_text": "Process chart: QA System Accuracy on Member Messages. Member identification 100%; then Message retrieval 96%; then Answer extraction 96% (accuracy). The one miss asks for Lorenzo's Thursday booking; the top-ranked message is his Saturday dinner at The Fat Duck.",
+    "post_day": "2026-10-30",
+    "history_entry": {
+      "date": "2026-10-30",
+      "format": "decision",
+      "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+      "hook_type": "decision_cost",
+      "opener_words": [
+        "i",
+        "chose",
+        "embeddings",
+        "based",
+        "semantic",
+        "search",
+        "for",
+        "member",
+        "questions",
+        "ruling"
+      ],
+      "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
+      "story_id": "member-messages-qa-system-semantic-searc-1"
+    },
+    "approved_by": "owner in chat 2026-10-27 (text from run 40464599596, image redrawn as a stage flow)"
   }
 ]
