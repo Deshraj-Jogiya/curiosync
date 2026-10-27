@@ -8,5 +8,19 @@
     "date": "2026-10-27",
     "story_id": "member-messages-qa-system-semantic-searc-1",
     "comment": ""
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "talentvenue-eventintel-enterprise-data-p-1",
+    "comment": "Rejected. 1) Media: no graphs at all. The document pages repeat the post's own sentences (question in large type, answer in small type) and the results page is a list of numbers. Every page must be a chart of the story's data; never restate post text as media. 2) Text: it opens on a bare result ('A contract risk model reached 86.20% accuracy...') with no setting. Say first what the project is and what problem it solves, for whom, then the result. 3) It ends on a question; end with one plain sentence on what the work now lets someone do."
+  },
+  {
+    "date": "2026-10-27",
+    "story_id": "talentvenue-eventintel-enterprise-data-p-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claim that predicting cancellations 'improved' with a new model (FACTS describe building a new model, not improving an existing one).",
+      "unsupported by the facts: Causal link between the model's good ROC-AUC and the decision to deploy it (FACTS state both the ROC-AUC and the deployment decision, but do not explicitly state that the ROC-AUC was the reason for the deployment)."
+    ]
   }
 ]
