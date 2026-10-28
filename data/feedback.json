@@ -120,5 +120,13 @@
     "rules": [
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
     ]
+  },
+  {
+    "date": "2026-10-28",
+    "story_id": "extending-stem-across-asl-1",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
+    ]
   }
 ]
