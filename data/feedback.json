@@ -112,5 +112,13 @@
       "reading flow: The paragraph describing the Python ETL does not explain why the ETL was needed for the forecasting task, creating a jump in the narrative.",
       "reading flow: The results paragraph lists accuracy numbers without explaining what those numbers represent or why they matter, breaking the logical flow."
     ]
+  },
+  {
+    "date": "2026-10-28",
+    "story_id": "extending-stem-across-asl-1",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
+    ]
   }
 ]
