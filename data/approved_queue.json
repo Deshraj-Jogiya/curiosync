@@ -77,5 +77,36 @@
     },
     "document": null,
     "document_title": null
+  },
+  {
+    "id": "draft-40832967316",
+    "format": "lesson",
+    "subject": "Job Market Lakehouse",
+    "hook_type": "measured_result",
+    "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 20 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\n#DataEngineering #HiveQL",
+    "image": "assets/approved/draft-40832967316.png",
+    "alt_text": "Bar chart, Hive Partition Pruning Impact: Rows read for June 2025 query 3,015 rows, out of Total rows in table 60,000 rows. Simulated data.",
+    "post_day": "2026-11-04",
+    "history_entry": {
+      "date": "2026-11-04",
+      "format": "lesson",
+      "subject": "Job Market Lakehouse",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "a",
+        "june",
+        "2025",
+        "query",
+        "on",
+        "my",
+        "job",
+        "market",
+        "lakehouse",
+        "read"
+      ],
+      "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 20 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\n#DataEngineering #HiveQL",
+      "story_id": "job-market-lakehouse-1"
+    },
+    "approved_by": "owner in chat 2026-10-29 (text rewritten in chat with a new closing line, image from run 40832967316)"
   }
 ]
