@@ -143,5 +143,10 @@
       "number 16% is not in the story",
       "number 29 is not in the story"
     ]
+  },
+  {
+    "date": "2026-10-29",
+    "story_id": "job-market-lakehouse-1",
+    "comment": "Repetitive: the same words again and again, sometimes twice in one sentence, and the same number three times. The motivation line is filler. The closing is a general claim. The image only stacked numbers."
   }
 ]
