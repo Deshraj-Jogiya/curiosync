@@ -207,6 +207,7 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
     if ENGAGEMENT_BAIT.search(text):
         problems.append("asks for likes, shares, follows or comments (engagement bait)")
     problems += flow_problems(text)
+    problems += repetition_problems(text)
     src_lower = source_text.lower()
     for term in INVENTED_STORY_TERMS:
         if term in lower and term not in src_lower:
@@ -286,9 +287,54 @@ _DETACHED_OPENING = re.compile(r"^(to (test|confirm|check|verify|validate|measur
 FRAGMENT_CHARS = 70
 
 
+# Repetition (owner's review 2026-10-29: "partition" 6 times, "June" twice in one sentence, 60,000 three times). Words that carry no
+# topic are not counted; a plural counts as its singular.
+_COMMON = set("that this with from have were when what which their there they them then than into about only each every also been "
+              "being more most over just like your will would could should because while where after before other these those some "
+              "such does doing done made make makes using used uses very much many first last both same here once twice".split())
+MAX_WORD_USES = 4
+MAX_NUMBER_USES = 2
+
+
+def _stem(word: str) -> str:
+    return word[:-1] if word.endswith("s") and not word.endswith("ss") and len(word) > 4 else word
+
+
+def repetition_problems(text: str) -> list[str]:
+    """Words and numbers the post keeps repeating: a content word more than MAX_WORD_USES times, the same content word twice in
+    one sentence, or a number stated more than MAX_NUMBER_USES times."""
+    body = re.sub(r"(?<!\w)#\w+", "", text)
+    # A pair of job titles ("Data Engineer and Machine Learning Engineer") names two roles, not one word said twice.
+    body = re.sub(r"\b(Engineer|Scientist|Analyst)s?( (?:and|or) (?:[A-Z]\w* ){1,3})\1s?\b", r"\1\2title", body)
+    problems = []
+    counts: dict[str, int] = {}
+    for w in re.findall(r"[a-z][a-z'-]+", body.lower()):
+        if len(w) >= 4 and w not in _COMMON:
+            counts[_stem(w)] = counts.get(_stem(w), 0) + 1
+    for w, n in sorted(counts.items(), key=lambda kv: -kv[1]):
+        if n > MAX_WORD_USES:
+            problems.append(f"repetition: '{w}' is used {n} times; use it at most {MAX_WORD_USES} times, then name the specific "
+                            "thing or say 'it'")
+    for sentence in re.split(r"(?<=[.!?])\s+", body):
+        seen: dict[str, int] = {}
+        for w in re.findall(r"[a-z][a-z'-]+", sentence.lower()):
+            if len(w) >= 4 and w not in _COMMON:
+                seen[_stem(w)] = seen.get(_stem(w), 0) + 1
+        doubled = [w for w, n in seen.items() if n > 1]
+        if doubled:
+            problems.append(f"repetition: \"{sentence.strip()[:50]}...\" uses '{doubled[0]}' twice in one sentence")
+    numbers: dict[str, int] = {}
+    for n in re.findall(r"\d[\d,.]*\d|\d", body):
+        numbers[n] = numbers.get(n, 0) + 1
+    for n, k in numbers.items():
+        if k > MAX_NUMBER_USES:
+            problems.append(f"repetition: the number {n} appears {k} times; state each number once, twice at most")
+    return problems
+
+
 # A closer that claims a benefit in general terms instead of stating what the work does or reached.
-_VAGUE_CLOSE = re.compile(r"\b(?:this|the|my) (?:approach|work|solution|system|project|change|decision)\b[^.]{0,40}\b(?:ensures?|enables?|"
-                          r"allows?|helps?|paves?|drives?|empowers?|guarantees?)\b", re.IGNORECASE)
+_VAGUE_CLOSE = re.compile(r"\b(?:this|the|my) (?:approach|work|solution|system|project|change|decision|design|setup|pipeline|platform|method|tool)\b[^.]{0,40}\b(?:ensures?|enables?|"
+                          r"allows?|helps?|lets|makes?|paves?|drives?|empowers?|guarantees?)\b", re.IGNORECASE)
 
 _METRIC = re.compile(r"\d+(?:\.\d+)?\s?%|\b0\.\d+|\b\d+(?:\.\d+)?x\b")
 

@@ -1,5 +1,6 @@
 """Tests for the mechanical post rules: these are the safety net now that posts are not reviewed one by one."""
 
+from tests.fillers import filler as filler_words
 from app.services.post_rules import (body_similarity, check_draft, tidy_hashtags, unsupported_numbers, unsupported_tools)
 
 FACTS = ("Job Market Lakehouse: a PySpark and Scala Spark SQL pipeline over 60k synthetic postings. Wrote 11 Great Expectations checks. "
@@ -8,7 +9,7 @@ SOLO_SIM = {"kind": "project", "solo": True, "simulated": True}
 
 
 def _post(body: str, first: str = "I wrote 11 Great Expectations checks before trusting a synthetic dataset.") -> str:
-    filler = " The pipeline runs PySpark over simulated postings and each stage is checked." * 14
+    filler = " The pipeline runs PySpark over simulated postings. " + filler_words()
     return f"{first}\n\n{body}{filler}\n\nSo every stage is checked before anything reads it.\n\n#DataEngineering #PySpark"
 
 
@@ -173,3 +174,16 @@ def test_a_closing_that_claims_a_benefit_in_general_terms_is_a_flow_problem():
 
 def test_pioneered_and_ensures_are_filler():
     assert any("pioneered" in p for p in check_draft("I pioneered a web platform. " * 40, SOLO_SIM, FACTS, []))
+
+
+def test_repeated_words_and_numbers_are_flagged():
+    from app.services.post_rules import repetition_problems
+    # The 2026-10-29 lakehouse draft: "partition" 6 times, a word twice in one sentence, 60,000 three times.
+    text = ("A month query read 3,015 of 60,000 rows.\n\nThe table holds 60,000 rows in partitions by month, and every "
+            "partition is a folder. The partition count is 21. A partition holds one month. Pruning skips each other partition. "
+            "Of the 60,000 rows, the June partition held 3,015.")
+    found = repetition_problems(text)
+    assert any("'partition' is used" in p for p in found)
+    assert any("twice in one sentence" in p for p in found)
+    assert any("60,000 appears 3 times" in p for p in found)
+    assert repetition_problems("The June query read one of 21 folders: 3,015 of 60,000 rows.") == []

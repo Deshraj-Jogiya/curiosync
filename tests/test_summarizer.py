@@ -3,6 +3,7 @@
 from datetime import date
 from unittest.mock import AsyncMock, patch
 
+from tests.fillers import filler as filler_words
 import pytest
 
 from app.services import summarizer_service as ss
@@ -56,7 +57,7 @@ class TestPrompt:
         assert "NEWS:" not in ss.build_prompt("lesson", SAMPLE_PROFILE, item, "claim")
 
 
-GOOD = ("I wrote 15 dbt tests before trusting a single number from the warehouse.\n\n" + "The project is a dimensional dbt model on Databricks. " * 20
+GOOD = ("I wrote 15 dbt tests before trusting a single number from the warehouse.\n\n" + "The project is a dimensional dbt model on Databricks. " + filler_words()
         + "\n\nI am open to Data Engineer and Machine Learning Engineer roles.\n\n#dbt #DataEngineering")
 
 

@@ -491,6 +491,56 @@ def _parts_chart(story: dict, item: dict, parts: list[dict], total: dict, others
     return _save(img), alt + (" Simulated data." if story.get("simulated") else "")
 
 
+def share_of_total(results: list[dict]) -> tuple[dict, list[dict]] | None:
+    """(total, shares) when a result labelled total has 1-3 results in its unit that are each a smaller slice of it, not parts that
+    add up to it: a June query that read 3,015 of the table's 60,000 rows. Else None."""
+    for total in results:
+        tv = _value_number(str(total["value"]))
+        if not _TOTAL_LABEL.search(total["label"]) or not tv:
+            continue
+        unit = _unit(str(total["value"]))
+        shares = [r for r in results if r is not total and _unit(str(r["value"])) == unit
+                  and 0 < (_value_number(str(r["value"])) or 0) < tv]
+        if 1 <= len(shares) <= 3:
+            return total, shares
+    return None
+
+
+def _share_chart(story: dict, item: dict, total: dict, shares: list[dict]) -> tuple[str, str]:
+    """Each slice as a filled part of one full-width track that stands for the total, so a reader sees how small the slice is."""
+    accent = _accent(item["title"])
+    img, draw = _canvas()
+    y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)
+    width = W - 2 * MARGIN
+    fitted = fit_text(draw, story["chart_title"], width, 2, [40, 36, 32, 28], bold=True)
+    if fitted:
+        font, lines = fitted
+        for ln in lines:
+            draw.text((MARGIN, y), ln, font=font, fill=TEXT)
+            y += font.size + 10
+    y += 60
+    tv = _value_number(str(total["value"]))
+    rows = [(total, tv)] + [(r, _value_number(str(r["value"]))) for r in shares]
+    slot = min(300, (H - 260 - y) // len(rows))
+    y += max(0, (H - 200 - y - slot * len(rows)) // 2)  # centre the rows in the free space instead of leaving the lower card empty
+    lf, vf = _font(32), _font(72, True)
+    for n, (r, v) in enumerate(rows):
+        draw.text((MARGIN, y), r["label"], font=lf, fill=MUTED if n == 0 else TEXT)
+        value = str(r["value"])
+        draw.text((MARGIN, y + 46), value, font=vf, fill=TEXT if n == 0 else accent)
+        by = y + 46 + 96
+        draw.rounded_rectangle([MARGIN, by, MARGIN + width, by + 56], radius=6, fill=PANEL if n else (96, 110, 104))
+        if n:
+            draw.rounded_rectangle([MARGIN, by, MARGIN + max(10, round(width * v / tv)), by + 56], radius=6, fill=accent)
+            note = f"of {total['value']}"
+            draw.text((MARGIN + draw.textlength(value, font=vf) + 24, y + 46 + 34), note, font=lf, fill=MUTED)
+        y += slot
+    _footer(draw)
+    alt = (f"Bar chart, {story['chart_title']}: " + "; ".join(f"{r['label']} {r['value']}" for r in shares) +
+           f", out of {total['label']} {total['value']}.")
+    return _save(img), alt + (" Simulated data." if story.get("simulated") else "")
+
+
 def _measure_group(results: list[dict]) -> list[dict] | None:
     """The largest set (2+) of results that measure the same thing in the same unit, read from the label's last word: "2026-06-05
     Z-score" and "2026-05-15 Z-score" chart together as bars, while the returns beside them, a different measure, stay in the text.
@@ -514,6 +564,9 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
     split = parts_of_total(results)
     if split:
         return _parts_chart(story, item, *split)
+    share = share_of_total(results)
+    if share:
+        return _share_chart(story, item, *share)
     pairs = expand_pairs(results)
     rates = [r for r in pairs if _rate(r["value"]) is not None]
     if 2 <= len(rates) <= 7:

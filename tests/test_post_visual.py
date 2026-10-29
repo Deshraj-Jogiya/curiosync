@@ -100,3 +100,12 @@ def test_stage_times_that_add_up_to_a_total_draw_as_one_split_bar():
     names, stat = _short_labels(parts + [total] + others)
     assert stat == "Median" and names[0] == "Hand features" and names[-1] == "Whole request"
     assert parts_of_total([{"label": "Recall", "value": "0.91"}, {"label": "Precision", "value": "0.88"}]) is None
+
+
+def test_a_slice_of_a_total_draws_against_the_full_total():
+    from app.services.post_visual import share_of_total
+    results = [{"label": "Total rows in table", "value": "60,000 rows"}, {"label": "Partitions after repair", "value": "21 partitions"},
+               {"label": "Rows read for June 2025 query", "value": "3,015 rows"}]
+    total, shares = share_of_total(results)
+    assert total["value"] == "60,000 rows" and [r["value"] for r in shares] == ["3,015 rows"]
+    assert share_of_total([{"label": "Recall", "value": "0.91"}, {"label": "Precision", "value": "0.88"}]) is None

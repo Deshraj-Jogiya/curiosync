@@ -1250,23 +1250,7 @@
     "sources": [
       "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
     ],
-    "simulated": true,
-    "series": {
-      "type": "before_after",
-      "title": "Rows read before and after partition pruning",
-      "points": [
-        {
-          "label": "All partitions",
-          "before": "60,000 rows",
-          "after": "3,015 rows"
-        },
-        {
-          "label": "Partitions count",
-          "before": "20 partitions",
-          "after": "21 partitions"
-        }
-      ]
-    }
+    "simulated": true
   },
   {
     "id": "member-messages-qa-system-semantic-searc-3x",
