@@ -128,5 +128,20 @@
     "rules": [
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
     ]
+  },
+  {
+    "date": "2026-10-28",
+    "story_id": "extending-stem-across-asl-3",
+    "comment": "No closing: the last line is a general claim, end on the concrete result. Media page 2 showed before and after reuse with the same numbers; only one timing run exists, so never chart a change that was not measured. Media must be clear about what is real."
+  },
+  {
+    "date": "2026-10-28",
+    "story_id": "extending-stem-across-asl-3",
+    "comment": "",
+    "rules": [
+      "filler word 'ensures'",
+      "number 16% is not in the story",
+      "number 29 is not in the story"
+    ]
   }
 ]
