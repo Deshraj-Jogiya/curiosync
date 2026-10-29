@@ -158,3 +158,18 @@ def test_hyphenated_words_count_once_like_the_compliance_check():
     # Non-breaking hyphens split "Z‑score" into two words here but not in compliance_service, so a 140-word draft passed.
     text = "Z‑score on 2026‑06‑05. " * 35  # 105 whitespace words, 210 if each hyphen split a word
     assert any("must be at least 150" in p for p in check_draft(text, SOLO_SIM, FACTS, []))
+
+
+def test_a_closing_that_claims_a_benefit_in_general_terms_is_a_flow_problem():
+    from app.services.post_rules import flow_problems
+    vague = ("First line about the platform and why it exists.\n\n"
+             "I timed 20 requests per stage; finding the hands took 997.0 ms of the 1090.5 ms request.\n\n"
+             "This approach ensures the platform can offer responsive classification in the browser.\n\n#MachineLearning")
+    assert any(p.startswith("closing:") for p in flow_problems(vague))
+    concrete = vague.replace("This approach ensures the platform can offer responsive classification in the browser.",
+                             "A learner gets an answer about 1.1 seconds after a two-second sign, and the timing shows where to cut next.")
+    assert not [p for p in flow_problems(concrete) if p.startswith("closing:")]
+
+
+def test_pioneered_and_ensures_are_filler():
+    assert any("pioneered" in p for p in check_draft("I pioneered a web platform. " * 40, SOLO_SIM, FACTS, []))

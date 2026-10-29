@@ -405,6 +405,92 @@ def _rate_bars(story: dict, item: dict, results: list[dict], post_text: str = ""
     return _save(img), alt
 
 
+_TOTAL_LABEL = re.compile(r"\b(?:total|whole|overall|end[- ]to[- ]end)\b", re.IGNORECASE)
+
+
+def parts_of_total(results: list[dict]) -> tuple[list[dict], dict, list[dict]] | None:
+    """(parts, total, other totals) when 2+ results in one unit add up to a result labelled total (within 2%, as medians of stages
+    need not sum exactly): decode 76.2 + hands 997.0 + model 8.9 against a total of 1081.2 ms. Else None."""
+    totals = [r for r in results if _TOTAL_LABEL.search(r["label"]) and _value_number(str(r["value"])) is not None]
+    parts = [r for r in results if r not in totals and _value_number(str(r["value"])) is not None]
+    if not totals or len(parts) < 2 or len({_unit(str(r["value"])) for r in parts + totals}) != 1:
+        return None
+    whole = sum(_value_number(str(r["value"])) for r in parts)
+    for t in totals:
+        tv = _value_number(str(t["value"]))
+        if tv and abs(whole - tv) / tv <= 0.02:
+            return sorted(parts, key=lambda r: -_value_number(str(r["value"]))), t, [o for o in totals if o is not t]
+    return None
+
+
+def _short_labels(rows: list[dict]) -> tuple[list[str], str]:
+    """Labels without the word every one of them repeats ("Median ... time"), and that word said once: ("Hand features", ...), "Median"."""
+    labels = [r["label"].strip() for r in rows]
+    stat = ""
+    m = re.match(r"(median|mean|average|p\d\d)\s+", labels[0], re.IGNORECASE)
+    if m and all(lb.lower().startswith(m.group(1).lower() + " ") for lb in labels):
+        stat = m.group(1).capitalize()
+        labels = [lb[len(m.group(0)):] for lb in labels]
+    if sum(lb.lower().endswith(" time") for lb in labels) >= 2:
+        labels = [lb[:-5] if lb.lower().endswith(" time") else lb for lb in labels]
+    return [lb[:1].upper() + lb[1:] for lb in labels], stat
+
+
+def _parts_chart(story: dict, item: dict, parts: list[dict], total: dict, others: list[dict]) -> tuple[str, str]:
+    """One bar split into the parts of a total, largest first, so a reader sees at once which part takes the time; each part is listed
+    under it with its own value, and the total (and any wider total, such as the whole request) closes the card."""
+    accent = _accent(item["title"])
+    img, draw = _canvas()
+    y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)
+    width = W - 2 * MARGIN
+    fitted = fit_text(draw, story["chart_title"], width, 2, [40, 36, 32, 28], bold=True)
+    if fitted:
+        font, lines = fitted
+        for ln in lines:
+            draw.text((MARGIN, y), ln, font=font, fill=TEXT)
+            y += font.size + 10
+    names, stat = _short_labels(parts + [total] + others)
+    part_names, total_names = names[:len(parts)], names[len(parts):]
+    lead = fit_text(draw, f"{part_names[0]}: {parts[0]['value']} of the {total['value']} total" + (f" ({stat.lower()} times)" if stat else ""),
+                    width, 2, [34, 30, 28, 26])
+    y += 24
+    if lead:
+        for ln in lead[1]:
+            draw.text((MARGIN, y), ln, font=lead[0], fill=accent)
+            y += lead[0].size + 8
+    y += 36
+    values = [_value_number(str(r["value"])) for r in parts]
+    whole = sum(values)
+    bar_h, x = 120, MARGIN
+    shades = [accent, (96, 110, 104), (70, 80, 76), (58, 64, 62)]
+    for n, v in enumerate(values):
+        seg = max(6, round(width * v / whole)) if n < len(values) - 1 else MARGIN + width - x
+        draw.rectangle([x, y, x + seg, y + bar_h], fill=shades[min(n, len(shades) - 1)])
+        if n:
+            draw.line([(x, y), (x, y + bar_h)], fill=BG, width=3)
+        x += seg
+    y += bar_h + 48
+    row = min(130, (H - 330 - y) // max(1, len(parts)))
+    vf, lf = _font(52, True), _font(30)
+    for n, r in enumerate(parts):
+        draw.rectangle([MARGIN, y + 14, MARGIN + 28, y + 42], fill=shades[min(n, len(shades) - 1)])
+        draw.text((MARGIN + 50, y + 8), part_names[n], font=lf, fill=TEXT if n == 0 else MUTED)
+        value = str(r["value"])
+        draw.text((W - MARGIN - draw.textlength(value, font=vf), y), value, font=vf, fill=accent if n == 0 else TEXT)
+        y += row
+    draw.line([(MARGIN, y), (W - MARGIN, y)], fill=(52, 58, 64), width=2)
+    y += 22
+    for r, name in zip([total] + others, total_names):
+        value = str(r["value"])
+        draw.text((MARGIN, y + 8), name, font=lf, fill=MUTED)
+        draw.text((W - MARGIN - draw.textlength(value, font=vf), y), value, font=vf, fill=TEXT)
+        y += 80
+    _footer(draw)
+    alt = (f"Split bar, {story['chart_title']}: " + "; ".join(f"{r['label']} {r['value']}" for r in parts) +
+           "; " + "; ".join(f"{r['label']} {r['value']}" for r in [total] + others) + ".")
+    return _save(img), alt + (" Simulated data." if story.get("simulated") else "")
+
+
 def _measure_group(results: list[dict]) -> list[dict] | None:
     """The largest set (2+) of results that measure the same thing in the same unit, read from the label's last word: "2026-06-05
     Z-score" and "2026-05-15 Z-score" chart together as bars, while the returns beside them, a different measure, stay in the text.
@@ -425,6 +511,9 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
     results = story_results_in_post(story, post_text)
     if len(results) < 2:
         return None
+    split = parts_of_total(results)
+    if split:
+        return _parts_chart(story, item, *split)
     pairs = expand_pairs(results)
     rates = [r for r in pairs if _rate(r["value"]) is not None]
     if 2 <= len(rates) <= 7:

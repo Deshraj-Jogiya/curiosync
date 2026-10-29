@@ -159,6 +159,8 @@ def _before_after(story: dict, item: dict) -> Image.Image | None:
     rows = story["series"]["points"][:4]
     if not rows or any(not (str(r.get("before", "")).strip() and str(r.get("after", "")).strip()) for r in rows):
         return None
+    if any(str(r["before"]).strip().lower() == str(r["after"]).strip().lower() for r in rows):
+        return None  # a stored series from before verify_series caught this; never draw "no change" as a result
     accent = _accent(item["title"])
     img, draw = _canvas()
     y = _title(draw, story, _header(draw, item, accent))

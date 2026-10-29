@@ -207,3 +207,19 @@ def test_mixed_results_chart_the_shared_measure_as_bars():
     post = "On 2026-06-05 the return was -2.58% with a Z-score of 3.17; on 2026-05-15 it was -1.2% with a Z-score of 2.08."
     path, alt = render_story_chart(story, ITEMS[0], post)
     assert "3.17" in alt and "2.08" in alt and "-2.58%" not in alt
+
+
+def test_a_before_after_series_with_no_change_is_rejected():
+    # The 2026-10-28 ASL draft drew "76.2 ms -> 76.2 ms" under "before and after reuse": only one timing run exists.
+    from app.services.story_bank import verify_series
+    docs = "Decode frames 76.2 ms, hand features 997.0 ms. Latency went from 7.5 s to 0.9 s."
+    copied = {"type": "before_after", "points": [{"label": "Decode", "before": "76.2 ms", "after": "76.2 ms"},
+                                                 {"label": "Hands", "before": "997.0 ms", "after": "997.0 ms"}]}
+    assert "no change was measured" in verify_series(copied, docs)[0]
+    assert verify_series({"type": "before_after", "points": [{"label": "Latency", "before": "7.5 s", "after": "0.9 s"}]}, docs) == []
+
+
+def test_the_renderer_refuses_a_no_change_before_after():
+    from app.services.post_charts import _before_after
+    story = {"subject": "X", "chart_title": "T", "series": {"type": "before_after", "points": [{"label": "A", "before": "1 ms", "after": "1 ms"}]}}
+    assert _before_after(story, {"title": "X"}) is None

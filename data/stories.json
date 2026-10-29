@@ -673,33 +673,7 @@
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
     ],
-    "simulated": false,
-    "series": {
-      "type": "before_after",
-      "title": "Latency per stage before and after reuse",
-      "points": [
-        {
-          "label": "Decode frames",
-          "before": "76.2 ms",
-          "after": "76.2 ms"
-        },
-        {
-          "label": "Hand features",
-          "before": "997.0 ms",
-          "after": "997.0 ms"
-        },
-        {
-          "label": "Model",
-          "before": "8.9 ms",
-          "after": "8.9 ms"
-        },
-        {
-          "label": "Total",
-          "before": "1081.2 ms",
-          "after": "1081.2 ms"
-        }
-      ]
-    }
+    "simulated": false
   },
   {
     "id": "extending-stem-across-asl-4",

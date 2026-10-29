@@ -37,7 +37,7 @@ BANNED_WORDS = [
     "testament", "realm", "intricate", "showcasing", "spearheaded", "synergy", "unlock", "unleash", "elevate", "empower",
     "revolutionize", "transformative", "landscape", "navigate", "journey", "embark", "deep dive", "dive into", "in today's",
     "ever-evolving", "fast-paced", "at the end of the day", "humbled", "thrilled", "excited to share", "proud to announce",
-    "game changing", "next level", "harness",
+    "game changing", "next level", "harness", "pioneered", "pioneering", "ensures",
 ]
 
 # Structural AI tells (Wikipedia "Signs of AI writing"; Washington Post analysis via Decrypt): negative parallelism and stock closers.
@@ -286,6 +286,10 @@ _DETACHED_OPENING = re.compile(r"^(to (test|confirm|check|verify|validate|measur
 FRAGMENT_CHARS = 70
 
 
+# A closer that claims a benefit in general terms instead of stating what the work does or reached.
+_VAGUE_CLOSE = re.compile(r"\b(?:this|the|my) (?:approach|work|solution|system|project|change|decision)\b[^.]{0,40}\b(?:ensures?|enables?|"
+                          r"allows?|helps?|paves?|drives?|empowers?|guarantees?)\b", re.IGNORECASE)
+
 _METRIC = re.compile(r"\d+(?:\.\d+)?\s?%|\b0\.\d+|\b\d+(?:\.\d+)?x\b")
 
 
@@ -297,6 +301,9 @@ def flow_problems(text: str) -> list[str]:
     problems = []
     if paras and paras[-1].rstrip().endswith("?"):
         problems.append("closing: the post ends on a question; end with one plain sentence on what the work now lets someone do")
+    elif len(paras) > 1 and _VAGUE_CLOSE.search(paras[-1]) and not numbers_in(paras[-1]):
+        problems.append("closing: the last paragraph is a general claim (\"this approach ensures/enables...\"); end with the concrete "
+                        "result: what someone can now do, or the number the work reached")
     if paras:
         opening = [s for s in re.split(r"(?<=[.!?])\s+", paras[0]) if s]
         if len(opening) == 1 and _METRIC.search(opening[0]):

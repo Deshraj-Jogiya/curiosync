@@ -273,6 +273,10 @@ def verify_series(series, docs: str) -> list[str]:
     if kind == "before_after":
         if len(points) > 4 or any(not (str(p.get("before", "")).strip() and str(p.get("after", "")).strip()) for p in points):
             return ["before and after values missing"]
+        # One measurement copied into both columns (76.2 ms -> 76.2 ms) is not a before and after; it drew a chart of no change
+        # under a "before and after reuse" title when only the after state was ever measured.
+        if any(numbers_in(str(p["before"])) == numbers_in(str(p["after"])) for p in points):
+            return ["a before/after row has the same value on both sides, so no change was measured"]
         values = [f"{p['before']} {p['after']}" for p in points]
     else:
         if any(not numbers_in(str(p.get("x", ""))) or not numbers_in(str(p.get("y", ""))) for p in points):

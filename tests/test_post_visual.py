@@ -87,3 +87,16 @@ def test_stat_card_never_draws_a_number_without_its_sentence(monkeypatch):
     monkeypatch.setattr(post_visual, "fit_text", lambda d, t, *a, **k: seen.append(t) or real(d, t, *a, **k))
     path, alt = post_visual.render_stat_card(item)
     assert "30%" in alt and "42%" not in alt
+
+
+def test_stage_times_that_add_up_to_a_total_draw_as_one_split_bar():
+    from app.services.post_visual import _short_labels, parts_of_total
+    results = [{"label": "Median decode frames time", "value": "76.2 ms"}, {"label": "Median hand features time", "value": "997.0 ms"},
+               {"label": "Median model inference time", "value": "8.9 ms"},
+               {"label": "Median total processing time per request", "value": "1081.2 ms"},
+               {"label": "Median whole request time", "value": "1090.5 ms"}]
+    parts, total, others = parts_of_total(results)
+    assert [p["value"] for p in parts] == ["997.0 ms", "76.2 ms", "8.9 ms"] and total["value"] == "1081.2 ms" and len(others) == 1
+    names, stat = _short_labels(parts + [total] + others)
+    assert stat == "Median" and names[0] == "Hand features" and names[-1] == "Whole request"
+    assert parts_of_total([{"label": "Recall", "value": "0.91"}, {"label": "Precision", "value": "0.88"}]) is None
