@@ -57,5 +57,26 @@
       "1",
       "108"
     ]
+  },
+  {
+    "date": "2026-10-30",
+    "format": "decision",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "hook_type": "decision_cost",
+    "opener_words": [
+      "i",
+      "chose",
+      "embeddings",
+      "based",
+      "semantic",
+      "search",
+      "for",
+      "member",
+      "questions",
+      "ruling"
+    ],
+    "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
+    "story_id": "member-messages-qa-system-semantic-searc-1",
+    "approved_id": "draft-40464599596"
   }
 ]
