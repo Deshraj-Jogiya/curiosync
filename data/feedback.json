@@ -170,5 +170,15 @@
       "repetition: \"Extending STEM across ASL is a graduate web platfo...\" uses 'stem' twice in one sentence",
       "repetition: \"This led to the decision: a lesson teaches each sh...\" uses 'lesson' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-10-31",
+    "story_id": "extending-stem-across-asl-2",
+    "comment": "",
+    "rules": [
+      "repetition: 'position' is used 8 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: 'term' is used 7 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: \"This left 18 distinct positions required and saved...\" uses 'position' twice in one sentence"
+    ]
   }
 ]
