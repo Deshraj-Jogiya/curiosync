@@ -153,5 +153,22 @@
     "date": "2026-10-29",
     "story_id": "job-market-lakehouse-1",
     "comment": ""
+  },
+  {
+    "date": "2026-10-31",
+    "story_id": "fintech-credit-risk-fraud-command-center-1",
+    "comment": "The post never says what the project is or why I built it: the paragraph after the first line must name the project, say what it does, and give my reason from my notes. The image was only a table of numbers the text already states; media must show something the text does not."
+  },
+  {
+    "date": "2026-10-31",
+    "story_id": "extending-stem-across-asl-2",
+    "comment": "",
+    "rules": [
+      "repetition: 'shape' is used 8 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: 'concept' is used 7 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: 'hand' is used 7 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: \"Extending STEM across ASL is a graduate web platfo...\" uses 'stem' twice in one sentence",
+      "repetition: \"This led to the decision: a lesson teaches each sh...\" uses 'lesson' twice in one sentence"
+    ]
   }
 ]
