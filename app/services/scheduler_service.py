@@ -133,9 +133,12 @@ async def run_daily_pipeline(
                 steps["stories"] = await refill(items, history, settings)
             except Exception as exc:
                 steps["stories"] = f"refill failed ({exc})"
-            picked = pick_story(items, history)
+            # A post has to say why the project was built, and only the owner's own notes can say that (review of the FinRisk
+            # draft, 2026-10-31: "not indicating what is the project and why I needed"). Projects without notes wait for them.
+            picked = pick_story([i for i in items if i.get("notes")], history)
             if picked is None:
-                steps["generate_draft"] = "no story ready; nothing drafted"
+                steps["generate_draft"] = ("no story ready from a project with your notes on why you built it; add a line to "
+                                           "data/subject_notes.json for the projects you want posted; nothing drafted")
                 await record_scheduler_run(session, run_type, "skipped", "No story ready", steps)
                 if own_session:
                     await session.commit()

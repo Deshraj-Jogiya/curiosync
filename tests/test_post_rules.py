@@ -187,3 +187,23 @@ def test_repeated_words_and_numbers_are_flagged():
     assert any("twice in one sentence" in p for p in found)
     assert any("60,000 appears 3 times" in p for p in found)
     assert repetition_problems("The June query read one of 21 folders: 3,015 of 60,000 rows.") == []
+
+
+def test_purpose_problems_flags_an_opening_without_project_or_reason():
+    from app.services.post_rules import purpose_problems
+
+    item = {"kind": "project", "title": "Job Market Lakehouse",
+            "notes": ["I built it to learn: to take my skills to the next level and understand how the whole system fits together."]}
+    bare = "I cut a backfill from 40 minutes to 6.\n\nSo I partitioned the table by day and reran it.\n\nIt held."
+    problems = purpose_problems(bare, item)
+    assert any("what the project is" in p for p in problems)
+    assert any("why you built it" in p for p in problems)
+    good = ("I cut a backfill from 40 minutes to 6.\n\nThe Job Market Lakehouse is my pipeline for job-posting data. I built it to "
+            "learn how the whole system fits together and take my skills to the next level.\n\nSo I partitioned it by day.")
+    assert purpose_problems(good, item) == []
+
+
+def test_purpose_problems_skips_experience_posts():
+    from app.services.post_rules import purpose_problems
+
+    assert purpose_problems("Anything.\n\nAt all.", {"kind": "experience", "title": "Data Analyst"}) == []

@@ -65,9 +65,10 @@ Focus:
 Shape (the structure the owner approved on 2026-10-23):
 - First line: {hook} Keep it at most 135 characters and make it a complete claim on its own, because only the first line shows
   before "see more".
-- Then short paragraphs of one to three sentences separated by blank lines, each leading to the next:
-  why it mattered (only from YOUR OWN NOTES, at most one sentence), what you built, the turning point (the result or decision that
-  changed how you read the work), and the measured result.
+- Then short paragraphs of one to three sentences separated by blank lines, each leading to the next. The paragraph right after
+  the first line says in plain words what the project is (what it does and for whom, from CONTEXT and FEATURED, named so a
+  stranger knows it) and why you built it (from YOUR OWN NOTES, in your words); a reader who stops there must still know both.
+  Then what you built, the turning point (the result or decision that changed how you read the work), and the measured result.
 - Frame the work as an engineering decision a data or ML engineer would recognise. Keep any job-search backstory to one sentence.
 - Plain words: every number says what it measures ("agreed on 6 of 8 resumes", not "6/8 alignment"). No slogans, no abstract claims.
 - Tell it as a story with a question, a test and a finding, not as a list of steps. The question is the one the facts state;

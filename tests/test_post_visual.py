@@ -109,3 +109,12 @@ def test_a_slice_of_a_total_draws_against_the_full_total():
     total, shares = share_of_total(results)
     assert total["value"] == "60,000 rows" and [r["value"] for r in shares] == ["3,015 rows"]
     assert share_of_total([{"label": "Recall", "value": "0.91"}, {"label": "Precision", "value": "0.88"}]) is None
+
+
+def test_repeats_post_when_every_image_number_is_in_the_text():
+    from app.services.post_document import repeats_post
+
+    alt = "Table: Model performance. Random Forest ROC AUC 0.9216; XGBoost ROC AUC 0.9179."
+    assert repeats_post(alt, "Random Forest reached 0.9216 against 0.9179 for XGBoost.")
+    assert not repeats_post(alt, "Random Forest reached 0.9216.")
+    assert not repeats_post("A flow of the pipeline.", "Anything 0.9216.")

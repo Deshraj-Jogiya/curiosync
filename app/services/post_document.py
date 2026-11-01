@@ -178,6 +178,19 @@ def visual_fill(path: str) -> float:
     return used / max(1, len(range(0, h, 4)))
 
 
+# A table or results chart only restates numbers; when the post's text already states every one of them, the image tells the reader
+# nothing new (owner's review of the FinRisk draft, 2026-10-31: "just the number table which has been already defined in text").
+NUMBER_DISPLAYS = {"table", "results chart"}
+
+
+def repeats_post(alt_text: str, post_text: str) -> bool:
+    """True when every number the image shows (its alt text lists them all) is already written in the post."""
+    from app.services.post_rules import numbers_in
+
+    shown = numbers_in(alt_text)
+    return bool(shown) and shown <= numbers_in(post_text)
+
+
 def _table_image(story: dict, item: dict):
     page = _results_page(story, item, 0, 0, numbered=False)
     if not page:
@@ -200,9 +213,13 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
         ("results chart", lambda: render_story_chart(story, item, post_text)),
     ]
     best = None
+    repeats = None
     for kind, draw in candidates:
         made = draw()
         if not made:
+            continue
+        if kind in NUMBER_DISPLAYS and repeats_post(made[1], post_text):
+            repeats = repeats or (made[0], made[1], f"{kind} (repeats the post: every number in it is already in the text)")
             continue
         fill = visual_fill(made[0])
         if fill >= MIN_FILL:
@@ -211,7 +228,7 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
             best = (made[0], made[1], kind, fill)
     if best:
         return best[0], best[1], f"{best[2]} (sparse: fills {best[3]:.0%} of the card)"
-    return None
+    return repeats
 
 
 def render_story_document(story: dict, item: dict, post_text: str) -> tuple[str, list[str], str] | None:

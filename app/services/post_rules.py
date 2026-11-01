@@ -208,6 +208,7 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         problems.append("asks for likes, shares, follows or comments (engagement bait)")
     problems += flow_problems(text)
     problems += repetition_problems(text)
+    problems += purpose_problems(text, item)
     src_lower = source_text.lower()
     for term in INVENTED_STORY_TERMS:
         if term in lower and term not in src_lower:
@@ -251,6 +252,30 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
             problems.append(f"too similar ({sim:.2f}) to the {past.get('date', 'earlier')} post")
             break
 
+    return problems
+
+
+def _content_words(text: str) -> set[str]:
+    return {_stem(w) for w in re.findall(r"[a-z][a-z'-]+", text.lower()) if len(w) >= 4 and w not in _COMMON}
+
+
+def purpose_problems(text: str, item: dict) -> list[str]:
+    """The opening must say what the project is and why it was built (owner's review of the FinRisk draft, 2026-10-31: the post was
+    fine but never said what the project was or why he needed it). Checked on the first line plus the paragraph after it: the
+    project is named (two words of its title, or all of a one-word title), and with notes, the reason uses the notes' own words."""
+    if item.get("kind") != "project":
+        return []
+    paras = [p.strip() for p in text.strip().split("\n\n") if p.strip() and not p.strip().startswith("#")]
+    head = _content_words(" ".join(paras[:2]))
+    problems = []
+    title = _content_words(re.sub(r"[^\w\s-]", " ", item.get("title", "")))
+    if title and len(title & head) < min(2, len(title)):
+        problems.append(f"purpose: the opening never says what the project is; name it ({item.get('title')}) and what it does in "
+                        "the paragraph after the first line")
+    notes = _content_words(" ".join(item.get("notes", [])))
+    if notes and len(notes & head) < 3:
+        problems.append("purpose: the opening never says why you built it; use your own notes for one sentence on the reason, in "
+                        "the paragraph after the first line")
     return problems
 
 
