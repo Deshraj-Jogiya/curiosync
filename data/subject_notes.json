@@ -14,7 +14,10 @@
  },
  "TalentVenue EventIntel": {
   "context": "Capstone project for the ElevateMe Bootcamp data analytics certificate, built on the bootcamp's real business data",
-  "notes": [],
+  "notes": [
+   "The bootcamp's capstone gave me a real event and talent-management company's database with real problems to solve.",
+   "Reports recalculated money totals contract by contract every time they were read, payments could not easily be checked against the accounting ledger, 14.7% of contracts were cancelled, and tax ID and bank account numbers sat in ordinary tables."
+  ],
   "simulated": false
  },
  "Job Market Lakehouse": {
