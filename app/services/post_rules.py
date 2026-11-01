@@ -173,6 +173,44 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
     item: the featured subject (kind, solo, simulated, notes). source_text: every fact the post may use (featured facts, background, the
     owner's own notes, and for news posts the news headline). history: previously published posts, newest last.
     """
+    text = draft.strip()
+    if not text:
+        return ["empty draft"]
+    problems = writing_problems(text, source_text)
+
+    for n in unsupported_numbers(text, source_text):
+        problems.append(f"number '{n}' is not in the facts")
+    for t in unsupported_tools(text, source_text):
+        problems.append(f"names '{t}', which the facts never mention")
+    if item.get("kind") == "project" and item.get("solo", True) and _WE.search(text):
+        problems.append("uses we/our/us on a solo project; write 'I'")
+    if item.get("simulated") and not _SIMULATED.search(text):
+        problems.append("the project used simulated or synthetic data; the post must say so")
+    problems += purpose_problems(text, item)
+    lower, src_lower = text.lower(), source_text.lower()
+    for term in INVENTED_STORY_TERMS:
+        if term in lower and term not in src_lower:
+            problems.append(f"'{term}' describes a backstory the facts do not contain")
+
+    opener = first_words(text)
+    for past in history[-30:]:
+        past_open = past.get("opener_words") or first_words(past.get("text", ""))
+        if _shingles(opener, 3) & _shingles(past_open, 3):
+            problems.append(f"opening line repeats wording from the {past.get('date', 'earlier')} post")
+            break
+    for past in history[-12:]:
+        sim = body_similarity(text, past.get("text", ""))
+        if sim > 0.25:
+            problems.append(f"too similar ({sim:.2f}) to the {past.get('date', 'earlier')} post")
+            break
+
+    return problems
+
+
+def writing_problems(draft: str, source_text: str = "") -> list[str]:
+    """The checks that need only the draft itself: length, the first line, filler words, AI tells, engagement bait, reading flow,
+    repetition, emoji, hashtags, dashes, paragraph openers and word count. source_text only exempts a filler phrase the facts
+    themselves use. The portfolio Lab's post checker runs these (lab/lab-posts.js), held to this function in its CI."""
     problems: list[str] = []
     text = draft.strip()
     lines = [ln for ln in text.splitlines() if ln.strip()]
@@ -183,16 +221,6 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         problems.append(f"length {len(text)} characters, must be {MIN_CHARS}-{MAX_CHARS}")
     if len(lines[0]) > MAX_FIRST_LINE:
         problems.append(f"first line is {len(lines[0])} characters, must be at most {MAX_FIRST_LINE} so it shows before 'see more'")
-
-    for n in unsupported_numbers(text, source_text):
-        problems.append(f"number '{n}' is not in the facts")
-    for t in unsupported_tools(text, source_text):
-        problems.append(f"names '{t}', which the facts never mention")
-
-    if item.get("kind") == "project" and item.get("solo", True) and _WE.search(text):
-        problems.append("uses we/our/us on a solo project; write 'I'")
-    if item.get("simulated") and not _SIMULATED.search(text):
-        problems.append("the project used simulated or synthetic data; the post must say so")
 
     lower = text.lower()
     source_lower = source_text.lower()
@@ -208,11 +236,6 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         problems.append("asks for likes, shares, follows or comments (engagement bait)")
     problems += flow_problems(text)
     problems += repetition_problems(text)
-    problems += purpose_problems(text, item)
-    src_lower = source_text.lower()
-    for term in INVENTED_STORY_TERMS:
-        if term in lower and term not in src_lower:
-            problems.append(f"'{term}' describes a backstory the facts do not contain")
 
     if _EMOJI.search(text):
         problems.append("contains emoji")
@@ -239,19 +262,6 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         problems.append(f"{words} words, must be at least {MIN_WORDS}: add about {MIN_WORDS - words + 15} words using only details the "
                         "facts already give (how the test was set up, each result and what it means, what the decision changed); "
                         "never add a reason or benefit the facts do not state")
-
-    opener = first_words(text)
-    for past in history[-30:]:
-        past_open = past.get("opener_words") or first_words(past.get("text", ""))
-        if _shingles(opener, 3) & _shingles(past_open, 3):
-            problems.append(f"opening line repeats wording from the {past.get('date', 'earlier')} post")
-            break
-    for past in history[-12:]:
-        sim = body_similarity(text, past.get("text", ""))
-        if sim > 0.25:
-            problems.append(f"too similar ({sim:.2f}) to the {past.get('date', 'earlier')} post")
-            break
-
     return problems
 
 
