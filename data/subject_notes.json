@@ -44,38 +44,31 @@
   ]
  },
  "AI-ML Data Science Simulation": {
-  "context": "Simulation project with generated retail data",
-  "simulated": true,
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "This is where my forecasting started: a simulated sales ETL for 5 branches, to learn whether a forecast actually beats a naive guess and what it changes for reordering stock."
+   "A store that orders from last week's sales runs out when demand moves. I wanted to learn whether a demand forecast actually beats that habit, and by how much, before trusting one.",
+   "So I simulated daily sales for 5 branches, compared models against a naive baseline, and replayed reordering both ways to count stock-out days."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Real-Time IoT Telematics": {
-  "context": "Personal portfolio project on simulated sensor telemetry",
-  "simulated": true,
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "I wanted to learn how data that never stops arriving is handled: sensor readings in micro-batches, a rolling z-score to catch spikes, and an estimate of how long a battery has left.",
-   "The rolling z-score I learned here is the same one I later ran every day on market data in Automated Daily Data Insights."
+   "A sensor that drifts or spikes on a vehicle can mean a failing part, but an alarm on every odd reading gets ignored. I wanted to learn whether a simple rolling z-score could catch real spikes without flooding a fleet with false alarms.",
+   "It was also my first time handling data that never stops arriving, in micro-batches, and estimating how long a battery has left before it degrades."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Sentence Transformers": {
-  "context": "ML take-home exercise, later extended with LoRA fine-tuning on a public dataset",
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "After the basic question-answering bot, I wanted to know how the models behind it actually work, so I built a sentence transformer myself, extended it to two tasks, and then fine-tuned a small LLM with LoRA."
+   "Using ready-made embedding models left me not knowing what happens inside them, so I built a sentence transformer myself on Small BERT and extended it to two tasks to see how a shared backbone learns both.",
+   "Then I wanted to know what fine-tuning really changes, so I trained a LoRA adapter on Qwen2.5-0.5B on a free GPU and compared its answers with the base model's on held-out instructions."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "CurioSync": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "I wanted to share what I learn from each project in public, but only claims I can back, so every post is drafted from my live profile and checked before it can go out."
+   "I learn something from every project, and I wanted to share it in public without ever posting a claim I can't back. So each post is drafted only from my live profile and my own notes, and checked before it can go out."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Applied Machine Learning Engineer": {
   "context": "Contract role; only the facts already published in my profile may be used, nothing beyond them",
@@ -101,13 +94,11 @@
   ]
  },
  "Multi-State Land Use": {
-  "context": "Personal portfolio project on simulated daily land-cover files",
-  "simulated": true,
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "My earlier forecasting projects ran on simulated data; I wanted to try the same skills on real public data, so I used the EPA's state greenhouse-gas inventory and learned mapping with ArcGIS on the way."
+   "Land use, like forests burning or land turning into suburbs, changes how much carbon a state stores or releases, and I wanted to learn how that is measured from public data.",
+   "So I built the pipeline on the EPA's real state inventory for 5 states and tested something I could check: whether a machine-learning model beats simply using last year's value."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "FinTech Credit Risk": {
   "context": "Personal portfolio project on credit risk and fraud detection",
@@ -125,81 +116,80 @@
  },
  "Member Messages QA": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "This was my basic question-answering bot: find the right member and the right message with semantic search and named-entity matching, no language model writing the answer.",
-   "It started small, and it is where my chatbot work began; later I built a chatbot on a large language model, and that model's own issues (failed calls, answers it could invent) led to the portfolio assistant that answers without one."
+   "Answers about people are usually buried in loose messages: a booking here, a phone number there. I wanted to see whether a small question-answering system could find the right person first and then the right message, without a language model making up the answer.",
+   "It was my first chatbot-style project, and a basic one on purpose: semantic search with spaCy name matching, checked on 26 hand-written questions.",
+   "Later I built a chatbot on a large language model; its problems, failed calls and answers it could invent, led me to the portfolio assistant that answers without one."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Automated Daily Data Insights": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "After the telematics project, I wanted the same rolling z-score running on real data every day without a server, so I put it on a GitHub Actions schedule against market data."
+   "Most pipelines I had built ran once on my laptop. I wanted one that runs by itself every day on real data, with no server to pay for, and to see whether a free GitHub Actions schedule is reliable enough for that.",
+   "Market prices were the real, daily data to test it on: each trading day it pulls the data, flags unusual days and commits a report."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "ArcGIS Commute Insights": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "Land Use was my first ArcGIS work, on static map layers; here I wanted to learn the live ArcGIS services themselves (geocoding, routing, vector tiles), so every test calls the real APIs."
+   "Straight-line distance says little about a real commute; drive time is what matters. I wanted to learn the live ArcGIS services that answer that: geocoding an address, routing, and drawing the map.",
+   "Every test calls the real ArcGIS APIs, so the results come from the services themselves, not mocks."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Reactive Job Ingest Gateway": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "I learn a new stack best by building one small, real tool in it; this one was Java and Spring WebFlux, to understand non-blocking ingestion and live streams."
+   "A service that holds one thread per request stalls when many events arrive at once. I wanted to learn the non-blocking way Java handles that, with Spring WebFlux and R2DBC.",
+   "It ingests posting events without blocking and streams them back live, so a client joining late still sees recent history."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Interview Prep API": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "Another new stack, C# and ASP.NET Core, on a tool I would actually use: practising interview questions with spaced repetition. The mobile app came next, built against this API."
+   "Practising interview questions at random means repeating the easy ones and forgetting the hard ones. I wanted practice scheduled the way memory works, so each question comes back with the SM-2 spaced-repetition method.",
+   "C# and ASP.NET Core were new to me, and this was a real tool to learn them on, with 19 tests."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Interview Prep Mobile": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "Once the interview-prep API existed, I used it to learn mobile: a React Native app that practises against it."
+   "Practice happens in short gaps away from a desk, so the interview-prep API needed a phone app that shows only the questions due today and works offline.",
+   "It was my way to learn React Native, built against the API I had already written."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Job Notes": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "Another stack to learn by building: MongoDB, Express, Angular and Node, on a small app for company-research notes."
+   "Research on a company gets scattered across tabs and documents. I wanted one place to keep notes per company, and to learn the MongoDB, Express, Angular and Node stack by building it.",
+   "Both halves are tested in CI against a real MongoDB, not a mock."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Company Search": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "I wanted to see how far a page can go with no client-side framework at all, so I built live search, inline editing and tab syncing with HTMX."
+   "Many pages pull in a large JavaScript framework for what is mostly a list that updates. I wanted to learn how far plain server-rendered HTML can go with HTMX: live search, inline edits and every open tab kept in sync.",
+   "Driving it in a real browser found a bug the unit tests could not: search never fired on paste or autofill."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Company Blocklist": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "PHP and CodeIgniter were new to me, so I learned them on a small tool for companies to avoid, including a check against California WARN Act layoff notices."
+   "Layoffs at a company are public record in WARN Act notices, but nobody checks them by hand. I wanted a small tool that keeps a list of companies to avoid with the reason for each, and checks names against those notices.",
+   "PHP and CodeIgniter were new to me, so this is where I learned them, with tests through the full stack."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Sales Analytics": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "After forecasting how much would sell, the next question was who is buying, so I built a star-schema warehouse and segmented customers by recency, frequency and value."
+   "Total sales say how much a business sells, not who its customers are. I wanted to learn how to find real customer groups in transaction data instead of guessing them.",
+   "That meant modelling the transactions in a star schema, scoring customers on recency, frequency and value, and checking whether K-Means finds groups that are actually distinct."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  },
  "Solid Object Detection": {
   "notes": [
-   "I start projects to keep learning and stay current, because AI keeps changing how the work gets done, and each one usually grows out of what the last one taught me or left unfinished.",
-   "This was my first computer-vision project, kept small on purpose: a CNN to classify shapes, with OpenCV contour geometry as an independent check.",
-   "The same pairing, a CNN with contour geometry, is what I later used to recognise signs in Extending STEM across ASL."
+   "This was my first computer-vision project: teaching a CNN to classify shapes in still images, and checking it against classic OpenCV contour geometry so I could see where the model and the geometry disagree.",
+   "I also wanted to learn how a trained model is served, so an image uploaded to S3 is classified on AWS Lambda."
   ],
-  "source": "owner's general direction in chat 2026-11-01 (learn, stay current, connected projects); links from projects.json"
+  "source": "individual reason from the project's own README/FINDINGS, under the owner's general direction (keep learning, stay current); owner correction in chat 2026-11-01"
  }
 }
