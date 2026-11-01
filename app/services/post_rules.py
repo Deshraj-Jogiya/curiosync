@@ -310,6 +310,9 @@ _DETACHED_OPENING = re.compile(r"^(to (test|confirm|check|verify|validate|measur
                                r"|this (involved|included|meant running)\b)", re.IGNORECASE)
 # A one-sentence paragraph is a fragment only when it is this short; a full sentence saying why the test mattered can stand alone.
 FRAGMENT_CHARS = 70
+CLOSING_QUESTION_WORDS = 10
+_GENERIC_QUESTION = re.compile(r"\b(what do you think|thoughts\?|agree\?|any thoughts|how about you|what about you|let me know)",
+                               re.IGNORECASE)
 
 
 # Repetition (owner's review 2026-10-29: "partition" 6 times, "June" twice in one sentence, 60,000 three times). Words that carry no
@@ -368,12 +371,20 @@ def flow_problems(text: str) -> list[str]:
     """Places where the reading thread drops, judged without a model: body paragraphs that open by announcing a step, and
     one-sentence fragments in the middle of the post (the first line, the closing question and the hashtags are left alone)."""
     paras = [p.strip() for p in text.strip().split("\n\n") if p.strip() and not p.strip().startswith("#")]
-    body = paras[1:-1]  # skip the first line and the closing line
     problems = []
-    if paras and paras[-1].rstrip().endswith("?"):
-        problems.append("closing: the post ends on a question; end with one plain sentence on what the work now lets someone do")
-    elif len(paras) > 1 and _VAGUE_CLOSE.search(paras[-1]) and not numbers_in(paras[-1]):
-        problems.append("closing: the last paragraph is a general claim (\"this approach ensures/enables...\"); end with the concrete "
+    # The close is two parts, as in the first posts he approved: the concrete result, then one specific question a practitioner
+    # answers from their own work (owner, 2026-10-31). A short or generic question ("Thoughts?") is still filler.
+    asks = bool(paras) and paras[-1].rstrip().endswith("?")
+    result = paras[-2] if asks and len(paras) > 2 else (paras[-1] if paras else "")
+    body = paras[1:-2] if asks else paras[1:-1]  # skip the first line, the result line and the question
+    if len(paras) > 1 and not asks:
+        problems.append("closing: end with one specific question for people who do this work, tied to the post's own decision "
+                        "(\"If you monitor a model whose labels arrive late, do you retrain on a schedule or on the alert?\")")
+    elif asks and (len(paras[-1].split()) < CLOSING_QUESTION_WORDS or _GENERIC_QUESTION.search(paras[-1])):
+        problems.append("closing: the question is generic; ask about the specific choice this post made, as someone who has to "
+                        "make it")
+    if len(paras) > 1 and _VAGUE_CLOSE.search(result) and not numbers_in(result):
+        problems.append("closing: the result paragraph is a general claim (\"this approach ensures/enables...\"); state the concrete "
                         "result: what someone can now do, or the number the work reached")
     if paras:
         opening = [s for s in re.split(r"(?<=[.!?])\s+", paras[0]) if s]

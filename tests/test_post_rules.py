@@ -10,7 +10,9 @@ SOLO_SIM = {"kind": "project", "solo": True, "simulated": True}
 
 def _post(body: str, first: str = "I wrote 11 Great Expectations checks before trusting a synthetic dataset.") -> str:
     filler = " The pipeline runs PySpark over simulated postings. " + filler_words()
-    return f"{first}\n\n{body}{filler}\n\nSo every stage is checked before anything reads it.\n\n#DataEngineering #PySpark"
+    return (f"{first}\n\n{body}{filler}\n\nSo every stage is checked before anything reads it.\n\n"
+            "If you build pipelines on generated data, which validations do you write before anyone reads the output?\n\n"
+            "#DataEngineering #PySpark")
 
 
 def test_clean_post_passes():
@@ -128,7 +130,8 @@ def test_detached_openings_and_fragment_paragraphs_are_flow_problems():
     assert any("fragment" in p for p in found)
     smooth = ("I chose embeddings over fine-tuning.\n\nA wrong member name would make every answer wrong, so the test had to prove "
               "the system picks the right person first. I scored 26 paraphrased questions against labels: it named the right "
-              "member every time and missed one answer.\n\nThe assistant now gives one date answer every time.\n\n#DataEngineering")
+              "member every time and missed one answer.\n\nThe assistant now gives one date answer every time.\n\n"
+              "If your assistant answers questions about people, how do you test that it picks the right person?\n\n#DataEngineering")
     assert flow_problems(smooth) == []
 
 
@@ -137,11 +140,12 @@ def test_an_opening_that_refers_back_is_not_a_flow_problem():
 
     text = ("First line.\n\nThe system had to name the right member even when questions were paraphrased, or every answer fails.\n\n"
             "To verify this, I scored 26 paraphrased questions against labels and it named the right member every time.\n\n"
-            "The assistant now gives one date answer every time.\n\n#DataEngineering")
+            "The assistant now gives one date answer every time.\n\n"
+            "If your assistant answers questions about people, how do you test that it picks the right person?\n\n#DataEngineering")
     assert flow_problems(text) == []
 
 
-def test_a_bare_result_opening_and_a_closing_question_are_flow_problems():
+def test_a_bare_result_opening_and_a_generic_closing_question_are_flow_problems():
     from app.services.post_rules import flow_problems
     text = ("A contract risk model reached 86.20% accuracy, but it found about half of the cancellations.\n\n"
             "Before serving risk scores I needed to know where the model falls short, so I tested it on held-out contracts.\n\n"
@@ -151,7 +155,8 @@ def test_a_bare_result_opening_and_a_closing_question_are_flow_problems():
     fixed = ("Event planners lose money when a booked contract is cancelled, so I built a model to flag risky contracts early. "
              "It reached 86.20% accuracy but found about half of the cancellations.\n\n"
              "Before serving risk scores I needed to know where the model falls short, so I tested it on held-out contracts.\n\n"
-             "Analysts can now score contract risk directly in SQL.\n\n#MachineLearning")
+             "Analysts can now score contract risk directly in SQL.\n\n"
+             "If you serve model scores from SQL, do you set the decision threshold in the query or in the model?\n\n#MachineLearning")
     assert not [p for p in flow_problems(fixed) if p.startswith(("opening:", "closing:"))]
 
 
@@ -165,7 +170,8 @@ def test_a_closing_that_claims_a_benefit_in_general_terms_is_a_flow_problem():
     from app.services.post_rules import flow_problems
     vague = ("First line about the platform and why it exists.\n\n"
              "I timed 20 requests per stage; finding the hands took 997.0 ms of the 1090.5 ms request.\n\n"
-             "This approach ensures the platform can offer responsive classification in the browser.\n\n#MachineLearning")
+             "This approach ensures the platform can offer responsive classification in the browser.\n\n"
+             "If you classify signs in the browser, which stage of the request do you cut first?\n\n#MachineLearning")
     assert any(p.startswith("closing:") for p in flow_problems(vague))
     concrete = vague.replace("This approach ensures the platform can offer responsive classification in the browser.",
                              "A learner gets an answer about 1.1 seconds after a two-second sign, and the timing shows where to cut next.")
@@ -207,3 +213,11 @@ def test_purpose_problems_skips_experience_posts():
     from app.services.post_rules import purpose_problems
 
     assert purpose_problems("Anything.\n\nAt all.", {"kind": "experience", "title": "Data Analyst"}) == []
+
+
+def test_a_post_must_close_with_a_specific_question():
+    from app.services.post_rules import flow_problems
+    no_question = "First line.\n\nThe assistant now gives one date answer every time, checked on 26 questions.\n\n#DataEngineering"
+    assert any("end with one specific question" in p for p in flow_problems(no_question))
+    generic = no_question.replace("\n\n#", "\n\nWhat do you think about this approach for answering questions here?\n\n#")
+    assert any("generic" in p for p in flow_problems(generic))

@@ -58,7 +58,8 @@ class TestPrompt:
 
 
 GOOD = ("I wrote 15 dbt tests before trusting a single number from the warehouse.\n\n" + "The Job Search dbt Warehouse is a dimensional dbt model on Databricks. " + filler_words()
-        + "\n\nI am open to Data Engineer and Machine Learning Engineer roles.\n\n#dbt #DataEngineering")
+        + "\n\nI am open to Data Engineer and Machine Learning Engineer roles.\n\n"
+        "If you model a warehouse in dbt, how many tests do you write before trusting a number?\n\n#dbt #DataEngineering")
 
 
 @pytest.mark.asyncio

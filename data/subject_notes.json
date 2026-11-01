@@ -76,11 +76,27 @@
  "Tax Anomaly Audit": {
   "context": "Personal portfolio project on a simulated general ledger",
   "simulated": true,
-  "notes": []
+  "notes": [
+   "When I came to the US as a student, I had to file my taxes on my own. Learning how to do that is where this project came from."
+  ]
  },
  "Multi-State Land Use": {
   "context": "Personal portfolio project on simulated daily land-cover files",
   "simulated": true,
   "notes": []
+ },
+ "FinTech Credit Risk": {
+  "context": "Personal portfolio project on credit risk and fraud detection",
+  "notes": [
+   "It was motivated by the time my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people."
+  ]
+ },
+ "Clinical Trials": {
+  "context": "Personal portfolio project on de-identified clinical trial outcomes",
+  "notes": [
+   "My motivation came from COVID: how the world changed before and after it, and wanting to learn more about the medical industry.",
+   "During the second wave in India, fake news and fear spread chaos and made the situation much worse.",
+   "I understood it happened because ordinary people lacked clarity on how things work and basic knowledge of the illness, so I turned that thought into a project and tried to build something in that direction."
+  ]
  }
 }

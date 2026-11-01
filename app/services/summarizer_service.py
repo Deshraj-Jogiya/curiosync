@@ -110,10 +110,13 @@ FORMAT_TASKS = {
                  "it changes for people who build with that tool, tied to one specific thing you did in FEATURED.",
 }
 
-# Every format ends the same way: one concrete closing line with the practical result. No closing question of any kind (owner's
-# rule, 2026-10-22: a generic question read as filler); asking for likes or comments stays banned above.
-_CLOSE = ("End with one short paragraph: one concrete sentence about what the work now lets you or its user do. Do not end with a "
-          "question.")
+# Every format ends the same way, as the first posts he approved did: the concrete result, then one specific question a practitioner
+# answers from their own work (owner, 2026-10-31). A generic question ("Thoughts?") is filler; asking for likes or comments stays
+# banned above.
+_CLOSE = ("End with two short paragraphs. First, one concrete sentence about what the work now lets you or its user do. Then one "
+          "question, at least ten words, asking people who do this work how they handle the specific choice this post made (for "
+          "example \"If you monitor a model whose labels arrive late, do you retrain on a schedule or only when a drift alert "
+          "fires?\").")
 ENDINGS = {fmt: _CLOSE for fmt in ("project_spotlight", "lesson", "decision", "news_take")}
 
 
