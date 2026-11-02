@@ -180,5 +180,14 @@
       "repetition: 'term' is used 7 times; use it at most 4 times, then name the specific thing or say 'it'",
       "repetition: \"This left 18 distinct positions required and saved...\" uses 'position' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-02",
+    "story_id": "fintech-credit-risk-fraud-command-center-1",
+    "comment": "",
+    "rules": [
+      "repetition: 'precision' is used 6 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: \"I built the FinTech Credit Risk & Fraud Command Ce...\" uses 'credit' twice in one sentence"
+    ]
   }
 ]
