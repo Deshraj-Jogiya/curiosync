@@ -235,5 +235,15 @@
       "closing: the result paragraph is a general claim (\"this approach ensures/enables...\"); state the concrete result: what someone can now do, or the number the work reached",
       "repetition: \"The Clinical Trials Patient Outcomes Analysis is a...\" uses 'personal' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-03",
+    "story_id": "clinical-trials-patient-outcomes-analysi-1",
+    "comment": "",
+    "rules": [
+      "filler word 'significant'",
+      "repetition: 'dosage' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "'struggled' describes a backstory the facts do not contain"
+    ]
   }
 ]
