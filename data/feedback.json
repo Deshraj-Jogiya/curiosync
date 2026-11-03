@@ -226,5 +226,14 @@
       "unsupported by the facts: Assertion that the result lets a retailer base each replenishment on a data‑driven prediction (user claim not in facts)",
       "reading flow: The opening claim about forecast relevance does not smoothly connect to the subsequent description of the project, causing a drop in narrative flow"
     ]
+  },
+  {
+    "date": "2026-11-03",
+    "story_id": "clinical-trials-patient-outcomes-analysi-1",
+    "comment": "",
+    "rules": [
+      "closing: the result paragraph is a general claim (\"this approach ensures/enables...\"); state the concrete result: what someone can now do, or the number the work reached",
+      "repetition: \"The Clinical Trials Patient Outcomes Analysis is a...\" uses 'personal' twice in one sentence"
+    ]
   }
 ]
