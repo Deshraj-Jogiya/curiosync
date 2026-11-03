@@ -72,8 +72,17 @@ def _norm_number(raw: str) -> str:
     return re.sub(r"[\s,$]", "", raw.lower()).rstrip(".")
 
 
+# A thousands separator written as a no-break, narrow or thin space ("7 038.2"): the 2026-11-03 drafts were rejected for "038.2".
+_SPACED_THOUSANDS = re.compile(r"(?<=\d)[   ](?=\d{3}(?!\d))")
+
+
+def comma_thousands(text: str) -> str:
+    """Write a space-separated thousands group with a comma, as LinkedIn readers expect: 7 038.2 -> 7,038.2."""
+    return _SPACED_THOUSANDS.sub(",", text)
+
+
 def numbers_in(text: str) -> set[str]:
-    return {_norm_number(m.group(0)) for m in _NUMBER.finditer(text)}
+    return {_norm_number(m.group(0)) for m in _NUMBER.finditer(comma_thousands(text))}
 
 
 def _bare(n: str) -> str:

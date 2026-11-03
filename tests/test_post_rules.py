@@ -250,3 +250,12 @@ def test_posts_he_approved_since_the_repetition_rule_pass_every_text_check():
     assert len(later) == 3
     for post in later:
         assert writing_problems(post["text"], exempt=name_words(post["subject"])) == [], post["id"]
+
+
+def test_thin_space_thousands_are_one_number():
+    from app.services.post_rules import comma_thousands, unsupported_numbers
+
+    src = "Last week sales units short: 7038.2"
+    assert unsupported_numbers("7 038.2 units short", src) == []
+    assert unsupported_numbers("7 038.2 units short", src) == []
+    assert comma_thousands("7 038.2") == "7,038.2"

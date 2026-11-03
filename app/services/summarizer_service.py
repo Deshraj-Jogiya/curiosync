@@ -14,8 +14,8 @@ from app.config import Settings
 from app.services.compliance_service import humanize_draft
 from app.services.llm_service import call_llm_with_fallback
 from app.services.post_plan import HOOK_TYPES, matching_news, news_allowed, pick_hook, pick_subject
-from app.services.post_rules import (MAX_CHARS, MIN_CHARS, check_draft, drop_sentences_with_numbers, tidy_hashtags,
-                                     unsupported_numbers)
+from app.services.post_rules import (MAX_CHARS, MIN_CHARS, check_draft, comma_thousands, drop_sentences_with_numbers,
+                                     tidy_hashtags, unsupported_numbers)
 from app.services.profile_source import format_item, load_profile, profile_context
 from app.utils.logging import logger
 
@@ -274,7 +274,7 @@ async def critic_problems(text: str, facts: str, settings: Settings) -> list[str
 
 
 def _finish(text: str) -> str:
-    return tidy_hashtags(humanize_draft(text))
+    return tidy_hashtags(comma_thousands(humanize_draft(text)))
 
 
 def _rank(text: str) -> float:
@@ -347,7 +347,27 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
             problems = await critic_problems(best, facts, settings)
             attempts += 1
 
-    if problems and all(p.startswith("repetition:") for p in problems):
+    def is_repeat(p: str) -> bool:
+        return p.startswith("repetition:")
+
+    def bad_number(p: str) -> str | None:
+        m = re.search(r"number '?([^' ]+)'? is not in the", p)
+        return m.group(1) if m else None
+
+    if problems and any(bad_number(p) for p in problems) and all(is_repeat(p) or bad_number(p) for p in problems):
+        # Rewrites kept a number the facts do not have; cut the sentences that state it. Repeated words left over are fixed below.
+        bad_numbers = sorted({n for p in problems if (n := bad_number(p))})
+        repaired = _finish(drop_sentences_with_numbers(best, bad_numbers))
+        left = rule_problems(repaired)
+        attempts += 1
+        if all(is_repeat(p) for p in left):
+            logger.info("Draft repaired by removing sentences with unsupported numbers: %s", bad_numbers)
+            best, problems = repaired, left
+            if not problems:
+                problems = await critic_problems(best, facts, settings)
+                attempts += 1
+
+    if problems and all(is_repeat(p) for p in problems):
         # Only repeated words are left. A full rewrite tends to trade one repeated word for another, so change only those words.
         for _ in range(2):
             fix = ("Edit the LinkedIn post below. Change ONLY the words named in the problems: replace each extra use with the "
@@ -359,21 +379,12 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
             attempts += 1
             left = rule_problems(edited)
             # Keep the edit only if it removed repeats without breaking any other rule.
-            if len(left) < len(problems) and all(p.startswith("repetition:") for p in left):
+            if len(left) < len(problems) and all(is_repeat(p) for p in left):
                 best, problems = edited, left
             if not problems:
                 problems = await critic_problems(best, facts, settings)
                 attempts += 1
                 break
-
-    bad_numbers = [m.group(1) for p in problems for m in [re.search(r"number '?([^' ]+)'? is not in the", p)] if m]
-    if problems and len(bad_numbers) == len(problems):
-        # Rewrites kept a number the facts do not have; cut the sentences that state it and check the result again.
-        repaired = _finish(drop_sentences_with_numbers(best, bad_numbers))
-        if not rule_problems(repaired) and not await critic_problems(repaired, facts, settings):
-            logger.info("Draft repaired by removing sentences with unsupported numbers: %s", bad_numbers)
-            best, problems = repaired, []
-        attempts += 1
 
     if problems:
         raise DraftRejected(problems, best)
