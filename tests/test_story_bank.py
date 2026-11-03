@@ -223,3 +223,30 @@ def test_the_renderer_refuses_a_no_change_before_after():
     from app.services.post_charts import _before_after
     story = {"subject": "X", "chart_title": "T", "series": {"type": "before_after", "points": [{"label": "A", "before": "1 ms", "after": "1 ms"}]}}
     assert _before_after(story, {"title": "X"}) is None
+
+
+def test_owner_guidance_keeps_every_written_comment(tmp_path):
+    import json
+
+    from app.services.story_bank import owner_guidance
+
+    lessons = tmp_path / "lessons.json"
+    lessons.write_text(json.dumps({"covered_through": "2026-11-02", "writing": ["Open with the setting."]}), encoding="utf-8")
+    feedback = [{"date": "2026-10-27", "comment": "old, merged"}] + [{"date": "2026-11-05", "comment": ""}] * 12 + [
+        {"date": "2026-11-04", "comment": "New: shorter first line."}]
+    got = owner_guidance(str(lessons), feedback)
+    assert got[0] == "Open with the setting."
+    assert any("New: shorter first line." in g for g in got)
+    assert not any("old, merged" in g for g in got)
+
+
+def test_lessons_file_merges_every_written_comment():
+    import json
+
+    from app.services.story_bank import load_feedback
+
+    lessons = json.load(open("data/lessons.json", encoding="utf-8"))
+    written = [f for f in load_feedback("data/feedback.json") if f.get("comment", "").strip()]
+    assert len(written) >= 7
+    assert all(f["date"] <= lessons["covered_through"] for f in written)
+    assert len(lessons["writing"]) >= 5 and lessons["media"]

@@ -221,3 +221,32 @@ def test_a_post_must_close_with_a_specific_question():
     assert any("end with one specific question" in p for p in flow_problems(no_question))
     generic = no_question.replace("\n\n#", "\n\nWhat do you think about this approach for answering questions here?\n\n#")
     assert any("generic" in p for p in flow_problems(generic))
+
+
+def test_project_name_words_are_not_a_repeat():
+    from app.services.post_rules import name_words, repetition_problems
+
+    text = "I built the FinTech Credit Risk & Fraud Command Center to score credit applications in one place."
+    assert repetition_problems(text)  # "credit" twice in one sentence without the name exemption
+    assert repetition_problems(text, name_words("FinTech Credit Risk & Fraud Command Center")) == []
+
+
+def test_name_words_still_have_a_cap():
+    from app.services.post_rules import name_words, repetition_problems
+
+    text = " ".join(f"Sentence {i} mentions credit once." for i in range(8))
+    found = repetition_problems(text, name_words("FinTech Credit Risk"))
+    assert any("'credit' is used 8 times" in p for p in found)
+
+
+def test_posts_he_approved_since_the_repetition_rule_pass_every_text_check():
+    """The checks must never be stricter than the owner: every post approved on or after his 2026-10-29 repetition comment passes."""
+    import json
+
+    from app.services.post_rules import name_words, writing_problems
+
+    queue = json.load(open("data/approved_queue.json", encoding="utf-8"))
+    later = [p for p in queue if p["id"] in {"draft-40578570120", "draft-40832967316", "owner-2026-11-06-observability"}]
+    assert len(later) == 3
+    for post in later:
+        assert writing_problems(post["text"], exempt=name_words(post["subject"])) == [], post["id"]

@@ -111,3 +111,28 @@ async def test_the_fact_check_also_reports_where_the_reading_flow_drops():
     with patch.object(ss, "call_llm_with_fallback", llm):
         problems = await ss.critic_problems("post", "facts", object())
     assert problems == ["reading flow: paragraph 3 jumps to the test without saying why it was needed"]
+
+
+def test_approved_posts_become_examples():
+    from app.services.summarizer_service import approved_examples
+
+    queue = [{"subject": "Other", "text": "x"}, {"subject": "Land Use", "text": "LAND"}, {"subject": "Lakehouse", "text": "LAKE"}]
+    import app.services.post_rules as rules
+
+    real = rules.writing_problems
+    rules.writing_problems = lambda text, source_text="", exempt=frozenset(): []
+    try:
+        out = approved_examples("Lakehouse", queue)
+    finally:
+        rules.writing_problems = real
+    assert "LAND" in out and "LAKE" not in out
+
+
+def test_real_queue_gives_at_least_two_examples():
+    import json
+
+    from app.services.summarizer_service import APPROVED_EXAMPLES, approved_examples
+
+    queue = json.load(open("data/approved_queue.json", encoding="utf-8"))
+    out = approved_examples("FinTech Credit Risk & Fraud Command Center", queue)
+    assert out != APPROVED_EXAMPLES and out.count("--- APPROVED POST") >= 2

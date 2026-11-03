@@ -176,7 +176,7 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
     text = draft.strip()
     if not text:
         return ["empty draft"]
-    problems = writing_problems(text, source_text)
+    problems = writing_problems(text, source_text, name_words(item.get("title", "")))
 
     for n in unsupported_numbers(text, source_text):
         problems.append(f"number '{n}' is not in the facts")
@@ -207,7 +207,7 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
     return problems
 
 
-def writing_problems(draft: str, source_text: str = "") -> list[str]:
+def writing_problems(draft: str, source_text: str = "", exempt: set[str] | frozenset = frozenset()) -> list[str]:
     """The checks that need only the draft itself: length, the first line, filler words, AI tells, engagement bait, reading flow,
     repetition, emoji, hashtags, dashes, paragraph openers and word count. source_text only exempts a filler phrase the facts
     themselves use. The portfolio Lab's post checker runs these (lab/lab-posts.js), held to this function in its CI."""
@@ -235,7 +235,7 @@ def writing_problems(draft: str, source_text: str = "") -> list[str]:
     if ENGAGEMENT_BAIT.search(text):
         problems.append("asks for likes, shares, follows or comments (engagement bait)")
     problems += flow_problems(text)
-    problems += repetition_problems(text)
+    problems += repetition_problems(text, exempt)
 
     if _EMOJI.search(text):
         problems.append("contains emoji")
@@ -338,9 +338,15 @@ def _stem(word: str) -> str:
     return word[:-1] if word.endswith("s") and not word.endswith("ss") and len(word) > 4 else word
 
 
-def repetition_problems(text: str) -> list[str]:
+def name_words(name: str) -> set[str]:
+    """The content words of a project's own name, stemmed: "FinTech Credit Risk & Fraud Command Center" -> credit, risk, ..."""
+    return {_stem(w) for w in re.findall(r"[a-z][a-z'-]+", name.lower()) if len(w) >= 4 and w not in _COMMON}
+
+
+def repetition_problems(text: str, exempt: set[str] | frozenset = frozenset()) -> list[str]:
     """Words and numbers the post keeps repeating: a content word more than MAX_WORD_USES times, the same content word twice in
-    one sentence, or a number stated more than MAX_NUMBER_USES times."""
+    one sentence, or a number stated more than MAX_NUMBER_USES times. exempt: stemmed words of the project's own name, which a
+    post has to say when it names the project (the Nov 9 FinTech drafts were rejected for "credit" twice in the name's sentence)."""
     body = re.sub(r"(?<!\w)#\w+", "", text)
     # A pair of job titles ("Data Engineer and Machine Learning Engineer") names two roles, not one word said twice.
     body = re.sub(r"\b(Engineer|Scientist|Analyst)s?( (?:and|or) (?:[A-Z]\w* ){1,3})\1s?\b", r"\1\2title", body)
@@ -350,13 +356,15 @@ def repetition_problems(text: str) -> list[str]:
         if len(w) >= 4 and w not in _COMMON:
             counts[_stem(w)] = counts.get(_stem(w), 0) + 1
     for w, n in sorted(counts.items(), key=lambda kv: -kv[1]):
-        if n > MAX_WORD_USES:
-            problems.append(f"repetition: '{w}' is used {n} times; use it at most {MAX_WORD_USES} times, then name the specific "
+        # A word of the project's name may come up twice more: once when the name is said, once on its own.
+        limit = MAX_WORD_USES + (2 if w in exempt else 0)
+        if n > limit:
+            problems.append(f"repetition: '{w}' is used {n} times; use it at most {limit} times, then name the specific "
                             "thing or say 'it'")
     for sentence in re.split(r"(?<=[.!?])\s+", body):
         seen: dict[str, int] = {}
         for w in re.findall(r"[a-z][a-z'-]+", sentence.lower()):
-            if len(w) >= 4 and w not in _COMMON:
+            if len(w) >= 4 and w not in _COMMON and _stem(w) not in exempt:
                 seen[_stem(w)] = seen.get(_stem(w), 0) + 1
         doubled = [w for w, n in seen.items() if n > 1]
         if doubled:

@@ -1,0 +1,18 @@
+{
+  "covered_through": "2026-11-02",
+  "note": "The owner's reject comments up to covered_through, merged into standing rules. Where two comments disagree, the later one wins (the closing rule: 2026-10-27 said end on a sentence, 2026-10-31 said end on the result and then one specific question). Comments after covered_through are given to every draft word for word until they are merged here.",
+  "writing": [
+    "Open with the setting, never a bare result: the paragraph after the first line names the project, says what it does and for whom, and gives his reason for building it from his own notes (2026-10-27, 2026-10-31).",
+    "Keep one reading thread: why the test was needed, what was tested, what the result means with the number inside the sentence, and the decision it led to. Never a list of options or tools followed by a run of percentages (2026-10-27).",
+    "Close on the concrete result, then one specific question a practitioner answers from their own work. Never end on a general claim about what the work ensures or enables (2026-10-28, 2026-10-29, 2026-10-31).",
+    "No repetition: a word not again and again and not twice in one sentence, a number at most twice. After the first use, name the specific thing or say 'it' (2026-10-29).",
+    "No filler motivation line. The reason for building comes only from his own notes (2026-10-29, 2026-10-31).",
+    "Every statement must be in the facts; do not describe what a detector or model did unless the facts say it (2026-10-27).",
+    "At least 150 words (2026-10-27)."
+  ],
+  "media": [
+    "Media shows something the text does not: a chart of the story's data, never the post's sentences in large type and never a table of numbers the text already states (2026-10-27, 2026-10-29, 2026-10-31).",
+    "Never chart a change that was not measured; media must be clear about what is real (2026-10-28).",
+    "Chart each measure on a fitting scale: changes such as daily returns are not drawn on a 0-100% share axis, and rates use the post's own notation (2026-10-27)."
+  ]
+}

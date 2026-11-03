@@ -36,6 +36,33 @@ class DraftRejected(RuntimeError):
 
 # Two of the posts the owner approved on 2026-10-23 (round 2, posts 1 and 3). A written description of the shape alone produced step lists.
 APPROVED_EXAMPLES = (Path(__file__).resolve().parents[2] / "data" / "approved_posts.txt").read_text(encoding="utf-8")
+MAX_APPROVED_EXAMPLES = 3
+
+
+def approved_examples(exclude_subject: str = "", queue: list[dict] | None = None) -> str:
+    """The newest posts the owner approved (data/approved_queue.json: approved in chat or with the Approve button) that also pass
+    today's writing rules, so every approval becomes an example for the next draft. Posts about the subject being written are left
+    out so their facts cannot leak in. Falls back to the two fixed round-2 examples when none qualify."""
+    from app.services.approved_queue import load_queue
+    from app.services.post_rules import name_words, writing_problems
+
+    try:
+        queue = load_queue() if queue is None else queue
+    except Exception:
+        queue = []
+    picked = []
+    for post in reversed(queue):
+        text = (post.get("text") or "").strip()
+        if not text or post.get("subject") == exclude_subject:
+            continue
+        if writing_problems(text, exempt=name_words(post.get("subject", ""))):
+            continue
+        picked.append(text)
+        if len(picked) == MAX_APPROVED_EXAMPLES:
+            break
+    if not picked:
+        return APPROVED_EXAMPLES
+    return "\n\n".join(f"--- APPROVED POST {i} ---\n{t}" for i, t in enumerate(picked, 1))
 
 
 COMMON_RULES = """You are Deshraj Jogiya, a {title}. Write one LinkedIn post in the first person about your own work. A recruiter or hiring
@@ -153,7 +180,7 @@ STORY:
 """
 
 FEEDBACK_RULES = """
-The owner rejected earlier drafts with the comments below. Follow every one of them:
+OWNER'S REVIEW RULES (learned from every draft he rejected; follow every one):
 {feedback}
 """
 
@@ -185,7 +212,8 @@ def build_prompt(fmt: str, profile: dict, item: dict, hook_type: str, news: dict
         context=item.get("context") or "(none)",
         notes="\n".join(f"- {n}" for n in item.get("notes", [])) or "(empty)",
     )
-    prompt += "\nAPPROVED EXAMPLES (shape only; none of these facts may appear in your post):\n" + APPROVED_EXAMPLES + "\n"
+    prompt += ("\nAPPROVED EXAMPLES (posts the owner approved; match their shape, voice and flow only; none of their facts, numbers "
+               "or tools may appear in your post):\n" + approved_examples(item.get("title", "")) + "\n")
     if story:
         from app.services.story_bank import story_text
 
@@ -318,6 +346,25 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         if not problems:
             problems = await critic_problems(best, facts, settings)
             attempts += 1
+
+    if problems and all(p.startswith("repetition:") for p in problems):
+        # Only repeated words are left. A full rewrite tends to trade one repeated word for another, so change only those words.
+        for _ in range(2):
+            fix = ("Edit the LinkedIn post below. Change ONLY the words named in the problems: replace each extra use with the "
+                   "specific thing it refers to, a pronoun, or a different exact word, or merge the two mentions. Keep every other "
+                   "sentence, every number and the paragraph breaks exactly as they are. Return only the edited post.\n\nPROBLEMS:\n"
+                   + "\n".join(f"- {p}" for p in problems) + "\n\nPOST:\n" + best)
+            edited = _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": fix}], settings=settings,
+                                                          temperature=0.3, tier="write"))
+            attempts += 1
+            left = rule_problems(edited)
+            # Keep the edit only if it removed repeats without breaking any other rule.
+            if len(left) < len(problems) and all(p.startswith("repetition:") for p in left):
+                best, problems = edited, left
+            if not problems:
+                problems = await critic_problems(best, facts, settings)
+                attempts += 1
+                break
 
     bad_numbers = [m.group(1) for p in problems for m in [re.search(r"number '?([^' ]+)'? is not in the", p)] if m]
     if problems and len(bad_numbers) == len(problems):

@@ -69,6 +69,20 @@ def add_feedback(entry: dict, path: str | None = None) -> None:
     _save(path or FEEDBACK_PATH, items)
 
 
+LESSONS_PATH = os.path.join("data", "lessons.json")
+
+
+def owner_guidance(path: str | None = None, feedback: list[dict] | None = None) -> list[str]:
+    """Everything the owner has said when rejecting drafts, for the next draft: the standing rules merged from his comments
+    (data/lessons.json), then every written comment left after those were merged, word for word. Nothing is dropped: an earlier
+    version passed only the last 8 entries, most of them blank, so 5 of his 7 written comments never reached a draft."""
+    lessons = _load(path or LESSONS_PATH, {})
+    covered = lessons.get("covered_through", "")
+    feedback = load_feedback() if feedback is None else feedback
+    newer = [f["comment"].strip() for f in feedback if f.get("comment", "").strip() and f.get("date", "") > covered]
+    return list(lessons.get("writing", [])) + [f"(newer comment, follow it over any rule above) {c}" for c in newer]
+
+
 def story_text(story: dict) -> str:
     lines = [f"Question: {story['question']}", f"How it was tested: {story['test']}", "Results:"]
     lines += [f"- {r['label']}: {r['value']}" for r in story["results"]]
