@@ -215,5 +215,16 @@
     "rules": [
       "unsupported by the facts: Claim that the project 'now provides a clear method to evaluate ordering strategies against a baseline before committing to a prediction'."
     ]
+  },
+  {
+    "date": "2026-11-03",
+    "story_id": "ai-ml-data-science-simulation-2",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claim that the simulation generates weekly replenishment recommendations (not stated in facts)",
+      "unsupported by the facts: Opening statement that a forecast only matters if it cuts stock‑outs (opinion not supported by facts)",
+      "unsupported by the facts: Assertion that the result lets a retailer base each replenishment on a data‑driven prediction (user claim not in facts)",
+      "reading flow: The opening claim about forecast relevance does not smoothly connect to the subsequent description of the project, causing a drop in narrative flow"
+    ]
   }
 ]
