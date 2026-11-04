@@ -283,5 +283,18 @@
       "repetition: the number 1 appears 3 times; state each number once, twice at most",
       "number 16% is not in the story"
     ]
+  },
+  {
+    "date": "2026-11-04",
+    "story_id": "extending-stem-across-asl-3",
+    "comment": "Closing line is a general claim; end on the concrete result, then the question. The image is a chart of numbers the text already states; media must show something the text does not."
+  },
+  {
+    "date": "2026-11-04",
+    "story_id": "automated-daily-data-insights-2",
+    "comment": "",
+    "rules": [
+      "media: the only image for this story repeats numbers the post already states"
+    ]
   }
 ]
