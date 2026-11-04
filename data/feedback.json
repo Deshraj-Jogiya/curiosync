@@ -263,5 +263,16 @@
     "rules": [
       "repetition: \"At the default threshold the model found about hal...\" uses 'precision' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-03",
+    "story_id": "sentence-transformers-multi-task-learnin-1",
+    "comment": "",
+    "rules": [
+      "closing: the result paragraph is a general claim (\"this approach ensures/enables...\"); state the concrete result: what someone can now do, or the number the work reached",
+      "repetition: \"I built it because ready‑made embedding models lef...\" uses 'model' twice in one sentence",
+      "repetition: \"The training loss fell from 1.779 in epoch 1 to 1....\" uses 'epoch' twice in one sentence",
+      "repetition: \"When I ran greedy decoding, the answer to the open...\" uses 'prompt' twice in one sentence"
+    ]
   }
 ]
