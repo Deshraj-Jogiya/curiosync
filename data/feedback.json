@@ -255,5 +255,13 @@
       "reading flow: First sentence jumps to a conclusion about higher dosage improving outcomes without explaining why or linking to the subsequent analysis.",
       "reading flow: The statement about dashboards displaying the trade‑off follows the result interpretation but does not explicitly connect how the dashboards were updated based on the chi‑square findings."
     ]
+  },
+  {
+    "date": "2026-11-03",
+    "story_id": "talentvenue-eventintel-enterprise-data-p-1",
+    "comment": "",
+    "rules": [
+      "repetition: \"At the default threshold the model found about hal...\" uses 'precision' twice in one sentence"
+    ]
   }
 ]
