@@ -296,5 +296,15 @@
     "rules": [
       "media: the only image for this story repeats numbers the post already states"
     ]
+  },
+  {
+    "date": "2026-11-04",
+    "story_id": "real-time-iot-telematics-predictive-main-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claim that predictive maintenance alerts must be precise or they will be ignored – no evidence in the provided facts.",
+      "unsupported by the facts: General statement that a sensor drift/spike can mean a failing part and that frequent alarms get ignored – not supported by the facts.",
+      "reading flow: Redundant paragraph repeating the same alert count and performance metrics without adding new information, causing a break in narrative flow."
+    ]
   }
 ]
