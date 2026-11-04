@@ -99,5 +99,26 @@
     "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nWhen forests burn or farmland turns into suburbs, a state stores or releases a different amount of carbon. I wanted to learn how that is measured from public records, so Multi-State Land Use Emissions Analysis processes daily land-cover data for five U.S. states. The daily files are simulated, but the emission factors and historical inventory come from the EPA.\n\nChange like this is often slow, so predicting next year as a copy of this one is a strong competitor. To see if learning from history helps more than repetition, I compared Linear Regression and Random Forest against that naive baseline.\n\nThe test used the EPA's 25 annual series. I trained on data up to 2017 and scored predictions for 2018 through 2022. Linear Regression reached an accuracy of 0.9418 and Random Forest 0.9329. Copying the previous value reached 0.947.\n\nNeither one beat it, so the report now shows the copy-last-year number next to every score.\n\nIf you forecast a slow-moving series, do you report a copy-last-year baseline next to every model score?\n\n#DataEngineering #MachineLearning",
     "story_id": "multi-state-land-use-emissions-analysis-1",
     "approved_id": "draft-40578570120"
+  },
+  {
+    "date": "2026-11-04",
+    "format": "lesson",
+    "subject": "Job Market Lakehouse",
+    "hook_type": "measured_result",
+    "opener_words": [
+      "a",
+      "june",
+      "2025",
+      "query",
+      "on",
+      "my",
+      "job",
+      "market",
+      "lakehouse",
+      "read"
+    ],
+    "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 19 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\nIf you split a table by month, how do you confirm the engine actually skips the other partitions?\n\n#DataEngineering #HiveQL",
+    "story_id": "job-market-lakehouse-1",
+    "approved_id": "draft-40832967316"
   }
 ]

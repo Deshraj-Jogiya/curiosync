@@ -274,5 +274,14 @@
       "repetition: \"The training loss fell from 1.779 in epoch 1 to 1....\" uses 'epoch' twice in one sentence",
       "repetition: \"When I ran greedy decoding, the answer to the open...\" uses 'prompt' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-04",
+    "story_id": "extending-stem-across-asl-1",
+    "comment": "",
+    "rules": [
+      "repetition: the number 1 appears 3 times; state each number once, twice at most",
+      "number 16% is not in the story"
+    ]
   }
 ]
