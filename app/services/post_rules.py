@@ -352,6 +352,16 @@ def name_words(name: str) -> set[str]:
     return {_stem(w) for w in re.findall(r"[a-z][a-z'-]+", name.lower()) if len(w) >= 4 and w not in _COMMON}
 
 
+def _names_a_measure(stem: str, sentence: str) -> bool:
+    """True when every use of the word in the sentence sits within 3 words of a number: a comparison that names its measure once
+    per value ("from 1.779 in epoch 1 to 1.21 in epoch 3", "a top-1 score of 0.76 and a top-3 score of 0.93"). The owner's
+    2026-10-29 comment was about filler said again, not a measure named next to each of its values."""
+    tokens = sentence.lower().split()
+    uses = [i for i, t in enumerate(tokens) if any(_stem(w) == stem for w in re.findall(r"[a-z][a-z'-]+", t))]
+    has_number = [bool(re.search(r"\d", t)) for t in tokens]
+    return len(uses) > 1 and all(any(has_number[max(0, i - 3):i + 4]) for i in uses)
+
+
 def repetition_problems(text: str, exempt: set[str] | frozenset = frozenset()) -> list[str]:
     """Words and numbers the post keeps repeating: a content word more than MAX_WORD_USES times, the same content word twice in
     one sentence, or a number stated more than MAX_NUMBER_USES times. exempt: stemmed words of the project's own name, which a
@@ -375,7 +385,7 @@ def repetition_problems(text: str, exempt: set[str] | frozenset = frozenset()) -
         for w in re.findall(r"[a-z][a-z'-]+", sentence.lower()):
             if len(w) >= 4 and w not in _COMMON and _stem(w) not in exempt:
                 seen[_stem(w)] = seen.get(_stem(w), 0) + 1
-        doubled = [w for w, n in seen.items() if n > 1]
+        doubled = [w for w, n in seen.items() if n > 1 and not _names_a_measure(w, sentence)]
         if doubled:
             problems.append(f"repetition: \"{sentence.strip()[:50]}...\" uses '{doubled[0]}' twice in one sentence")
     numbers: dict[str, int] = {}

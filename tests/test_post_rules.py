@@ -259,3 +259,12 @@ def test_thin_space_thousands_are_one_number():
     assert unsupported_numbers("7 038.2 units short", src) == []
     assert unsupported_numbers("7 038.2 units short", src) == []
     assert comma_thousands("7 038.2") == "7,038.2"
+
+
+def test_a_measure_named_next_to_each_value_is_not_a_repeat():
+    from app.services.post_rules import repetition_problems
+
+    assert repetition_problems("The training loss fell from 1.779 in epoch 1 to 1.21 in epoch 3.") == []
+    assert repetition_problems("The answer was a top-1 score of 0.7586 and a top-3 score of 0.93.") == []
+    # Filler said again with no value next to it still counts.
+    assert repetition_problems("The model helped, and the model improved the whole model pipeline.")
