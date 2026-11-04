@@ -126,7 +126,7 @@ async def run_daily_pipeline(
         story, story_item, feedback = None, None, []
         if use_stories:
             from app.services.post_plan import candidates, load_notes
-            from app.services.story_bank import owner_guidance, pick_story, refill
+            from app.services.story_bank import owner_guidance, pick_story, refill, with_excerpt
 
             items = candidates(profile, "project", load_notes())
             try:
@@ -144,6 +144,7 @@ async def run_daily_pipeline(
                     await session.commit()
                 return {"status": "skipped", "reason": "No story is ready to write from.", "steps": steps}
             story, story_item = picked
+            story = await with_excerpt(story, story_item)
             feedback = owner_guidance()
         try:
             post = await generate_post(fmt, profile, settings, date_for, deduped, history, story=story, item=story_item,

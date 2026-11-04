@@ -89,19 +89,101 @@ def story_text(story: dict) -> str:
     lines.append(f"Decision: {story['decision']}")
     if story.get("detail"):
         lines.append(f"Detail: {story['detail']}")
+    if story.get("excerpt"):
+        lines.append("From the project's own write-up (the full section this story was taken from):\n" + story["excerpt"])
     return "\n".join(lines)
 
 
+MAX_EXCERPT_CHARS = 3000
+
+
+def _words(text: str) -> set[str]:
+    return {w for w in re.findall(r"[a-z0-9]+", text.lower().replace("’", "'")) if len(w) > 3}
+
+
+def section_for(docs: str, question: str) -> str:
+    """The part of the project's documents that a story was mined from: the markdown section whose heading best matches the story's
+    question (at least half its words), up to the next heading of the same or a higher level. Empty when nothing matches."""
+    want = _words(question)
+    if not want:
+        return ""
+    lines = docs.splitlines()
+    best, best_i = 0.0, -1
+    for i, line in enumerate(lines):
+        if line.startswith("#") and not line.startswith("# FILE:"):
+            got = len(want & _words(line)) / len(want)
+            if got > best:
+                best, best_i = got, i
+    if best < 0.5:
+        return ""
+    level = len(lines[best_i]) - len(lines[best_i].lstrip("#"))
+    out = [lines[best_i]]
+    for line in lines[best_i + 1:]:
+        if line.startswith("#") and (len(line) - len(line.lstrip("#"))) <= level:
+            break
+        out.append(line)
+    return "\n".join(out).strip()[:MAX_EXCERPT_CHARS]
+
+
+def section_with_numbers(docs: str, story: dict) -> str:
+    """When no heading names the story's question: the section (between two headings) that states the most of the story's own result
+    values, if it states at least two of them."""
+    values = {str(r.get("value", "")).strip().rstrip("%") for r in story.get("results", [])}
+    values = {v for v in values if re.search(r"\d", v)}
+    sections, current = [], []
+    for line in docs.splitlines():
+        if line.startswith("#") and current:
+            sections.append(current)
+            current = []
+        current.append(line)
+    if current:
+        sections.append(current)
+    best, best_n = None, 1
+    for sec in sections:
+        text = "\n".join(sec).replace(",", "")
+        n = sum(1 for v in values if v.replace(",", "") in text)
+        if n > best_n:
+            best, best_n = sec, n
+    return "\n".join(best).strip()[:MAX_EXCERPT_CHARS] if best else ""
+
+
+async def with_excerpt(story: dict, item: dict) -> dict:
+    """The story plus its full section from the repository's own documents, so the writer and the fact check see every detail the
+    project states (the 2026-11-03 drafts were rejected for "weekly" reordering, which FINDINGS says but the short story did not)."""
+    try:
+        docs, _ = await fetch_docs(item.get("github_url", ""))
+    except Exception as exc:
+        logger.warning("Could not read the documents for %s: %s", item.get("title"), exc)
+        return story
+    excerpt = section_for(docs, story.get("question", "")) or section_with_numbers(docs, story)
+    return {**story, "excerpt": excerpt} if excerpt else story
+
+
+RULE_FAIL_REST_DAYS = 3
+
+
 def _rejections(story_id: str, feedback: list[dict]) -> int:
-    return sum(1 for f in feedback if f.get("story_id") == story_id)
+    """How often the owner rejected a draft of this story. A draft that failed the automatic rules (an entry with "rules") is the
+    writer's failure, not his: counting those dropped 3 good stories on 2026-11-03 alone."""
+    return sum(1 for f in feedback if f.get("story_id") == story_id and "rules" not in f)
 
 
-def unused(history: list[dict], stories: list[dict] | None = None, feedback: list[dict] | None = None) -> list[dict]:
-    """Stories not yet posted (or waiting in the approved queue, which counts as history) and not rejected twice."""
+def _resting(story_id: str, feedback: list[dict], today: date) -> bool:
+    """A story whose draft failed the rules rests a few days, so a same-day retry tries another story; it comes back after."""
+    since = str(today - timedelta(days=RULE_FAIL_REST_DAYS))
+    return any(f.get("story_id") == story_id and "rules" in f and f.get("date", "") > since for f in feedback)
+
+
+def unused(history: list[dict], stories: list[dict] | None = None, feedback: list[dict] | None = None,
+           today: date | None = None) -> list[dict]:
+    """Stories not yet posted (or waiting in the approved queue, which counts as history), not rejected twice by the owner, and not
+    resting after a recent failed draft."""
     stories = load_stories() if stories is None else stories
     feedback = load_feedback() if feedback is None else feedback
+    today = today or date.today()
     taken = {h.get("story_id") for h in history}
-    return [s for s in stories if s["id"] not in taken and _rejections(s["id"], feedback) < 2]
+    return [s for s in stories if s["id"] not in taken and _rejections(s["id"], feedback) < 2
+            and not _resting(s["id"], feedback, today)]
 
 
 def _skills_recently_featured(history: list[dict], stories: list[dict]) -> set[str]:
@@ -128,7 +210,7 @@ def pick_story(items: list[dict], history: list[dict], stories: list[dict] | Non
         return len({k.lower() for k in story.get("skills", [])} - featured)
 
     order = {t: n for n, t in enumerate(by_title)}
-    candidates = [s for s in unused(history, stories, feedback) if s["subject"] in by_title]
+    candidates = [s for s in unused(history, stories, feedback, today) if s["subject"] in by_title]
     if candidates:
         best = min(candidates, key=lambda s: (last_posted(s["subject"]), -new_skills(s), order[s["subject"]]))
         return best, by_title[best["subject"]]

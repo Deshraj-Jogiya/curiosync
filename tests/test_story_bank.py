@@ -250,3 +250,36 @@ def test_lessons_file_merges_every_written_comment():
     assert len(written) >= 7
     assert all(f["date"] <= lessons["covered_through"] for f in written)
     assert len(lessons["writing"]) >= 5 and lessons["media"]
+
+
+def test_rule_failures_do_not_count_as_owner_rejections():
+    from datetime import date
+
+    from app.services.story_bank import _rejections, unused
+
+    story = {"id": "s1", "subject": "P"}
+    fails = [{"date": "2026-11-01", "story_id": "s1", "comment": "", "rules": ["x"]}] * 3
+    assert _rejections("s1", fails) == 0
+    assert unused([], [story], fails, date(2026, 11, 3)) == []  # resting the day after a failed draft
+    assert unused([], [story], fails, date(2026, 11, 6)) == [story]  # back after the rest
+    owner = [{"date": "2026-10-01", "story_id": "s1", "comment": "no"}] * 2
+    assert unused([], [story], owner, date(2026, 11, 6)) == []
+
+
+def test_section_for_finds_the_story_in_the_write_up():
+    from app.services.story_bank import section_for, section_with_numbers
+
+    docs = ("# FILE: docs/FINDINGS.md\n## Does reordering from the forecast beat last week's sales?\nA weekly reorder was simulated."
+            "\n| 51 | 7038.2 |\n## Another question\nother")
+    got = section_for(docs, "Does reordering from the forecast beat reordering from last week’s sales?")
+    assert "weekly reorder" in got and "Another" not in got
+    assert section_for(docs, "Something unrelated entirely here") == ""
+    story = {"results": [{"value": "51"}, {"value": "7038.2"}]}
+    assert "weekly reorder" in section_with_numbers(docs, story)
+
+
+def test_story_text_carries_the_excerpt():
+    from app.services.story_bank import story_text
+
+    s = {"question": "q", "test": "t", "results": [], "decision": "d", "excerpt": "A weekly reorder was simulated."}
+    assert "weekly reorder" in story_text(s)
