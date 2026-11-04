@@ -2,10 +2,13 @@ name: Daily LinkedIn draft (approve ahead, posts Mon/Wed/Fri) & TIL Generator
 
 on:
   schedule:
-    # Run daily at 13:00 UTC (6:00 AM MST / America/Phoenix timezone)
-    - cron: '0 13 * * *'
-    # Backup in case GitHub delays or drops the first one; the once_a_day job lets only the first scheduled run of the day draft.
-    - cron: '30 17 * * *'
+    # Daily from 13:17 UTC (6:17 AM Arizona). GitHub delays runs set on the hour the most: from Oct 27 to Nov 4 the 13:00 run started
+    # 4.5 to 9 hours late, and on Nov 4 not at all by 18:38. Off-the-hour times plus backups; the once_a_day job lets only the first
+    # scheduled run of the day publish and draft, so the later ones do nothing.
+    - cron: '17 13 * * *'
+    - cron: '43 14 * * *'
+    - cron: '11 16 * * *'
+    - cron: '37 17 * * *'
   workflow_dispatch:
     # Allows manual triggering from the GitHub Actions tab. A preview drafts a brand-new post of the chosen type and shows it on the
     # run page with its image; it skips the approved queue and is never offered for publishing.

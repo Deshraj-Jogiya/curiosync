@@ -392,7 +392,9 @@ def repetition_problems(text: str, exempt: set[str] | frozenset = frozenset()) -
     for n in re.findall(r"\d[\d,.]*\d|\d", body):
         numbers[n] = numbers.get(n, 0) + 1
     for n, k in numbers.items():
-        if k > MAX_NUMBER_USES:
+        # A single digit is a label ("top-1", "epoch 1", "3 branches"), not a result stated again; the same exemption as
+        # unsupported_numbers' small counts.
+        if k > MAX_NUMBER_USES and not (len(n) == 1 and n.isdigit()):
             problems.append(f"repetition: the number {n} appears {k} times; state each number once, twice at most")
     return problems
 

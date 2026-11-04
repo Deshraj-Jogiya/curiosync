@@ -268,3 +268,11 @@ def test_a_measure_named_next_to_each_value_is_not_a_repeat():
     assert repetition_problems("The answer was a top-1 score of 0.7586 and a top-3 score of 0.93.") == []
     # Filler said again with no value next to it still counts.
     assert repetition_problems("The model helped, and the model improved the whole model pipeline.")
+
+
+def test_single_digit_labels_are_not_a_repeated_number():
+    from app.services.post_rules import repetition_problems
+
+    text = "Top-1 was 0.7586. Epoch 1 began it. Branch 1 was first, then test 1 ended."
+    assert not any("number 1 " in p for p in repetition_problems(text))
+    assert any("0.75" in p for p in repetition_problems("0.75 then 0.75 and 0.75 again."))
