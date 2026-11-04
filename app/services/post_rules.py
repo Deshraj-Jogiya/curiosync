@@ -401,7 +401,11 @@ def repetition_problems(text: str, exempt: set[str] | frozenset = frozenset()) -
 
 # A closer that claims a benefit in general terms instead of stating what the work does or reached.
 _VAGUE_CLOSE = re.compile(r"\b(?:this|the|my) (?:approach|work|solution|system|project|change|decision|design|setup|pipeline|platform|method|tool)\b[^.]{0,40}\b(?:ensures?|enables?|"
-                          r"allows?|helps?|lets|makes?|paves?|drives?|empowers?|guarantees?)\b", re.IGNORECASE)
+                          r"allows?|helps?|lets|makes?|making|keeps?|paves?|drives?|empowers?|guarantees?)\b"
+                          # "This keeps live classification responsive, making STEM learning accessible": a claim with no noun
+                          # after "This" (ASL draft, 2026-11-04; the owner rejected the same close on 2026-10-28).
+                          r"|^\s*(?:this|that|it)\s+(?:keeps|ensures|enables|allows|helps|lets|makes|means|gives|brings|delivers|"
+                          r"paves|drives|empowers|guarantees|supports|improves)\b", re.IGNORECASE)
 
 _METRIC = re.compile(r"\d+(?:\.\d+)?\s?%|\b0\.\d+|\b\d+(?:\.\d+)?x\b")
 

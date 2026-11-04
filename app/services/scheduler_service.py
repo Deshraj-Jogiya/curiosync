@@ -214,6 +214,17 @@ async def run_daily_pipeline(
         except Exception as img_err:
             logger.error("Failed to build the post image: %s", img_err)
         steps["visual"] = visual_kind
+        if story and "repeats the post" in visual_kind:
+            # Media must show something the text does not (owner, 2026-10-27 and 2026-10-31). With only a chart of numbers the post
+            # already states, the draft fails like any other rule, so the retry writes about another story.
+            problems = ["media: the only image for this story repeats numbers the post already states"]
+            steps["generate_draft"] = f"rejected after rewrites: {problems}"
+            await record_scheduler_run(session, run_type, "skipped", "Draft failed the post rules", steps)
+            if own_session:
+                await session.commit()
+            return {"status": "skipped", "reason": f"No draft passed the post rules: {problems}", "steps": steps,
+                    "rejected_draft": draft_text, "problems": problems, "format": fmt, "subject": subject,
+                    "story_id": story["id"]}
 
         history_entry = {
             "date": str(date_for),

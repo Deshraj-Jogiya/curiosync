@@ -276,3 +276,12 @@ def test_single_digit_labels_are_not_a_repeated_number():
     text = "Top-1 was 0.7586. Epoch 1 began it. Branch 1 was first, then test 1 ended."
     assert not any("number 1 " in p for p in repetition_problems(text))
     assert any("0.75" in p for p in repetition_problems("0.75 then 0.75 and 0.75 again."))
+
+
+def test_a_this_keeps_close_is_a_general_claim():
+    from app.services.post_rules import flow_problems
+
+    text = ("First line here.\n\nBody one says what it is.\n\nBody two says the test.\n\n"
+            "This keeps live webcam classification responsive, making STEM learning accessible without noticeable delays.\n\n"
+            "When a pipeline has one slow stage, do you build it once and reuse it across requests or scale it out?")
+    assert any(p.startswith("closing: the result paragraph is a general claim") for p in flow_problems(text))
