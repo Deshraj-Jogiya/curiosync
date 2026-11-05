@@ -306,5 +306,13 @@
       "unsupported by the facts: General statement that a sensor drift/spike can mean a failing part and that frequent alarms get ignored – not supported by the facts.",
       "reading flow: Redundant paragraph repeating the same alert count and performance metrics without adding new information, causing a break in narrative flow."
     ]
+  },
+  {
+    "date": "2026-11-05",
+    "story_id": "fintech-credit-risk-fraud-command-center-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: The specific struggle/concern that careless thresholding could deny too many safe requests."
+    ]
   }
 ]
