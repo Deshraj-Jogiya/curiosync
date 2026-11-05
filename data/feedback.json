@@ -314,5 +314,16 @@
     "rules": [
       "unsupported by the facts: The specific struggle/concern that careless thresholding could deny too many safe requests."
     ]
+  },
+  {
+    "date": "2026-11-05",
+    "story_id": "clinical-trials-patient-outcomes-analysi-3",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: 'script' is used 6 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: 'separate' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: \"That finding made the choice clear: make_report.py...\" uses 'report' twice in one sentence"
+    ]
   }
 ]
