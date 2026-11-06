@@ -333,5 +333,14 @@
     "rules": [
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
     ]
+  },
+  {
+    "date": "2026-11-06",
+    "story_id": "sentence-transformers-multi-task-learnin-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claiming the project is 'built on simulated data' is unsupported; while the multi-task BERT loop used synthetic data, the LoRA fine-tuning featured in this story used a real dataset subset (Databricks Dolly-15k).",
+      "reading flow: The automated test in paragraph 7 is described without explaining why it was needed or how it connects to the fine-tuning workflow."
+    ]
   }
 ]
