@@ -120,5 +120,26 @@
     "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 19 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\nIf you split a table by month, how do you confirm the engine actually skips the other partitions?\n\n#DataEngineering #HiveQL",
     "story_id": "job-market-lakehouse-1",
     "approved_id": "draft-40832967316"
+  },
+  {
+    "date": "2026-11-06",
+    "format": "decision",
+    "subject": "AI Model Observability & Fairness Audits",
+    "hook_type": "decision_cost",
+    "opener_words": [
+      "a",
+      "drift",
+      "alert",
+      "is",
+      "only",
+      "worth",
+      "something",
+      "if",
+      "you",
+      "act"
+    ],
+    "text": "A drift alert is only worth something if you act on it. Acting on mine ended the run at 83% accuracy instead of 66%.\n\nAI Model Observability & Fairness Audits is a portfolio project that watches a deployed classifier's inputs and decisions every day: drift tests on the features, bias checks by gender and age group, and a table of flagged problems a reviewer reads instead of every metric. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, an engineer has to keep adapting.\n\nIt runs on simulated data: 60 days of predictions, with drift injected partway through. A Kolmogorov-Smirnov test raised the first alert on day 40, without waiting for any outcome labels. That left a decision to make: keep the deployed model, or retrain it.\n\nSo I replayed the rest of the run both ways. The catch is that outcomes arrive late, so the retrained version could only learn from the most recent week of labels, each one 7 days old.\n\nLeft alone, the model slid from 99.88% accuracy to 66%. Retrained every day on those delayed labels, it finished at 83%, and its total accuracy shortfall over the period was 32.6% smaller.\n\nThe alert now triggers that daily retrain, so recovery starts the day the data shifts, not when someone notices accuracy falling.\n\nIf you monitor a model whose labels arrive late, do you retrain on a fixed schedule or only when a drift alert fires?\n\n#MachineLearning #DataEngineering",
+    "story_id": "ai-model-observability-fairness-audits-1",
+    "approved_id": "owner-2026-11-06-observability"
   }
 ]
