@@ -143,8 +143,8 @@ async def test_profile_unavailable_fails_without_drafting(test_db):
 async def test_blocking_compliance_issue_stops_the_draft(test_db):
     blocked = {"passed": False, "issues": ["x"], "blocking": ["Contains a link or domain name"]}
     result, _ = await _run(test_db, date(2026, 9, 14), check_compliance=lambda t, i: blocked)
-    assert result["status"] == "failed"
-    assert "blocked" in result["error"].lower()
+    assert result["status"] == "skipped"
+    assert "blocked" in result["reason"].lower() and result["problems"]
 
 
 @pytest.mark.asyncio

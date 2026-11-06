@@ -80,7 +80,10 @@ def clean_special_characters(text: str) -> str:
 _URL_PATTERN = re.compile(r"(?:https?://|www\.)\S+")
 _DOMAIN_PATTERN = re.compile(r"\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|io|dev|org|ai|net|app|co|me)(?:/\S*)?(?![\w.])")
 _SELF_REFERENCE_PATTERN = re.compile(
-    r"curiosync|this post was (?:fully )?(?:compiled|generated|published|written|automated)|automated pipeline", re.IGNORECASE
+    # "automated pipeline" alone describes many of the owner's projects (Automated Daily Data Insights, 2026-11-05); only the post
+    # itself coming from one is a self-reference.
+    r"curiosync|this post was (?:fully )?(?:compiled|generated|published|written|automated)"
+    r"|(?:compiled|generated|published|posted|written) (?:by|through|via|from|with) an? automated pipeline", re.IGNORECASE
 )
 
 

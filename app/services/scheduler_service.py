@@ -164,10 +164,13 @@ async def run_daily_pipeline(
         compliance = check_compliance(draft_text, deduped)
         steps["compliance_check"] = "passed" if not compliance["blocking"] else f"blocked: {compliance['blocking']}"
         if compliance["blocking"]:
-            await record_scheduler_run(session, run_type, "failed", "Blocked by compliance", steps)
+            await record_scheduler_run(session, run_type, "skipped", "Blocked by compliance", steps)
             if own_session:
                 await session.commit()
-            return {"status": "failed", "error": f"Draft blocked: {compliance['blocking']}", "steps": steps}
+            # Failed like any rule, so the day's retry still runs; this used to end the run with an error and no retry.
+            return {"status": "skipped", "reason": f"Draft blocked: {compliance['blocking']}", "steps": steps,
+                    "rejected_draft": draft_text, "problems": compliance["blocking"], "format": fmt, "subject": subject,
+                    "story_id": story["id"] if story else None}
         sources_list = [{"title": i["title"], "source_name": i["source_name"]} for i in deduped]
 
         # Save draft to DB
