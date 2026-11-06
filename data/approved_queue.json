@@ -1,144 +1,175 @@
 [
- {
-  "id": "round2-post2-assistant",
-  "format": "project_spotlight",
-  "subject": "Portfolio assistant fallback",
-  "hook_type": "measured_result",
-  "text": "When Gemini fails, the chat assistant on my portfolio still answers, with no AI model at all. It got 92.5% of test questions right.\n\nWithout a backup, a failed Gemini call means a recruiter's question gets no answer. So I built one that runs in the browser: every fact on the site (each job, project, skill and certificate) is stored as a short passage, a question is matched to passages by keywords and by meaning, and a small ranking model picks the best one. The answer is that passage with its source, so it can't make anything up.\n\nTo test it, I wrote 120 questions a recruiter might ask, including typos and questions it should refuse, like salary, visa status and skills not in my profile. I tuned on 80 and kept 40 aside until the end. The 92.5% is on those 40.\n\nThe biggest gain came from teaching it when not to answer. Refusing when the ranking model's confidence is low added 4 points, and fixed refusal topics for pay, work authorization and personal details added 7. Together that is more than the ranking model itself added, 10 points.\n\nSpeed was the other problem: the first version took 7.5 s per answer. Shorter inputs and a smaller ranking model brought it to 0.9 s, and its 57 MB of files download only the first time Gemini fails. It still misses some vague questions, like \"what has he been working on recently\".\n\nSo a recruiter who asks about my work gets an answer quoted from my own profile, with its source, even when the AI behind the site is down.\n\nIf you've built retrieval over a small set of documents, how do you decide when it should refuse instead of answer?\n\n#MachineLearning #NLP",
-  "image": "assets/approved/round2_post2_assistant.png",
-  "alt_text": "Scatter chart of test questions answered right against download size for each assistant design: keywords only 63 percent at 0 MB, with decline rules 70 percent, MiniLM with the L6 reranker 83 percent at 46 MB, MiniLM with L12 85 percent and 90 percent with decline rules at 57 MB, bge-small with L12 92.5 percent at 68 MB. The shipped design, bge-small with L6, reaches 92.5 percent at 57 MB and about 0.9 seconds per answer."
- },
- {
-  "id": "round2-post3-tax",
-  "format": "lesson",
-  "subject": "Tax Anomaly Audit Compliance Engine",
-  "hook_type": "measured_result",
-  "text": "An auditor checking a ledger in order opens 1,108 entries to find 90% of the problems. Sorted by my risk score, they open 43.\n\nThe ledger is simulated. I generated the entries and planted 47 problems, listed in a separate table that the detection code never reads, so every result can be checked against the right answers.\n\nEach entry gets three checks. Benford's Law: in many real financial datasets about 30% of amounts start with 1, so amounts that break that pattern score higher. An Isolation Forest, a model that flags amounts and tax ratios unlike the rest. And a tax-rate rule that flags any claim whose rate doesn't match its category. The pipeline runs in Dagster, so each step can be rerun on its own.\n\nScoring each check on its own changed how I read the results. The plain tax-rate rule found 45 of the 47 problems and flagged nothing wrongly. The model found 18, and the rule had already found all 18.\n\nSo the rule's 45 flags go first, and every one is a real problem: that alone gets an auditor to 90% in 43 entries. The model and Benford's Law rank the rest, and the 2 problems the rule missed come up at entries 131 and 137 of 1,200.\n\nOn a real ledger I would start the same way: measure the simple rules alone first, then use a model to rank what they leave.\n\nHow do you get labels for a real ledger when nobody plants the answers?\n\n#DataEngineering #AnomalyDetection",
-  "image": "assets/approved/round2_post3_tax.png",
-  "alt_text": "Line chart of planted anomalies found against entries opened, on simulated data. In risk order, 90 percent of anomalies are found after 43 entries; in ledger order it takes 1,108. 96 percent less review work for the same 90 percent."
- },
- {
-  "id": "draft-40464599596",
-  "format": "decision",
-  "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
-  "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
-  "image": "assets/approved/draft-40464599596.png",
-  "alt_text": "Process chart: QA System Accuracy on Member Messages. Member identification 100%; then Message retrieval 96%; then Answer extraction 96% (accuracy). The one miss asks for Lorenzo's Thursday booking; the top-ranked message is his Saturday dinner at The Fat Duck.",
-  "post_day": "2026-10-30",
-  "history_entry": {
-   "date": "2026-10-30",
-   "format": "decision",
-   "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
-   "hook_type": "decision_cost",
-   "opener_words": [
-    "i",
-    "chose",
-    "embeddings",
-    "based",
-    "semantic",
-    "search",
-    "for",
-    "member",
-    "questions",
-    "ruling"
-   ],
-   "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
-   "story_id": "member-messages-qa-system-semantic-searc-1"
+  {
+    "id": "round2-post2-assistant",
+    "format": "project_spotlight",
+    "subject": "Portfolio assistant fallback",
+    "hook_type": "measured_result",
+    "text": "When Gemini fails, the chat assistant on my portfolio still answers, with no AI model at all. It got 92.5% of test questions right.\n\nWithout a backup, a failed Gemini call means a recruiter's question gets no answer. So I built one that runs in the browser: every fact on the site (each job, project, skill and certificate) is stored as a short passage, a question is matched to passages by keywords and by meaning, and a small ranking model picks the best one. The answer is that passage with its source, so it can't make anything up.\n\nTo test it, I wrote 120 questions a recruiter might ask, including typos and questions it should refuse, like salary, visa status and skills not in my profile. I tuned on 80 and kept 40 aside until the end. The 92.5% is on those 40.\n\nThe biggest gain came from teaching it when not to answer. Refusing when the ranking model's confidence is low added 4 points, and fixed refusal topics for pay, work authorization and personal details added 7. Together that is more than the ranking model itself added, 10 points.\n\nSpeed was the other problem: the first version took 7.5 s per answer. Shorter inputs and a smaller ranking model brought it to 0.9 s, and its 57 MB of files download only the first time Gemini fails. It still misses some vague questions, like \"what has he been working on recently\".\n\nSo a recruiter who asks about my work gets an answer quoted from my own profile, with its source, even when the AI behind the site is down.\n\nIf you've built retrieval over a small set of documents, how do you decide when it should refuse instead of answer?\n\n#MachineLearning #NLP",
+    "image": "assets/approved/round2_post2_assistant.png",
+    "alt_text": "Scatter chart of test questions answered right against download size for each assistant design: keywords only 63 percent at 0 MB, with decline rules 70 percent, MiniLM with the L6 reranker 83 percent at 46 MB, MiniLM with L12 85 percent and 90 percent with decline rules at 57 MB, bge-small with L12 92.5 percent at 68 MB. The shipped design, bge-small with L6, reaches 92.5 percent at 57 MB and about 0.9 seconds per answer."
   },
-  "approved_by": "owner in chat 2026-10-27 (text from run 40464599596, image redrawn as a stage flow)"
- },
- {
-  "id": "draft-40578570120",
-  "format": "project_spotlight",
-  "subject": "Multi-State Land Use Emissions Analysis",
-  "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nWhen forests burn or farmland turns into suburbs, a state stores or releases a different amount of carbon. I wanted to learn how that is measured from public records, so Multi-State Land Use Emissions Analysis processes daily land-cover data for five U.S. states. The daily files are simulated, but the emission factors and historical inventory come from the EPA.\n\nChange like this is often slow, so predicting next year as a copy of this one is a strong competitor. To see if learning from history helps more than repetition, I compared Linear Regression and Random Forest against that naive baseline.\n\nThe test used the EPA's 25 annual series. I trained on data up to 2017 and scored predictions for 2018 through 2022. Linear Regression reached an accuracy of 0.9418 and Random Forest 0.9329. Copying the previous value reached 0.947.\n\nNeither one beat it, so the report now shows the copy-last-year number next to every score.\n\nIf you forecast a slow-moving series, do you report a copy-last-year baseline next to every model score?\n\n#DataEngineering #MachineLearning",
-  "image": "assets/approved/draft-40578570120.png",
-  "alt_text": "Bar chart, EPA real land‑use flux forecast accuracy: Linear Regression accuracy 0.9418; Random Forest accuracy 0.9329; Last year's value accuracy 0.947. Simulated data.",
-  "post_day": "2026-11-02",
-  "history_entry": {
-   "date": "2026-11-02",
-   "format": "project_spotlight",
-   "subject": "Multi-State Land Use Emissions Analysis",
-   "hook_type": "claim",
-   "opener_words": [
-    "forecasting",
-    "emissions",
-    "by",
-    "copying",
-    "last",
-    "year",
-    "beats",
-    "two",
-    "standard",
-    "models"
-   ],
-   "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nWhen forests burn or farmland turns into suburbs, a state stores or releases a different amount of carbon. I wanted to learn how that is measured from public records, so Multi-State Land Use Emissions Analysis processes daily land-cover data for five U.S. states. The daily files are simulated, but the emission factors and historical inventory come from the EPA.\n\nChange like this is often slow, so predicting next year as a copy of this one is a strong competitor. To see if learning from history helps more than repetition, I compared Linear Regression and Random Forest against that naive baseline.\n\nThe test used the EPA's 25 annual series. I trained on data up to 2017 and scored predictions for 2018 through 2022. Linear Regression reached an accuracy of 0.9418 and Random Forest 0.9329. Copying the previous value reached 0.947.\n\nNeither one beat it, so the report now shows the copy-last-year number next to every score.\n\nIf you forecast a slow-moving series, do you report a copy-last-year baseline next to every model score?\n\n#DataEngineering #MachineLearning",
-   "story_id": "multi-state-land-use-emissions-analysis-1"
+  {
+    "id": "round2-post3-tax",
+    "format": "lesson",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "hook_type": "measured_result",
+    "text": "An auditor checking a ledger in order opens 1,108 entries to find 90% of the problems. Sorted by my risk score, they open 43.\n\nThe ledger is simulated. I generated the entries and planted 47 problems, listed in a separate table that the detection code never reads, so every result can be checked against the right answers.\n\nEach entry gets three checks. Benford's Law: in many real financial datasets about 30% of amounts start with 1, so amounts that break that pattern score higher. An Isolation Forest, a model that flags amounts and tax ratios unlike the rest. And a tax-rate rule that flags any claim whose rate doesn't match its category. The pipeline runs in Dagster, so each step can be rerun on its own.\n\nScoring each check on its own changed how I read the results. The plain tax-rate rule found 45 of the 47 problems and flagged nothing wrongly. The model found 18, and the rule had already found all 18.\n\nSo the rule's 45 flags go first, and every one is a real problem: that alone gets an auditor to 90% in 43 entries. The model and Benford's Law rank the rest, and the 2 problems the rule missed come up at entries 131 and 137 of 1,200.\n\nOn a real ledger I would start the same way: measure the simple rules alone first, then use a model to rank what they leave.\n\nHow do you get labels for a real ledger when nobody plants the answers?\n\n#DataEngineering #AnomalyDetection",
+    "image": "assets/approved/round2_post3_tax.png",
+    "alt_text": "Line chart of planted anomalies found against entries opened, on simulated data. In risk order, 90 percent of anomalies are found after 43 entries; in ledger order it takes 1,108. 96 percent less review work for the same 90 percent."
   },
-  "document": null,
-  "document_title": null,
-  "approved_by": "owner in chat 2026-11-01 (revised: adds why from his notes + closing question; same numbers and image as run 40578570120)"
- },
- {
-  "id": "draft-40832967316",
-  "format": "lesson",
-  "subject": "Job Market Lakehouse",
-  "hook_type": "measured_result",
-  "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 19 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\nIf you split a table by month, how do you confirm the engine actually skips the other partitions?\n\n#DataEngineering #HiveQL",
-  "image": "assets/approved/draft-40832967316.png",
-  "alt_text": "Grid of the table's 20 month folders, January 2025 to August 2026, each with its row count (from 2,410 to 3,185). June 2025, 3,015 rows, is highlighted as read; the other 19 are marked skipped. The plan filtered on posted_month = '2025-06'. Simulated data.",
-  "post_day": "2026-11-04",
-  "history_entry": {
-   "date": "2026-11-04",
-   "format": "lesson",
-   "subject": "Job Market Lakehouse",
-   "hook_type": "measured_result",
-   "opener_words": [
-    "a",
-    "june",
-    "2025",
-    "query",
-    "on",
-    "my",
-    "job",
-    "market",
-    "lakehouse",
-    "read"
-   ],
-   "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 19 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\nIf you split a table by month, how do you confirm the engine actually skips the other partitions?\n\n#DataEngineering #HiveQL",
-   "story_id": "job-market-lakehouse-1"
+  {
+    "id": "draft-40464599596",
+    "format": "decision",
+    "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+    "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/draft-40464599596.png",
+    "alt_text": "Process chart: QA System Accuracy on Member Messages. Member identification 100%; then Message retrieval 96%; then Answer extraction 96% (accuracy). The one miss asks for Lorenzo's Thursday booking; the top-ranked message is his Saturday dinner at The Fat Duck.",
+    "post_day": "2026-10-30",
+    "history_entry": {
+      "date": "2026-10-30",
+      "format": "decision",
+      "subject": "Member Messages QA System: Semantic Search & NER-Based Question Answering",
+      "hook_type": "decision_cost",
+      "opener_words": [
+        "i",
+        "chose",
+        "embeddings",
+        "based",
+        "semantic",
+        "search",
+        "for",
+        "member",
+        "questions",
+        "ruling"
+      ],
+      "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
+      "story_id": "member-messages-qa-system-semantic-searc-1"
+    },
+    "approved_by": "owner in chat 2026-10-27 (text from run 40464599596, image redrawn as a stage flow)"
   },
-  "approved_by": "owner in chat 2026-11-01: text with closing question and 'other 19 months' correction; new image of all 20 month partitions (counts regenerated from data/generate_raw_data.py, seed 42) replacing the two-bar chart"
- },
- {
-  "id": "owner-2026-11-06-observability",
-  "format": "decision",
-  "subject": "AI Model Observability & Fairness Audits",
-  "hook_type": "decision_cost",
-  "text": "A drift alert is only worth something if you act on it. Acting on mine ended the run at 83% accuracy instead of 66%.\n\nAI Model Observability & Fairness Audits is a portfolio project that watches a deployed classifier's inputs and decisions every day: drift tests on the features, bias checks by gender and age group, and a table of flagged problems a reviewer reads instead of every metric. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, an engineer has to keep adapting.\n\nIt runs on simulated data: 60 days of predictions, with drift injected partway through. A Kolmogorov-Smirnov test raised the first alert on day 40, without waiting for any outcome labels. That left a decision to make: keep the deployed model, or retrain it.\n\nSo I replayed the rest of the run both ways. The catch is that outcomes arrive late, so the retrained version could only learn from the most recent week of labels, each one 7 days old.\n\nLeft alone, the model slid from 99.88% accuracy to 66%. Retrained every day on those delayed labels, it finished at 83%, and its total accuracy shortfall over the period was 32.6% smaller.\n\nThe alert now triggers that daily retrain, so recovery starts the day the data shifts, not when someone notices accuracy falling.\n\nIf you monitor a model whose labels arrive late, do you retrain on a fixed schedule or only when a drift alert fires?\n\n#MachineLearning #DataEngineering",
-  "image": "assets/approved/owner-2026-11-06-observability.png",
-  "alt_text": "Line chart, daily accuracy after the drift alert, days 1 to 60 of a simulated run. Both lines stay near 1.0 until drift starts on day 31; the first alert fires on day 40. Left as is, accuracy falls to 0.66 by day 60; retrained daily on week-old labels, it ends at 0.83. Simulated data.",
-  "post_day": "2026-11-06",
-  "history_entry": {
-   "date": "2026-11-06",
-   "format": "decision",
-   "subject": "AI Model Observability & Fairness Audits",
-   "hook_type": "decision_cost",
-   "opener_words": [
-    "a",
-    "drift",
-    "alert",
-    "is",
-    "only",
-    "worth",
-    "something",
-    "if",
-    "you",
-    "act"
-   ],
-   "text": "A drift alert is only worth something if you act on it. Acting on mine ended the run at 83% accuracy instead of 66%.\n\nAI Model Observability & Fairness Audits is a portfolio project that watches a deployed classifier's inputs and decisions every day: drift tests on the features, bias checks by gender and age group, and a table of flagged problems a reviewer reads instead of every metric. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, an engineer has to keep adapting.\n\nIt runs on simulated data: 60 days of predictions, with drift injected partway through. A Kolmogorov-Smirnov test raised the first alert on day 40, without waiting for any outcome labels. That left a decision to make: keep the deployed model, or retrain it.\n\nSo I replayed the rest of the run both ways. The catch is that outcomes arrive late, so the retrained version could only learn from the most recent week of labels, each one 7 days old.\n\nLeft alone, the model slid from 99.88% accuracy to 66%. Retrained every day on those delayed labels, it finished at 83%, and its total accuracy shortfall over the period was 32.6% smaller.\n\nThe alert now triggers that daily retrain, so recovery starts the day the data shifts, not when someone notices accuracy falling.\n\nIf you monitor a model whose labels arrive late, do you retrain on a fixed schedule or only when a drift alert fires?\n\n#MachineLearning #DataEngineering",
-   "story_id": "ai-model-observability-fairness-audits-1"
+  {
+    "id": "draft-40578570120",
+    "format": "project_spotlight",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nWhen forests burn or farmland turns into suburbs, a state stores or releases a different amount of carbon. I wanted to learn how that is measured from public records, so Multi-State Land Use Emissions Analysis processes daily land-cover data for five U.S. states. The daily files are simulated, but the emission factors and historical inventory come from the EPA.\n\nChange like this is often slow, so predicting next year as a copy of this one is a strong competitor. To see if learning from history helps more than repetition, I compared Linear Regression and Random Forest against that naive baseline.\n\nThe test used the EPA's 25 annual series. I trained on data up to 2017 and scored predictions for 2018 through 2022. Linear Regression reached an accuracy of 0.9418 and Random Forest 0.9329. Copying the previous value reached 0.947.\n\nNeither one beat it, so the report now shows the copy-last-year number next to every score.\n\nIf you forecast a slow-moving series, do you report a copy-last-year baseline next to every model score?\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/draft-40578570120.png",
+    "alt_text": "Bar chart, EPA real land‑use flux forecast accuracy: Linear Regression accuracy 0.9418; Random Forest accuracy 0.9329; Last year's value accuracy 0.947. Simulated data.",
+    "post_day": "2026-11-02",
+    "history_entry": {
+      "date": "2026-11-02",
+      "format": "project_spotlight",
+      "subject": "Multi-State Land Use Emissions Analysis",
+      "hook_type": "claim",
+      "opener_words": [
+        "forecasting",
+        "emissions",
+        "by",
+        "copying",
+        "last",
+        "year",
+        "beats",
+        "two",
+        "standard",
+        "models"
+      ],
+      "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nWhen forests burn or farmland turns into suburbs, a state stores or releases a different amount of carbon. I wanted to learn how that is measured from public records, so Multi-State Land Use Emissions Analysis processes daily land-cover data for five U.S. states. The daily files are simulated, but the emission factors and historical inventory come from the EPA.\n\nChange like this is often slow, so predicting next year as a copy of this one is a strong competitor. To see if learning from history helps more than repetition, I compared Linear Regression and Random Forest against that naive baseline.\n\nThe test used the EPA's 25 annual series. I trained on data up to 2017 and scored predictions for 2018 through 2022. Linear Regression reached an accuracy of 0.9418 and Random Forest 0.9329. Copying the previous value reached 0.947.\n\nNeither one beat it, so the report now shows the copy-last-year number next to every score.\n\nIf you forecast a slow-moving series, do you report a copy-last-year baseline next to every model score?\n\n#DataEngineering #MachineLearning",
+      "story_id": "multi-state-land-use-emissions-analysis-1"
+    },
+    "document": null,
+    "document_title": null,
+    "approved_by": "owner in chat 2026-11-01 (revised: adds why from his notes + closing question; same numbers and image as run 40578570120)"
   },
-  "approved_by": "owner in chat 2026-10-31 (written in chat after the FinRisk draft was rejected; image from the project's own data, rerun of analytics/retrain_response.py)"
- }
+  {
+    "id": "draft-40832967316",
+    "format": "lesson",
+    "subject": "Job Market Lakehouse",
+    "hook_type": "measured_result",
+    "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 19 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\nIf you split a table by month, how do you confirm the engine actually skips the other partitions?\n\n#DataEngineering #HiveQL",
+    "image": "assets/approved/draft-40832967316.png",
+    "alt_text": "Grid of the table's 20 month folders, January 2025 to August 2026, each with its row count (from 2,410 to 3,185). June 2025, 3,015 rows, is highlighted as read; the other 19 are marked skipped. The plan filtered on posted_month = '2025-06'. Simulated data.",
+    "post_day": "2026-11-04",
+    "history_entry": {
+      "date": "2026-11-04",
+      "format": "lesson",
+      "subject": "Job Market Lakehouse",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "a",
+        "june",
+        "2025",
+        "query",
+        "on",
+        "my",
+        "job",
+        "market",
+        "lakehouse",
+        "read"
+      ],
+      "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 19 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\nIf you split a table by month, how do you confirm the engine actually skips the other partitions?\n\n#DataEngineering #HiveQL",
+      "story_id": "job-market-lakehouse-1"
+    },
+    "approved_by": "owner in chat 2026-11-01: text with closing question and 'other 19 months' correction; new image of all 20 month partitions (counts regenerated from data/generate_raw_data.py, seed 42) replacing the two-bar chart"
+  },
+  {
+    "id": "owner-2026-11-06-observability",
+    "format": "decision",
+    "subject": "AI Model Observability & Fairness Audits",
+    "hook_type": "decision_cost",
+    "text": "A drift alert is only worth something if you act on it. Acting on mine ended the run at 83% accuracy instead of 66%.\n\nAI Model Observability & Fairness Audits is a portfolio project that watches a deployed classifier's inputs and decisions every day: drift tests on the features, bias checks by gender and age group, and a table of flagged problems a reviewer reads instead of every metric. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, an engineer has to keep adapting.\n\nIt runs on simulated data: 60 days of predictions, with drift injected partway through. A Kolmogorov-Smirnov test raised the first alert on day 40, without waiting for any outcome labels. That left a decision to make: keep the deployed model, or retrain it.\n\nSo I replayed the rest of the run both ways. The catch is that outcomes arrive late, so the retrained version could only learn from the most recent week of labels, each one 7 days old.\n\nLeft alone, the model slid from 99.88% accuracy to 66%. Retrained every day on those delayed labels, it finished at 83%, and its total accuracy shortfall over the period was 32.6% smaller.\n\nThe alert now triggers that daily retrain, so recovery starts the day the data shifts, not when someone notices accuracy falling.\n\nIf you monitor a model whose labels arrive late, do you retrain on a fixed schedule or only when a drift alert fires?\n\n#MachineLearning #DataEngineering",
+    "image": "assets/approved/owner-2026-11-06-observability.png",
+    "alt_text": "Line chart, daily accuracy after the drift alert, days 1 to 60 of a simulated run. Both lines stay near 1.0 until drift starts on day 31; the first alert fires on day 40. Left as is, accuracy falls to 0.66 by day 60; retrained daily on week-old labels, it ends at 0.83. Simulated data.",
+    "post_day": "2026-11-06",
+    "history_entry": {
+      "date": "2026-11-06",
+      "format": "decision",
+      "subject": "AI Model Observability & Fairness Audits",
+      "hook_type": "decision_cost",
+      "opener_words": [
+        "a",
+        "drift",
+        "alert",
+        "is",
+        "only",
+        "worth",
+        "something",
+        "if",
+        "you",
+        "act"
+      ],
+      "text": "A drift alert is only worth something if you act on it. Acting on mine ended the run at 83% accuracy instead of 66%.\n\nAI Model Observability & Fairness Audits is a portfolio project that watches a deployed classifier's inputs and decisions every day: drift tests on the features, bias checks by gender and age group, and a table of flagged problems a reviewer reads instead of every metric. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, an engineer has to keep adapting.\n\nIt runs on simulated data: 60 days of predictions, with drift injected partway through. A Kolmogorov-Smirnov test raised the first alert on day 40, without waiting for any outcome labels. That left a decision to make: keep the deployed model, or retrain it.\n\nSo I replayed the rest of the run both ways. The catch is that outcomes arrive late, so the retrained version could only learn from the most recent week of labels, each one 7 days old.\n\nLeft alone, the model slid from 99.88% accuracy to 66%. Retrained every day on those delayed labels, it finished at 83%, and its total accuracy shortfall over the period was 32.6% smaller.\n\nThe alert now triggers that daily retrain, so recovery starts the day the data shifts, not when someone notices accuracy falling.\n\nIf you monitor a model whose labels arrive late, do you retrain on a fixed schedule or only when a drift alert fires?\n\n#MachineLearning #DataEngineering",
+      "story_id": "ai-model-observability-fairness-audits-1"
+    },
+    "approved_by": "owner in chat 2026-10-31 (written in chat after the FinRisk draft was rejected; image from the project's own data, rerun of analytics/retrain_response.py)"
+  },
+  {
+    "id": "draft-42285186123",
+    "format": "project_spotlight",
+    "subject": "Sales Analytics & RFM Customer Segmentation Pipeline",
+    "text": "Three of four customer clusters differed mainly in recency, while only one stood far apart on frequency and spend.\n\nSales Analytics & RFM Customer Segmentation Pipeline is a personal portfolio project that models transaction data in a star-schema database for business intelligence reporting. Total sales tell how much a business sells, but not who buys. I built this project to learn how to find real customer groups in transaction data instead of guessing them.\n\nBefore sending segment labels downstream to reports, I needed to check if recency, frequency, and monetary value features actually split accounts into clear categories.\n\nSo I clustered scaled RFM features for 2,000 synthetic accounts using K-Means with four groups. The four clusters explained 93.9% of the variance in the scaled features, while a two-dimensional PCA view kept 99.6% of that variance. One group of 400 VIP Champions stood far apart on spend and purchase count, whereas the remaining three categories shared similar activity levels and differed mostly in recency.\n\nBecause the features separated buyers so clearly, segment names are written back to the customer dimension in the star schema for the Power BI dashboard.\n\nMarketing teams can now use a persona slicer in the Power BI report to isolate the 400 VIP Champions for targeted retention campaigns.\n\nWhen segmenting customer data for business intelligence, do you write cluster labels directly into dimension tables or generate them dynamically?\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/draft-42285186123.png",
+    "alt_text": "Bar chart, RFM clustering variance and cluster size: Variance explained by clusters 93.9%; Variance kept by 2‑D PCA view 99.6%.",
+    "post_day": "2026-11-09",
+    "history_entry": {
+      "date": "2026-11-09",
+      "format": "project_spotlight",
+      "subject": "Sales Analytics & RFM Customer Segmentation Pipeline",
+      "hook_type": "surprise",
+      "opener_words": [
+        "three",
+        "of",
+        "four",
+        "customer",
+        "clusters",
+        "differed",
+        "mainly",
+        "in",
+        "recency",
+        "while"
+      ],
+      "text": "Three of four customer clusters differed mainly in recency, while only one stood far apart on frequency and spend.\n\nSales Analytics & RFM Customer Segmentation Pipeline is a personal portfolio project that models transaction data in a star-schema database for business intelligence reporting. Total sales tell how much a business sells, but not who buys. I built this project to learn how to find real customer groups in transaction data instead of guessing them.\n\nBefore sending segment labels downstream to reports, I needed to check if recency, frequency, and monetary value features actually split accounts into clear categories.\n\nSo I clustered scaled RFM features for 2,000 synthetic accounts using K-Means with four groups. The four clusters explained 93.9% of the variance in the scaled features, while a two-dimensional PCA view kept 99.6% of that variance. One group of 400 VIP Champions stood far apart on spend and purchase count, whereas the remaining three categories shared similar activity levels and differed mostly in recency.\n\nBecause the features separated buyers so clearly, segment names are written back to the customer dimension in the star schema for the Power BI dashboard.\n\nMarketing teams can now use a persona slicer in the Power BI report to isolate the 400 VIP Champions for targeted retention campaigns.\n\nWhen segmenting customer data for business intelligence, do you write cluster labels directly into dimension tables or generate them dynamically?\n\n#DataEngineering #MachineLearning",
+      "story_id": "sales-analytics-rfm-customer-segmentatio-1"
+    },
+    "document": null,
+    "document_title": null
+  }
 ]
