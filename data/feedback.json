@@ -350,5 +350,13 @@
     "rules": [
       "media: the only image for this story repeats numbers the post already states"
     ]
+  },
+  {
+    "date": "2026-11-07",
+    "story_id": "automated-daily-data-insights-2",
+    "comment": "",
+    "rules": [
+      "media: the only image for this story repeats numbers the post already states"
+    ]
   }
 ]
