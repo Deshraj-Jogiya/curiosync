@@ -171,5 +171,36 @@
     },
     "document": null,
     "document_title": null
+  },
+  {
+    "id": "draft-42509770829",
+    "format": "lesson",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "text": "Evaluating credit risk works best when high precision comes before catching every single defaulted loan.\n\nFinTech Credit Risk & Fraud Command Center is a personal portfolio project on credit risk and fraud detection. I built it because my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people.\n\nBefore deploying a classifier, I needed to determine whether Random Forest or XGBoost should decline risky loan applications. Rejecting qualified applicants creates friction, so scoring every application at 0.80 or more likely to default required a clear comparison between models.\n\nSo I trained both models on the same features and scored them on a held-out 20% of the synthetic loans, logging both runs in MLflow. Random Forest reached a ROC AUC of 0.9216 compared to 0.9179 for XGBoost, while delivering 0.9341 decline precision against 0.9132. XGBoost caught more default cases with a decline recall of 0.4456 versus 0.3427, but turned away 0.1143 of all applications while Random Forest declined 0.0859.\n\nThe answer made the choice clear. Random Forest went to production because it had the higher ROC AUC and the greater precision when declining an application.\n\nWhen you tune probability thresholds for risk models, do you prioritize precision to protect valid applicants or recall to catch defaults?\n\n#MachineLearning #DataEngineering",
+    "image": "assets/approved/draft-42509770829.png",
+    "alt_text": "Table: Model performance on decline threshold. Random Forest ROC AUC 0.9216; XGBoost ROC AUC 0.9179; Random Forest Accuracy 0.8777; XGBoost Accuracy 0.8801; Random Forest Decline precision 0.9341; XGBoost Decline precision 0.9132; Random Forest Decline recall 0.3427; XGBoost Decline recall 0.4456; Random Forest Share declined 0.0859; XGBoost Share declined 0.1143.",
+    "post_day": "2026-11-11",
+    "history_entry": {
+      "date": "2026-11-11",
+      "format": "lesson",
+      "subject": "FinTech Credit Risk & Fraud Command Center",
+      "hook_type": "claim",
+      "opener_words": [
+        "evaluating",
+        "credit",
+        "risk",
+        "works",
+        "best",
+        "when",
+        "high",
+        "precision",
+        "comes",
+        "before"
+      ],
+      "text": "Evaluating credit risk works best when high precision comes before catching every single defaulted loan.\n\nFinTech Credit Risk & Fraud Command Center is a personal portfolio project on credit risk and fraud detection. I built it because my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people.\n\nBefore deploying a classifier, I needed to determine whether Random Forest or XGBoost should decline risky loan applications. Rejecting qualified applicants creates friction, so scoring every application at 0.80 or more likely to default required a clear comparison between models.\n\nSo I trained both models on the same features and scored them on a held-out 20% of the synthetic loans, logging both runs in MLflow. Random Forest reached a ROC AUC of 0.9216 compared to 0.9179 for XGBoost, while delivering 0.9341 decline precision against 0.9132. XGBoost caught more default cases with a decline recall of 0.4456 versus 0.3427, but turned away 0.1143 of all applications while Random Forest declined 0.0859.\n\nThe answer made the choice clear. Random Forest went to production because it had the higher ROC AUC and the greater precision when declining an application.\n\nWhen you tune probability thresholds for risk models, do you prioritize precision to protect valid applicants or recall to catch defaults?\n\n#MachineLearning #DataEngineering",
+      "story_id": "fintech-credit-risk-fraud-command-center-1"
+    },
+    "document": null,
+    "document_title": null
   }
 ]
