@@ -368,5 +368,13 @@
       "unsupported by the facts: Claiming that engineers and analysts run SQL queries to calculate risk scores is a claim about users not supported by FACTS.",
       "reading flow: The decision to deploy as a Snowflake Python UDF and use a TypeScript CLI does not visibly follow from the finding that the model only finds about half of cancellations at default threshold."
     ]
+  },
+  {
+    "date": "2026-11-09",
+    "story_id": "sentence-transformers-multi-task-learnin-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: The LLM fine-tuning was performed on 'simulated data', whereas the facts state it was on a Databricks Dolly-15k subset, which is a real dataset."
+    ]
   }
 ]
