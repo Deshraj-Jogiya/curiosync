@@ -141,5 +141,26 @@
     "text": "A drift alert is only worth something if you act on it. Acting on mine ended the run at 83% accuracy instead of 66%.\n\nAI Model Observability & Fairness Audits is a portfolio project that watches a deployed classifier's inputs and decisions every day: drift tests on the features, bias checks by gender and age group, and a table of flagged problems a reviewer reads instead of every metric. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, an engineer has to keep adapting.\n\nIt runs on simulated data: 60 days of predictions, with drift injected partway through. A Kolmogorov-Smirnov test raised the first alert on day 40, without waiting for any outcome labels. That left a decision to make: keep the deployed model, or retrain it.\n\nSo I replayed the rest of the run both ways. The catch is that outcomes arrive late, so the retrained version could only learn from the most recent week of labels, each one 7 days old.\n\nLeft alone, the model slid from 99.88% accuracy to 66%. Retrained every day on those delayed labels, it finished at 83%, and its total accuracy shortfall over the period was 32.6% smaller.\n\nThe alert now triggers that daily retrain, so recovery starts the day the data shifts, not when someone notices accuracy falling.\n\nIf you monitor a model whose labels arrive late, do you retrain on a fixed schedule or only when a drift alert fires?\n\n#MachineLearning #DataEngineering",
     "story_id": "ai-model-observability-fairness-audits-1",
     "approved_id": "owner-2026-11-06-observability"
+  },
+  {
+    "date": "2026-11-09",
+    "format": "project_spotlight",
+    "subject": "Sales Analytics & RFM Customer Segmentation Pipeline",
+    "hook_type": "surprise",
+    "opener_words": [
+      "three",
+      "of",
+      "four",
+      "customer",
+      "clusters",
+      "differed",
+      "mainly",
+      "in",
+      "recency",
+      "while"
+    ],
+    "text": "Three of four customer clusters differed mainly in recency, while only one stood far apart on frequency and spend.\n\nSales Analytics & RFM Customer Segmentation Pipeline is a personal portfolio project that models transaction data in a star-schema database for business intelligence reporting. Total sales tell how much a business sells, but not who buys. I built this project to learn how to find real customer groups in transaction data instead of guessing them.\n\nBefore sending segment labels downstream to reports, I needed to check if recency, frequency, and monetary value features actually split accounts into clear categories.\n\nSo I clustered scaled RFM features for 2,000 synthetic accounts using K-Means with four groups. The four clusters explained 93.9% of the variance in the scaled features, while a two-dimensional PCA view kept 99.6% of that variance. One group of 400 VIP Champions stood far apart on spend and purchase count, whereas the remaining three categories shared similar activity levels and differed mostly in recency.\n\nBecause the features separated buyers so clearly, segment names are written back to the customer dimension in the star schema for the Power BI dashboard.\n\nMarketing teams can now use a persona slicer in the Power BI report to isolate the 400 VIP Champions for targeted retention campaigns.\n\nWhen segmenting customer data for business intelligence, do you write cluster labels directly into dimension tables or generate them dynamically?\n\n#DataEngineering #MachineLearning",
+    "story_id": "sales-analytics-rfm-customer-segmentatio-1",
+    "approved_id": "draft-42285186123"
   }
 ]
