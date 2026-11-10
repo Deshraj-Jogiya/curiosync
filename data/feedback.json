@@ -376,5 +376,13 @@
     "rules": [
       "unsupported by the facts: The LLM fine-tuning was performed on 'simulated data', whereas the facts state it was on a Databricks Dolly-15k subset, which is a real dataset."
     ]
+  },
+  {
+    "date": "2026-11-09",
+    "story_id": "extending-stem-across-asl-1",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
+    ]
   }
 ]
