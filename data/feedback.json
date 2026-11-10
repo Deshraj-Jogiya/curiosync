@@ -384,5 +384,16 @@
     "rules": [
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
     ]
+  },
+  {
+    "date": "2026-11-09",
+    "story_id": "automated-daily-data-insights-2",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: 'z-score' is used 7 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: 'return' is used 6 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "two paragraphs in a row open with 'automated daily'"
+    ]
   }
 ]
