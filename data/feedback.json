@@ -404,5 +404,13 @@
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
       "repetition: \"Alerts built on these flags repeat at most every 4...\" uses 'alert' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-11",
+    "story_id": "clinical-trials-patient-outcomes-analysi-3",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
+    ]
   }
 ]
