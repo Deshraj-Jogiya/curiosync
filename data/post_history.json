@@ -162,5 +162,26 @@
     "text": "Three of four customer clusters differed mainly in recency, while only one stood far apart on frequency and spend.\n\nSales Analytics & RFM Customer Segmentation Pipeline is a personal portfolio project that models transaction data in a star-schema database for business intelligence reporting. Total sales tell how much a business sells, but not who buys. I built this project to learn how to find real customer groups in transaction data instead of guessing them.\n\nBefore sending segment labels downstream to reports, I needed to check if recency, frequency, and monetary value features actually split accounts into clear categories.\n\nSo I clustered scaled RFM features for 2,000 synthetic accounts using K-Means with four groups. The four clusters explained 93.9% of the variance in the scaled features, while a two-dimensional PCA view kept 99.6% of that variance. One group of 400 VIP Champions stood far apart on spend and purchase count, whereas the remaining three categories shared similar activity levels and differed mostly in recency.\n\nBecause the features separated buyers so clearly, segment names are written back to the customer dimension in the star schema for the Power BI dashboard.\n\nMarketing teams can now use a persona slicer in the Power BI report to isolate the 400 VIP Champions for targeted retention campaigns.\n\nWhen segmenting customer data for business intelligence, do you write cluster labels directly into dimension tables or generate them dynamically?\n\n#DataEngineering #MachineLearning",
     "story_id": "sales-analytics-rfm-customer-segmentatio-1",
     "approved_id": "draft-42285186123"
+  },
+  {
+    "date": "2026-11-11",
+    "format": "lesson",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "hook_type": "claim",
+    "opener_words": [
+      "evaluating",
+      "credit",
+      "risk",
+      "works",
+      "best",
+      "when",
+      "high",
+      "precision",
+      "comes",
+      "before"
+    ],
+    "text": "Evaluating credit risk works best when high precision comes before catching every single defaulted loan.\n\nFinTech Credit Risk & Fraud Command Center is a personal portfolio project on credit risk and fraud detection. I built it because my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people.\n\nBefore deploying a classifier, I needed to determine whether Random Forest or XGBoost should decline risky loan applications. Rejecting qualified applicants creates friction, so scoring every application at 0.80 or more likely to default required a clear comparison between models.\n\nSo I trained both models on the same features and scored them on a held-out 20% of the synthetic loans, logging both runs in MLflow. Random Forest reached a ROC AUC of 0.9216 compared to 0.9179 for XGBoost, while delivering 0.9341 decline precision against 0.9132. XGBoost caught more default cases with a decline recall of 0.4456 versus 0.3427, but turned away 0.1143 of all applications while Random Forest declined 0.0859.\n\nThe answer made the choice clear. Random Forest went to production because it had the higher ROC AUC and the greater precision when declining an application.\n\nWhen you tune probability thresholds for risk models, do you prioritize precision to protect valid applicants or recall to catch defaults?\n\n#MachineLearning #DataEngineering",
+    "story_id": "fintech-credit-risk-fraud-command-center-1",
+    "approved_id": "draft-42509770829"
   }
 ]

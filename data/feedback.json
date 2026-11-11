@@ -395,5 +395,14 @@
       "repetition: 'return' is used 6 times; use it at most 4 times, then name the specific thing or say 'it'",
       "two paragraphs in a row open with 'automated daily'"
     ]
+  },
+  {
+    "date": "2026-11-11",
+    "story_id": "real-time-iot-telematics-predictive-main-1",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: \"Alerts built on these flags repeat at most every 4...\" uses 'alert' twice in one sentence"
+    ]
   }
 ]
