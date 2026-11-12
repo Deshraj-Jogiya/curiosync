@@ -412,5 +412,15 @@
     "rules": [
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
     ]
+  },
+  {
+    "date": "2026-11-12",
+    "story_id": "talentvenue-eventintel-enterprise-data-p-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Recalculation granularity stated as 'line by entry' instead of 'contract by contract' for money totals.",
+      "unsupported by the facts: Claim that the model runs as a Snowflake Python UDF *because* accuracy alone overstated performance, a causal link not supported by FACTS.",
+      "reading flow: The decision to deploy the model as a Snowflake Python UDF is presented as a direct consequence of accuracy overstatement, which is not a visible logical follow-up for a deployment choice."
+    ]
   }
 ]
