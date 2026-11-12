@@ -422,5 +422,17 @@
       "unsupported by the facts: Claim that the model runs as a Snowflake Python UDF *because* accuracy alone overstated performance, a causal link not supported by FACTS.",
       "reading flow: The decision to deploy the model as a Snowflake Python UDF is presented as a direct consequence of accuracy overstatement, which is not a visible logical follow-up for a deployment choice."
     ]
+  },
+  {
+    "date": "2026-11-12",
+    "story_id": "sentence-transformers-multi-task-learnin-1",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: 'fine-tuning' is used 7 times; use it at most 6 times, then name the specific thing or say 'it'",
+      "repetition: 'instruction' is used 6 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: the number 2.5 appears 3 times; state each number once, twice at most",
+      "repetition: the number 0.5 appears 3 times; state each number once, twice at most"
+    ]
   }
 ]
