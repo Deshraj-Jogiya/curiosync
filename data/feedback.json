@@ -434,5 +434,14 @@
       "repetition: the number 2.5 appears 3 times; state each number once, twice at most",
       "repetition: the number 0.5 appears 3 times; state each number once, twice at most"
     ]
+  },
+  {
+    "date": "2026-11-13",
+    "story_id": "extending-stem-across-asl-1",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: 'accuracy' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'"
+    ]
   }
 ]
