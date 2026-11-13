@@ -136,3 +136,45 @@ def test_real_queue_gives_at_least_two_examples():
     queue = json.load(open("data/approved_queue.json", encoding="utf-8"))
     out = approved_examples("FinTech Credit Risk & Fraud Command Center", queue)
     assert out != APPROVED_EXAMPLES and out.count("--- APPROVED POST") >= 2
+
+
+BARE = "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result"
+SETTING = "The Job Search dbt Warehouse is my dbt project for checking warehouse numbers before anyone relies on them."
+
+
+def _bare_unless_set(text, *a, **k):
+    return [] if text.startswith("The Job Search dbt Warehouse is my") else [BARE]
+
+
+@pytest.mark.asyncio
+async def test_a_bare_result_opening_gets_a_setting_sentence_instead_of_another_full_rewrite():
+    prompts = []
+
+    async def llm(messages, settings, temperature, tier="any"):
+        content = messages[0]["content"]
+        prompts.append(content)
+        if "Write ONE sentence to go before that opening line" in content:
+            return SETTING
+        if "checking a LinkedIn post" in content:
+            return '{"unsupported": []}'
+        return GOOD
+
+    with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")), \
+            patch.object(ss, "check_draft", _bare_unless_set):
+        result = await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
+    assert result["text"].startswith(SETTING + " I wrote 15 dbt tests")
+    assert result["text"].split("\n\n")[1:] == GOOD.split("\n\n")[1:]  # the rest of the post is unchanged
+
+
+@pytest.mark.asyncio
+async def test_a_setting_sentence_with_a_number_is_not_used():
+    async def llm(messages, settings, temperature, tier="any"):
+        if "Write ONE sentence to go before that opening line" in messages[0]["content"]:
+            return "The Job Search dbt Warehouse is my 2026 dbt project."
+        return GOOD
+
+    with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")), \
+            patch.object(ss, "check_draft", _bare_unless_set):
+        with pytest.raises(ss.DraftRejected) as exc:
+            await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
+    assert exc.value.problems == [BARE]
