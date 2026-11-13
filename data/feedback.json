@@ -443,5 +443,16 @@
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
       "repetition: 'accuracy' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'"
     ]
+  },
+  {
+    "date": "2026-11-13",
+    "story_id": "automated-daily-data-insights-2",
+    "comment": "",
+    "rules": [
+      "filler word 'significant'",
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: 'market' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: 'price' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'"
+    ]
   }
 ]
