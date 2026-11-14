@@ -219,3 +219,32 @@ async def test_the_opening_is_fixed_even_when_the_draft_has_other_problems_and_t
         result = await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
     assert result["text"].startswith(SETTING) and "MARK" not in result["text"]
     assert calls == {"setting": 1, "rewrite": 1}
+
+
+@pytest.mark.asyncio
+async def test_a_flagged_paraphrase_is_dropped_only_when_its_passage_is_really_in_the_facts():
+    facts = "Detail: The gain comes from promotion weeks, which last week's sales cannot anticipate."
+    flagged = '{"unsupported": ["model anticipated promotion weeks", "report is for anyone who follows the market"], "flow": []}'
+    recheck = ('{"checks": [{"claim": "model anticipated promotion weeks", "passage": "The gain comes from promotion weeks, which '
+               'last week’s sales cannot anticipate"}, {"claim": "report is for anyone", "passage": "The report is read by '
+               'market followers every day"}]}')
+    replies = iter([flagged, recheck])
+
+    async def llm(messages, settings, temperature, tier="any"):
+        return next(replies)
+
+    with patch.object(ss, "call_llm_with_fallback", llm):
+        problems = await ss.critic_problems("post", facts, object())
+    assert problems == ["unsupported by the facts: report is for anyone who follows the market"]
+
+
+@pytest.mark.asyncio
+async def test_findings_stand_when_the_recheck_fails():
+    replies = iter(['{"unsupported": ["invented feature"], "flow": []}', "not json"])
+
+    async def llm(messages, settings, temperature, tier="any"):
+        return next(replies)
+
+    with patch.object(ss, "call_llm_with_fallback", llm):
+        problems = await ss.critic_problems("post", "facts", object())
+    assert problems == ["unsupported by the facts: invented feature"]

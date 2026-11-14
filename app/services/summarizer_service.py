@@ -269,8 +269,57 @@ async def critic_problems(text: str, facts: str, settings: Settings) -> list[str
         found, flow = data.get("unsupported", []), data.get("flow", [])
     except (ValueError, AttributeError):
         return ["fact check returned no readable answer"]
-    return ([f"unsupported by the facts: {p}" for p in found if isinstance(p, str) and p.strip()] +
+    found = [p for p in found if isinstance(p, str) and p.strip()]
+    if found:
+        found = await _drop_paraphrases(found, text, facts, settings)
+    return ([f"unsupported by the facts: {p}" for p in found] +
             [f"reading flow: {p}" for p in flow if isinstance(p, str) and p.strip()])
+
+
+RECHECK_PROMPT = """A fact check flagged the claims below in a LinkedIn post as not supported by FACTS. Rewording is allowed: a claim
+is supported when one passage of FACTS says the same thing in other words (for example "the model anticipated promotion weeks" is
+supported by "The gain comes from promotion weeks, which last week's sales cannot anticipate").
+For each claim, copy the one passage of FACTS that says the same thing, word for word, or "" if no passage does. A passage that
+is only related, or that supports part of the claim while the claim adds a new cause, audience, feature or feeling, is "".
+
+FACTS:
+{facts}
+
+POST:
+{post}
+
+CLAIMS:
+{claims}
+
+Return only JSON: {{"checks": [{{"claim": "...", "passage": "..."}}]}}"""
+
+
+def _norm(s: str) -> str:
+    return " ".join(s.replace("’", "'").replace("‘", "'").replace("“", '"').replace("”", '"')
+                    .replace("‑", "-").lower().split())
+
+
+async def _drop_paraphrases(found: list[str], post: str, facts: str, settings: Settings) -> list[str]:
+    """The critic is told not to count paraphrase, but it still flags rewordings (14 Nov: "anticipated promotion weeks", which the
+    project's own detail line states). Ask for the passage that backs each flagged claim and drop the finding only when that passage
+    really is in FACTS word for word, so the model cannot excuse a claim with a passage it made up. If the recheck fails, every
+    finding stands."""
+    import json
+
+    claims = "\n".join(f"- {p}" for p in found)
+    try:
+        raw = await call_llm_with_fallback(messages=[{"role": "user", "content": RECHECK_PROMPT.format(facts=facts, post=post, claims=claims)}],
+                                           settings=settings, temperature=0.0, tier="write")
+        raw = re.sub(r"^```(?:json)?|```$", "", raw.strip(), flags=re.MULTILINE).strip()
+        checks = json.loads(raw).get("checks", [])
+    except Exception:
+        return found
+    facts_n = _norm(facts)
+    backed = {i for i, c in enumerate(checks) if isinstance(c, dict) and i < len(found)
+              and len(_norm(str(c.get("passage", "")))) >= 20 and _norm(str(c.get("passage", ""))) in facts_n}
+    for i in sorted(backed):
+        logger.info("Fact check: dropped a paraphrase finding %r, backed by %r", found[i][:80], str(checks[i].get("passage"))[:100])
+    return [p for i, p in enumerate(found) if i not in backed]
 
 
 def _finish(text: str) -> str:
