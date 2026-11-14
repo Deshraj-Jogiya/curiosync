@@ -283,6 +283,7 @@ def _rank(text: str) -> float:
 
 OPENING_SETTING_PROMPT = """The LinkedIn post below opens on a result alone, so a reader who does not know the project cannot weigh it.
 Write ONE sentence to go before that opening line, saying what the project is and what problem it solves, using only the FACTS.
+It becomes the post's first line, shown before "see more", so keep it under 130 characters.
 Write in the first person as the post does. Use no numbers and do not repeat the result. Return only the sentence.
 
 FACTS:
@@ -293,8 +294,14 @@ POST:
 
 
 def _prepend(sentence: str, text: str) -> str:
-    head, sep, rest = text.strip().partition("\n\n")
-    return _finish(f"{sentence} {head}{sep}{rest}")
+    # The setting becomes the first line (the part shown before "see more"); the result line it replaces leads the next
+    # paragraph, so the first line stays short and the result still comes straight after it (14 Nov: prepending to the same
+    # line made the first line 260 characters).
+    head, _, rest = text.strip().partition("\n\n")
+    second, sep, tail = rest.partition("\n\n")
+    if second and not second.lstrip().startswith("#"):
+        return _finish(f"{sentence}\n\n{head} {second}{sep}{tail}")
+    return _finish(f"{sentence}\n\n{head}" + (f"\n\n{rest}" if rest else ""))
 
 
 async def _add_opening_setting(text: str, facts: str, settings: Settings, check, known: list[str] | None = None

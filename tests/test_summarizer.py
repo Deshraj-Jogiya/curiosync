@@ -162,8 +162,8 @@ async def test_a_bare_result_opening_gets_a_setting_sentence_instead_of_another_
     with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")), \
             patch.object(ss, "check_draft", _bare_unless_set):
         result = await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
-    assert result["text"].startswith(SETTING + " I wrote 15 dbt tests")
-    assert result["text"].split("\n\n")[1:] == GOOD.split("\n\n")[1:]  # the rest of the post is unchanged
+    assert result["text"].startswith(SETTING + "\n\n" + GOOD.split("\n\n")[0] + " " + GOOD.split("\n\n")[1])
+    assert result["text"].split("\n\n")[2:] == GOOD.split("\n\n")[2:]  # the rest of the post is unchanged
 
 
 @pytest.mark.asyncio
@@ -178,7 +178,7 @@ async def test_a_labelled_setting_reply_is_cleaned_to_its_sentence():
 
     with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")),             patch.object(ss, "check_draft", _bare_unless_set):
         result = await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
-    assert result["text"].startswith(SETTING + " I wrote 15 dbt tests")
+    assert result["text"].startswith(SETTING + "\n\nI wrote 15 dbt tests")
 
 
 @pytest.mark.asyncio
