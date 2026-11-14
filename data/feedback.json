@@ -491,5 +491,13 @@
     "rules": [
       "media: the only image for this story repeats numbers the post already states"
     ]
+  },
+  {
+    "date": "2026-11-14",
+    "story_id": "extending-stem-across-asl-2",
+    "comment": "",
+    "rules": [
+      "repetition: \"So I measured finger bend and spread for each vide...\" uses 'clip' twice in one sentence"
+    ]
   }
 ]
