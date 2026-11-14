@@ -397,7 +397,10 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         if not any(is_bare_opening(p) for p in found):
             return draft, found
         edited, left = await _add_opening_setting(draft, facts, settings, rule_problems, setting)
-        if left is not None and not any(is_bare_opening(p) for p in left) and len(left) <= len(found):
+        # Repeated words the sentence adds are fixed by the repeated-word pass below; any other new problem means the edit is worse.
+        hard = [p for p in found if not p.startswith("repetition:") and not is_bare_opening(p)]
+        if left is not None and not any(is_bare_opening(p) for p in left) and \
+                len([p for p in left if not p.startswith("repetition:")]) <= len(hard):
             logger.info("Draft repaired by adding a sentence on what the project is before its result")
             return edited, left
         return draft, found
