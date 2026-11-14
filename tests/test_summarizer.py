@@ -192,3 +192,30 @@ async def test_an_unusable_setting_reply_leaves_the_draft_rejected():
         with pytest.raises(ss.DraftRejected) as exc:
             await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
     assert exc.value.problems == [BARE]
+
+
+@pytest.mark.asyncio
+async def test_the_opening_is_fixed_even_when_the_draft_has_other_problems_and_the_sentence_is_reused():
+    calls = {"setting": 0, "rewrite": 0}
+
+    def check(text, *a, **k):
+        found = [] if text.startswith("The Job Search dbt Warehouse is my") else [BARE]
+        return found + (["closing: too general"] if "MARK" in text else [])
+
+    async def llm(messages, settings, temperature, tier="any"):
+        content = messages[0]["content"]
+        if "Write ONE sentence to go before that opening line" in content:
+            calls["setting"] += 1
+            return SETTING
+        if "checking a LinkedIn post" in content:
+            return '{"unsupported": []}'
+        if "Your previous draft is below" in content:
+            calls["rewrite"] += 1
+            return GOOD  # the rewrite fixes the closing but opens on the bare result again
+        return GOOD.replace("#dbt", "MARK #dbt")
+
+    with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")), \
+            patch.object(ss, "check_draft", check):
+        result = await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
+    assert result["text"].startswith(SETTING) and "MARK" not in result["text"]
+    assert calls == {"setting": 1, "rewrite": 1}

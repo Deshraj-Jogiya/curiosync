@@ -292,10 +292,23 @@ POST:
 {post}"""
 
 
-async def _add_opening_setting(text: str, facts: str, settings: Settings, check) -> tuple[str, list[str] | None]:
+def _prepend(sentence: str, text: str) -> str:
+    head, sep, rest = text.strip().partition("\n\n")
+    return _finish(f"{sentence} {head}{sep}{rest}")
+
+
+async def _add_opening_setting(text: str, facts: str, settings: Settings, check, known: list[str] | None = None
+                               ) -> tuple[str, list[str] | None]:
     """Put a model-written setting sentence in front of a one-sentence result opening; the rest of the post stays word for word.
-    Returns the edited post and its rule problems, or (text, None) when no usable sentence came back."""
+    Returns the edited post and its rule problems, or (text, None) when no usable sentence came back. A sentence that worked
+    once for this post is kept in `known` and tried first on later rewrites, without another model call."""
     best: tuple[str, list[str] | None] = (text, None)
+    known = known if known is not None else []
+    for sentence in known[-1:]:
+        edited = _prepend(sentence, text)
+        left = check(edited)
+        if not any(p.startswith("opening:") for p in left):
+            return edited, left
     for _ in range(2):
         try:
             raw = await call_llm_with_fallback(messages=[{"role": "user", "content": OPENING_SETTING_PROMPT.format(facts=facts, post=text)}],
@@ -313,13 +326,13 @@ async def _add_opening_setting(text: str, facts: str, settings: Settings, check)
             continue
         if sentence[-1] not in ".!?":
             sentence += "."
-        head, sep, rest = text.strip().partition("\n\n")
-        edited = _finish(f"{sentence} {head}{sep}{rest}")
+        edited = _prepend(sentence, text)
         left = check(edited)
         logger.info("Opening repair: %d problem(s) left after adding %r: %s", len(left), sentence[:80], left)
         if best[1] is None or len(left) < len(best[1]):
             best = (edited, left)
         if not any(p.startswith("opening:") for p in left):
+            known.append(sentence)
             break
     return best
 
@@ -366,6 +379,22 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         return found
     logger.info("Drafting %s about %s (hook: %s)", fmt, item["title"], hook_type)
 
+    setting: list[str] = []
+
+    def is_bare_opening(p: str) -> bool:
+        return p.startswith("opening: the first paragraph is a bare result")
+
+    async def with_setting(draft: str, found: list[str]) -> tuple[str, list[str]]:
+        # Drafts and full rewrites keep opening on a one-sentence result (most drafts 9-14 Nov), whatever else is wrong with
+        # them. Fix that one thing in place each time, so the rewrites only have to deal with the other problems.
+        if not any(is_bare_opening(p) for p in found):
+            return draft, found
+        edited, left = await _add_opening_setting(draft, facts, settings, rule_problems, setting)
+        if left is not None and not any(is_bare_opening(p) for p in left) and len(left) <= len(found):
+            logger.info("Draft repaired by adding a sentence on what the project is before its result")
+            return edited, left
+        return draft, found
+
     results = await asyncio.gather(*(_one_draft(prompt, settings) for _ in range(DRAFTS_PER_RUN)), return_exceptions=True)
     drafts = [r for r in results if isinstance(r, str) and r.strip()]
     if not drafts:
@@ -373,6 +402,7 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
     checked = sorted(((d, rule_problems(d)) for d in drafts), key=lambda p: (len(p[1]), _rank(p[0])))
     best, problems = checked[0]
     attempts = len(drafts)
+    best, problems = await with_setting(best, problems)
     if not problems:
         problems = await critic_problems(best, facts, settings)
         attempts += 1
@@ -384,7 +414,7 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
                "true to the facts.\n\nPROBLEMS:\n" + "\n".join(f"- {p}" for p in problems) + "\n\nPREVIOUS DRAFT:\n" + best)
         best = _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": fix}], settings=settings, temperature=0.7,
                                                     tier="write"))
-        problems = rule_problems(best)
+        best, problems = await with_setting(best, rule_problems(best))
         attempts += 1
         if not problems:
             problems = await critic_problems(best, facts, settings)
@@ -396,22 +426,6 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
     def bad_number(p: str) -> str | None:
         m = re.search(r"number '?([^' ]+)'? is not in the", p)
         return m.group(1) if m else None
-
-    def is_bare_opening(p: str) -> bool:
-        return p.startswith("opening: the first paragraph is a bare result")
-
-    if problems and any(is_bare_opening(p) for p in problems) and all(is_bare_opening(p) or is_repeat(p) or bad_number(p)
-                                                                      for p in problems):
-        # Full rewrites kept opening on a one-sentence result (most drafts 9-12 Nov). Write only the missing setting sentence and
-        # put it in front, leaving the rest of the post as it is; repeats and stray numbers left over are handled below.
-        edited, left = await _add_opening_setting(best, facts, settings, rule_problems)
-        attempts += 1
-        if left is not None and not any(is_bare_opening(p) for p in left) and len(left) <= len(problems):
-            logger.info("Draft repaired by adding a sentence on what the project is before its result")
-            best, problems = edited, left
-            if not problems:
-                problems = await critic_problems(best, facts, settings)
-                attempts += 1
 
     if problems and any(bad_number(p) for p in problems) and all(is_repeat(p) or bad_number(p) for p in problems):
         # Rewrites kept a number the facts do not have; cut the sentences that state it. Repeated words left over are fixed below.
