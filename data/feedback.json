@@ -483,5 +483,13 @@
       "repetition: \"AI‑ML Data Science Simulation is a personal portfo...\" uses 'prediction' twice in one sentence",
       "repetition: \"So I ran a weekly reorder simulation on held‑out w...\" uses 'week' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-14",
+    "story_id": "automated-daily-data-insights-1",
+    "comment": "",
+    "rules": [
+      "media: the only image for this story repeats numbers the post already states"
+    ]
   }
 ]
