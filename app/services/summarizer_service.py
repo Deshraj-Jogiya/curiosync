@@ -295,19 +295,33 @@ POST:
 async def _add_opening_setting(text: str, facts: str, settings: Settings, check) -> tuple[str, list[str] | None]:
     """Put a model-written setting sentence in front of a one-sentence result opening; the rest of the post stays word for word.
     Returns the edited post and its rule problems, or (text, None) when no usable sentence came back."""
-    try:
-        raw = await call_llm_with_fallback(messages=[{"role": "user", "content": OPENING_SETTING_PROMPT.format(facts=facts, post=text)}],
-                                           settings=settings, temperature=0.3, tier="write")
-    except Exception:
-        return text, None
-    sentence = " ".join(raw.strip().strip('"').split())
-    if not sentence or re.search(r"\d", sentence) or len(re.findall(r"[.!?](?:\s|$)", sentence)) > 1 or len(sentence) > 240:
-        return text, None
-    if sentence[-1] not in ".!?":
-        sentence += "."
-    head, sep, rest = text.strip().partition("\n\n")
-    edited = _finish(f"{sentence} {head}{sep}{rest}")
-    return edited, check(edited)
+    best: tuple[str, list[str] | None] = (text, None)
+    for _ in range(2):
+        try:
+            raw = await call_llm_with_fallback(messages=[{"role": "user", "content": OPENING_SETTING_PROMPT.format(facts=facts, post=text)}],
+                                               settings=settings, temperature=0.3, tier="write")
+        except Exception as exc:
+            logger.info("Opening repair: no sentence returned (%s)", type(exc).__name__)
+            continue
+        # The model sometimes adds a label or a second line; keep the first sentence of the first non-empty line. Numbers are left
+        # to the post's own rules (a number not in the story fails them), which is the same test every other sentence gets.
+        line = next((ln for ln in raw.strip().splitlines() if ln.strip()), "")
+        line = re.sub(r"^\s*(?:sentence|here is[^:]*|opening)\s*:\s*", "", line, flags=re.IGNORECASE).strip().strip('"“”*')
+        sentence = re.split(r"(?<=[.!?])\s+", line)[0].strip()
+        if len(sentence) < 20:
+            logger.info("Opening repair: unusable sentence %r", raw[:120])
+            continue
+        if sentence[-1] not in ".!?":
+            sentence += "."
+        head, sep, rest = text.strip().partition("\n\n")
+        edited = _finish(f"{sentence} {head}{sep}{rest}")
+        left = check(edited)
+        logger.info("Opening repair: %d problem(s) left after adding %r: %s", len(left), sentence[:80], left)
+        if best[1] is None or len(left) < len(best[1]):
+            best = (edited, left)
+        if not any(p.startswith("opening:") for p in left):
+            break
+    return best
 
 
 async def _one_draft(prompt: str, settings: Settings) -> str:
@@ -392,7 +406,7 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         # put it in front, leaving the rest of the post as it is; repeats and stray numbers left over are handled below.
         edited, left = await _add_opening_setting(best, facts, settings, rule_problems)
         attempts += 1
-        if left is not None and not any(is_bare_opening(p) for p in left) and len(left) < len(problems):
+        if left is not None and not any(is_bare_opening(p) for p in left) and len(left) <= len(problems):
             logger.info("Draft repaired by adding a sentence on what the project is before its result")
             best, problems = edited, left
             if not problems:

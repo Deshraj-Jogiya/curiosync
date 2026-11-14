@@ -167,14 +167,28 @@ async def test_a_bare_result_opening_gets_a_setting_sentence_instead_of_another_
 
 
 @pytest.mark.asyncio
-async def test_a_setting_sentence_with_a_number_is_not_used():
+async def test_a_labelled_setting_reply_is_cleaned_to_its_sentence():
     async def llm(messages, settings, temperature, tier="any"):
-        if "Write ONE sentence to go before that opening line" in messages[0]["content"]:
-            return "The Job Search dbt Warehouse is my 2026 dbt project."
+        content = messages[0]["content"]
+        if "Write ONE sentence to go before that opening line" in content:
+            return "Sentence: " + SETTING + " It also runs in CI.\n\n(This keeps the result.)"
+        if "checking a LinkedIn post" in content:
+            return '{"unsupported": []}'
         return GOOD
 
-    with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")), \
-            patch.object(ss, "check_draft", _bare_unless_set):
+    with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")),             patch.object(ss, "check_draft", _bare_unless_set):
+        result = await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
+    assert result["text"].startswith(SETTING + " I wrote 15 dbt tests")
+
+
+@pytest.mark.asyncio
+async def test_an_unusable_setting_reply_leaves_the_draft_rejected():
+    async def llm(messages, settings, temperature, tier="any"):
+        if "Write ONE sentence to go before that opening line" in messages[0]["content"]:
+            return "OK."
+        return GOOD
+
+    with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")),             patch.object(ss, "check_draft", _bare_unless_set):
         with pytest.raises(ss.DraftRejected) as exc:
             await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
     assert exc.value.problems == [BARE]
