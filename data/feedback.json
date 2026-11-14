@@ -473,5 +473,15 @@
       "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
       "repetition: \"The file tests/test_make_report.py asserts that th...\" uses 'test' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-14",
+    "story_id": "ai-ml-data-science-simulation-2",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: \"AI‑ML Data Science Simulation is a personal portfo...\" uses 'prediction' twice in one sentence",
+      "repetition: \"So I ran a weekly reorder simulation on held‑out w...\" uses 'week' twice in one sentence"
+    ]
   }
 ]
