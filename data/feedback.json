@@ -454,5 +454,15 @@
       "repetition: 'market' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'",
       "repetition: 'price' is used 5 times; use it at most 4 times, then name the specific thing or say 'it'"
     ]
+  },
+  {
+    "date": "2026-11-14",
+    "story_id": "real-time-iot-telematics-predictive-main-1",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: \"I built it on simulated data because a sensor that...\" uses 'alarm' twice in one sentence",
+      "two paragraphs in a row open with 'real time'"
+    ]
   }
 ]
