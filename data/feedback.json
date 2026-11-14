@@ -464,5 +464,14 @@
       "repetition: \"I built it on simulated data because a sensor that...\" uses 'alarm' twice in one sentence",
       "two paragraphs in a row open with 'real time'"
     ]
+  },
+  {
+    "date": "2026-11-14",
+    "story_id": "clinical-trials-patient-outcomes-analysi-3",
+    "comment": "",
+    "rules": [
+      "opening: the first paragraph is a bare result; say first what the project is and what problem it solves, then the result",
+      "repetition: \"The file tests/test_make_report.py asserts that th...\" uses 'test' twice in one sentence"
+    ]
   }
 ]
