@@ -182,16 +182,38 @@ async def test_a_labelled_setting_reply_is_cleaned_to_its_sentence():
 
 
 @pytest.mark.asyncio
-async def test_an_unusable_setting_reply_leaves_the_draft_rejected():
+async def test_a_style_problem_left_over_goes_to_review_as_a_note_once_the_fact_check_passes():
     async def llm(messages, settings, temperature, tier="any"):
         if "Write ONE sentence to go before that opening line" in messages[0]["content"]:
             return "OK."
+        if "checking a LinkedIn post" in messages[0]["content"]:
+            return '{"unsupported": []}'
         return GOOD
+
+    with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")),             patch.object(ss, "check_draft", _bare_unless_set):
+        result = await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
+    assert result["style_notes"] == [BARE]
+
+
+@pytest.mark.asyncio
+async def test_a_style_problem_with_a_failed_fact_check_is_still_rejected():
+    async def llm(messages, settings, temperature, tier="any"):
+        if "Write ONE sentence to go before that opening line" in messages[0]["content"]:
+            return "OK."
+        return GOOD  # the fact check gets prose, not JSON: it did not run
 
     with patch.object(ss, "call_llm_with_fallback", llm), patch.object(ss, "pick_subject", lambda *a: _item("Job Search dbt")),             patch.object(ss, "check_draft", _bare_unless_set):
         with pytest.raises(ss.DraftRejected) as exc:
             await ss.generate_post("project_spotlight", SAMPLE_PROFILE, object(), date(2026, 11, 16), [], [])
-    assert exc.value.problems == [BARE]
+    assert BARE in exc.value.problems and any(ss.is_hard(p) for p in exc.value.problems)
+
+
+def test_only_truth_problems_are_hard():
+    assert ss.is_hard("unsupported by the facts: claims X")
+    assert ss.is_hard("number '53.20%' is not in the facts")
+    assert not ss.is_hard("repetition: 'demand' is used 5 times")
+    assert not ss.is_hard("opening: the first paragraph is a bare result")
+    assert not ss.is_hard("filler word 'significant'")
 
 
 @pytest.mark.asyncio

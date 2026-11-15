@@ -27,6 +27,15 @@ DRAFTS_PER_RUN = 3
 MAX_REWRITES = 3
 
 
+HARD_PROBLEMS = ("unsupported by the facts", "fact check could not run", "fact check returned no readable answer", "no draft returned")
+
+
+def is_hard(problem: str) -> bool:
+    """A truth problem stops a draft: a claim or number the facts do not back, or a fact check that did not run. Everything else
+    (repeated words, opening and closing shape, filler, length, flow) is a style note the owner sees on the review page."""
+    return problem.startswith(HARD_PROBLEMS) or bool(re.search(r"number '?[^' ]+'? is not in the", problem))
+
+
 class DraftRejected(RuntimeError):
     def __init__(self, problems: list[str], draft: str = ""):
         super().__init__("; ".join(problems))
@@ -518,11 +527,22 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
                 attempts += 1
                 break
 
+    if problems and not any(is_hard(p) for p in problems):
+        # Only style problems are left. Since the late-October rules almost no draft cleared every style check, so nothing reached
+        # the owner for weeks (owner, 2026-11-15: "still not running well"). The fact check still has to pass; style problems go
+        # to the review page as notes, and the owner decides, as only truth problems stop a draft in Career Pilot too.
+        crit = await critic_problems(best, facts, settings)
+        attempts += 1
+        if not any(is_hard(p) for p in crit):
+            logger.info("Draft sent for review with style notes", extra={"notes": problems + crit})
+            return {"text": best, "subject": item["title"], "format": fmt, "hook_type": hook_type, "item": item, "attempts": attempts,
+                    "news": news, "story": story, "facts": facts, "style_notes": problems + crit}
+        problems = problems + crit
     if problems:
         raise DraftRejected(problems, best)
     logger.info("Draft accepted", extra={"format": fmt, "chars": len(best), "attempts": attempts})
     return {"text": best, "subject": item["title"], "format": fmt, "hook_type": hook_type, "item": item, "attempts": attempts,
-            "news": news, "story": story, "facts": facts}
+            "news": news, "story": story, "facts": facts, "style_notes": []}
 
 
 async def generate_draft(news_items: list[dict], settings: Settings) -> str:

@@ -217,17 +217,14 @@ async def run_daily_pipeline(
         except Exception as img_err:
             logger.error("Failed to build the post image: %s", img_err)
         steps["visual"] = visual_kind
+        # An image that only repeats the post's numbers used to fail the draft here; it is now a note on the review page (the page
+        # already says to reject it so a different image is drawn), so a sound post is not lost over its picture (2026-11-15).
+        style_notes = list(post.get("style_notes") or [])
         if story and "repeats the post" in visual_kind:
-            # Media must show something the text does not (owner, 2026-10-27 and 2026-10-31). With only a chart of numbers the post
-            # already states, the draft fails like any other rule, so the retry writes about another story.
-            problems = ["media: the only image for this story repeats numbers the post already states"]
-            steps["generate_draft"] = f"rejected after rewrites: {problems}"
-            await record_scheduler_run(session, run_type, "skipped", "Draft failed the post rules", steps)
-            if own_session:
-                await session.commit()
-            return {"status": "skipped", "reason": f"No draft passed the post rules: {problems}", "steps": steps,
-                    "rejected_draft": draft_text, "problems": problems, "format": fmt, "subject": subject,
-                    "story_id": story["id"]}
+            style_notes.append("media: the only image for this story repeats numbers the post already states")
+        if style_notes:
+            steps["style_notes"] = style_notes
+            compliance = {**compliance, "issues": list(compliance.get("issues") or []) + [f"style: {n}" for n in style_notes]}
 
         history_entry = {
             "date": str(date_for),
