@@ -499,5 +499,14 @@
     "rules": [
       "repetition: \"So I measured finger bend and spread for each vide...\" uses 'clip' twice in one sentence"
     ]
+  },
+  {
+    "date": "2026-11-15",
+    "story_id": "talentvenue-eventintel-enterprise-data-p-1",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: Claiming that database users are running risk predictions directly inside SQL queries (FACTS describe a bootcamp capstone project without live database users).",
+      "reading flow: Paragraph 7 ('Database users can now run risk predictions...') redundantly restates the UDF deployment and TypeScript CLI validation decisions already explained in paragraph 6."
+    ]
   }
 ]
