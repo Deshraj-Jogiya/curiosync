@@ -38,7 +38,7 @@ When evaluating clinical trial outcomes across several arms, do you rely on log-
 def test_every_group_row_of_the_write_up_reaches_the_writer():
     s = enrich(STORY)
     assert [r["name"] for r in s["groups"]["rows"]] == ["Control", "Low-dosage", "High-dosage"]
-    assert "High-dosage: Survival at day 365 0.5320" in story_text(s)
+    assert "High-dosage: Survival at day 365 0.5320" in story_text(s) and "Results by group" in story_text(s)
 
 
 def test_a_value_the_write_up_no_longer_states_is_dropped():
@@ -91,8 +91,9 @@ def test_the_curves_image_is_preferred_and_its_alt_text_names_the_source_file():
     assert kind == "curves" and "exports/km_curves.csv" in alt and "High-dosage 53.2%" in alt
 
 
-def test_a_term_of_art_must_be_explained_where_it_first_appears():
+def test_a_term_of_art_gives_way_to_the_everyday_word():
     from app.services.post_rules import jargon_problems
 
     assert jargon_problems("I compared three treatment arms. Survival differed.")
-    assert not jargon_problems("I compared three treatment arms. An arm is a group of patients on one treatment.")
+    assert jargon_problems("I compared three arms. An arm is a group of patients on one treatment.")  # no definitions either
+    assert not jargon_problems("I compared three groups: control, a low dosage and a high one.")

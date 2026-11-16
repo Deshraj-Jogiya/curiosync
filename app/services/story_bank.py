@@ -89,7 +89,10 @@ def story_text(story: dict) -> str:
     lines.append(f"Decision: {story['decision']}")
     if story.get("groups"):
         g = story["groups"]
-        lines.append(f"Results by {g['group'].lower()} (compare these; every value is as the write-up states it):")
+        from app.services.post_rules import JARGON
+
+        header = JARGON.get(g["group"].lower(), (None, g["group"].lower()))[1]  # "Arm" reaches the writer as "group"
+        lines.append(f"Results by {header} (compare these; every value is as the write-up states it):")
         lines += [f"- {r['name']}: " + "; ".join(f"{c} {v}" for c, v in r["values"].items()) for r in g["rows"]]
     if story.get("simulated"):
         lines.append("Data: simulated (the write-up says so); the post must say the data is simulated.")

@@ -428,20 +428,17 @@ def _content_words(text: str) -> set[str]:
     return {w for w in re.findall(r"[a-z][a-z-]+", text.lower()) if len(w) > 3 and w not in _STOP}
 
 
-# Terms of art a reader outside the field misreads, with what an explanation of each says. A trial "arm" read as a human arm
-# (owner, 2026-11-15, on the Clinical Trials post).
-JARGON = {"arm": (r"\barms?\b", r"\bgroups?\b"), "cohort": (r"\bcohorts?\b", r"\bgroups?\b")}
+# Terms of art a reader outside the field misreads, with the everyday word a post uses instead. A trial "arm" read as a human arm,
+# and a stand-alone definition of it "just breaks the interest of the reader" (owner, 2026-11-15, on the Clinical Trials post): a
+# post says "group" and never stops to define a term.
+JARGON = {"arm": (r"\barms?\b", "group"), "cohort": (r"\bcohorts?\b", "group")}
 
 
 def jargon_problems(text: str) -> list[str]:
-    """A term of art used without saying, in the sentence where it first appears or the next one, what it means."""
-    sentences = [x for x in re.split(r"(?<=[.!?:])\s+", text.split("\n#")[0]) if x.strip()]
-    out = []
-    for term, (use, meaning) in JARGON.items():
-        first = next((i for i, x in enumerate(sentences) if re.search(use, x, re.IGNORECASE)), None)
-        if first is not None and not re.search(meaning, " ".join(sentences[first:first + 2]), re.IGNORECASE):
-            out.append(f"plain words: '{term}' is a term of art; say what it means the first time it appears")
-    return out
+    """Terms of art that have an everyday word a reader outside the field understands at once."""
+    body = text.split("\n#")[0]
+    return [f"plain words: say '{plain}' instead of '{term}'; a reader outside the field should never stop to decode a word"
+            for term, (use, plain) in JARGON.items() if re.search(use, body, re.IGNORECASE)]
 
 
 def flow_problems(text: str) -> list[str]:

@@ -107,9 +107,10 @@ Shape (the structure the owner approved on 2026-10-23):
   Then what you built, the turning point (the result or decision that changed how you read the work), and the measured result.
 - Frame the work as an engineering decision a data or ML engineer would recognise. Keep any job-search backstory to one sentence.
 - Plain words: every number says what it measures ("agreed on 6 of 8 resumes", not "6/8 alignment"). No slogans, no abstract claims.
-- A reader outside the field must follow every sentence: the first time a term of art appears ("arm", "cohort", "drift", "recall"),
-  say in the same or the next sentence what it means in everyday words ("an arm is the trial term for a group of patients who all
-  get the same treatment"). Owner, 2026-11-15: "as an unknown reader... is it talking about a human arm?"
+- A reader outside the field must follow every sentence without stopping: use the everyday word, not the term of art ("group",
+  not "arm" or "cohort"). When a technical name has to stay (Kaplan-Meier, log-rank), let the sentence around it show what it
+  does; never stop the story for a stand-alone definition (owner, 2026-11-15: a trial "arm" read as a human arm, and a definition
+  sentence "just breaks the interest of the reader").
 - Tell it as a story with a question, a test and a finding, not as a list of steps. The question is the one the facts state;
   never give yourself a motive ("I needed to prove", "I wanted to make sure") or a quality word the numbers do not say
   ("perfect", "flawless", "reliable" for 124 of 124: write "all 124 runs passed"). Vary how paragraphs open: at most two start
@@ -421,8 +422,8 @@ What the approved posts do that the draft must do too:
    with their numbers inside the sentences (when STORY lists results by group, compare at least two groups).
 5. A close that says what the result now lets him do with this project, or what the project's own output now shows, in one concrete
    sentence that does not repeat the first line and claims no users the facts do not name, then one specific practitioner question of at least ten words about this post's own choice.
-6. The first time a term of art appears ("arm", "cohort", "drift", "recall"), say in plain words what it means, so a reader
-   outside the field never wonders (a trial "arm" read as a human arm).
+6. Everyday words over terms of art ("group", not "arm" or "cohort"); a technical name that has to stay is made clear by the
+   sentence around it, never by a stand-alone definition that stops the story.
 7. 800 to 1500 characters before the hashtags, short paragraphs, plain words, no word used more than four times, no number more
    than twice, no slogans, then the same two hashtags.
 
