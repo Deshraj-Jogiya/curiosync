@@ -233,5 +233,501 @@
     },
     "document": null,
     "document_title": null
+  },
+  {
+    "id": "chat-2026-11-18-automated-daily-data-insights-2",
+    "format": "lesson",
+    "subject": "Automated Daily Data Insights",
+    "text": "I chose a GitHub Actions cron schedule instead of a paid server, eliminating any hosting cost.\n\nAutomated Daily Data Insights is a personal portfolio pipeline that pulls market prices each trading day, flags unusual moves with a rolling Z‑score, and publishes a report. I built it because my earlier pipelines only ran on my laptop and I wanted a job that runs by itself on real data without any server expense.\n\nThe question was whether a rolling Z‑score could reliably separate an ordinary move from a true outlier. Each daily return is compared with its 20‑day mean and flagged if it exceeds two standard deviations. On 2026‑06‑05 the return was -2.58 % with a Z‑score of 3.17, while on 2026‑05‑15 the return was -1.2 % with a score of 2.08.\n\nBoth days crossed the line, but not by the same margin: the -2.58 % day sat more than 3 standard deviations out, while the -1.2 % day only just cleared 2. When the latest trading day is an anomaly, the job automatically emails an alert with the close, the return, the score and a link to the report.\n\nNow the pipeline runs every market day at zero hosting cost and reliably notifies me of spikes.\n\nIf you rely on free CI/CD schedules for data jobs, what strategies do you use to cope with API rate limits or occasional downtime without breaking the workflow?\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/chat-2026-11-18-automated-daily-data-insights-2.png",
+    "alt_text": "Bar chart: SPY daily returns from Mar 20 to Jun 15 2026 against a shaded band of the 20-day average return plus or minus 2 standard deviations. Two days fall outside the band and are flagged: May 15 at -1.2% (Z 2.08) and Jun 5 at -2.58% (Z 3.17). The first 20 days build the baseline and are not tested.",
+    "post_day": "2026-11-18",
+    "history_entry": {
+      "date": "2026-11-18",
+      "format": "lesson",
+      "subject": "Automated Daily Data Insights",
+      "hook_type": "decision_cost",
+      "opener_words": [
+        "i",
+        "chose",
+        "a",
+        "github",
+        "actions",
+        "cron",
+        "schedule",
+        "instead",
+        "of",
+        "a"
+      ],
+      "text": "I chose a GitHub Actions cron schedule instead of a paid server, eliminating any hosting cost.\n\nAutomated Daily Data Insights is a personal portfolio pipeline that pulls market prices each trading day, flags unusual moves with a rolling Z‑score, and publishes a report. I built it because my earlier pipelines only ran on my laptop and I wanted a job that runs by itself on real data without any server expense.\n\nThe question was whether a rolling Z‑score could reliably separate an ordinary move from a true outlier. Each daily return is compared with its 20‑day mean and flagged if it exceeds two standard deviations. On 2026‑06‑05 the return was -2.58 % with a Z‑score of 3.17, while on 2026‑05‑15 the return was -1.2 % with a score of 2.08.\n\nBoth days crossed the line, but not by the same margin: the -2.58 % day sat more than 3 standard deviations out, while the -1.2 % day only just cleared 2. When the latest trading day is an anomaly, the job automatically emails an alert with the close, the return, the score and a link to the report.\n\nNow the pipeline runs every market day at zero hosting cost and reliably notifies me of spikes.\n\nIf you rely on free CI/CD schedules for data jobs, what strategies do you use to cope with API rate limits or occasional downtime without breaking the workflow?\n\n#DataEngineering #MachineLearning",
+      "story_id": "automated-daily-data-insights-2"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-11-20-tax-anomaly-audit-compliance-engine-1",
+    "format": "decision",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "text": "A model is worth running only if it finds what a simple rule misses. Here the tax-rate rule found 45 planted errors; the model found 18.\n\nTax Anomaly Audit Compliance Engine is a personal portfolio project that hunts for suspicious entries in a simulated general ledger of 1,200 lines. I built it because as a new student in the US I had to file my taxes on my own, and learning how to do that is where this project came from.\n\nIt has two ways to catch a bad line. The model rates each one by how far its first digits stray from Benford's Law, the pattern real amounts tend to follow, and by how unusual an Isolation Forest finds it, then flags a risk score of 65 or more. The rule only checks whether the tax charged matches the rate for its category. So I planted anomalies and scored each layer on its own.\n\nThe rule flagged 45 lines and every one was real, catching 95.74% of the planted errors. The model flagged 19 and was right on most of them, but found only 38.3%, and the rule had already caught every one.\n\nSo the rule's flags now go first in the review order, and Benford's Law and the Isolation Forest rank the rest. A reviewer starts with flags that are certain, then works down a list sorted by risk.\n\nWhen a plain business rule beats your anomaly model, do you keep the model to rank what is left or drop it?\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/chat-2026-11-20-tax-anomaly-audit-compliance-engine-1.png",
+    "alt_text": "Scatter chart: Precision vs Recall by Layer. Model Recall 0.383, Precision 0.9474; Tax-rate rule Recall 0.9574, Precision 1.0; Combined Recall 0.9574, Precision 0.9783. Simulated data.",
+    "post_day": "2026-11-20",
+    "history_entry": {
+      "date": "2026-11-20",
+      "format": "decision",
+      "subject": "Tax Anomaly Audit Compliance Engine",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "a",
+        "model",
+        "is",
+        "worth",
+        "running",
+        "only",
+        "if",
+        "it",
+        "finds",
+        "what"
+      ],
+      "text": "A model is worth running only if it finds what a simple rule misses. Here the tax-rate rule found 45 planted errors; the model found 18.\n\nTax Anomaly Audit Compliance Engine is a personal portfolio project that hunts for suspicious entries in a simulated general ledger of 1,200 lines. I built it because as a new student in the US I had to file my taxes on my own, and learning how to do that is where this project came from.\n\nIt has two ways to catch a bad line. The model rates each one by how far its first digits stray from Benford's Law, the pattern real amounts tend to follow, and by how unusual an Isolation Forest finds it, then flags a risk score of 65 or more. The rule only checks whether the tax charged matches the rate for its category. So I planted anomalies and scored each layer on its own.\n\nThe rule flagged 45 lines and every one was real, catching 95.74% of the planted errors. The model flagged 19 and was right on most of them, but found only 38.3%, and the rule had already caught every one.\n\nSo the rule's flags now go first in the review order, and Benford's Law and the Isolation Forest rank the rest. A reviewer starts with flags that are certain, then works down a list sorted by risk.\n\nWhen a plain business rule beats your anomaly model, do you keep the model to rank what is left or drop it?\n\n#DataEngineering #MachineLearning",
+      "story_id": "tax-anomaly-audit-compliance-engine-1"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-11-23-extending-stem-across-asl-1",
+    "format": "project_spotlight",
+    "subject": "Extending STEM across ASL",
+    "text": "By chance, one of 29 signs is picked right 3.45% of the time. My model got 94.83% within its top three guesses.\n\nExtending STEM across ASL is my graduate project, peer reviewed and rebuilt on public video data, that recognises STEM and computing words in sign language. The study behind it found that only about 16% of ASL users go on to university, and missing STEM vocabulary, and too few people able to use it, was one of several main reasons.\n\nThe question was whether a model trained on a small public set could tell 29 such words apart. So I held out 2 clips of each word from 214 WLASL clips and trained on the rest. Each clip becomes MediaPipe hand landmarks plus OpenCV hand-crop features over 32 frames, read by a 1-D convolution and a bidirectional GRU.\n\nOn the held-out clips it was right 75.86% of the time on its first guess, and the correct answer was almost always among its first three guesses. Each clip took 0.34 ms of model time.\n\nThat gap decided the design. The browser page shows the top three guesses for each recording, so a wrong first guess still leaves the right answer on screen.\n\nFor gesture recognition with only a few clips per class, do you show the single top guess or several candidates?\n\n#MachineLearning #ComputerVision",
+    "image": "assets/approved/chat-2026-11-23-extending-stem-across-asl-1.png",
+    "alt_text": "Held-out clips named right on the first guess, by sign (2 clips each). Both right, 17 signs: computer, email, program, machine, television, write, letter, test, learn, teacher, math, calculate, measure, plus, energy, experiment, book. One of two, 10 signs: internet, print, paper, study, school, science, research, biology, physics, picture. Neither, 2 signs: network, chemistry.",
+    "post_day": "2026-11-23",
+    "history_entry": {
+      "date": "2026-11-23",
+      "format": "project_spotlight",
+      "subject": "Extending STEM across ASL",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "by",
+        "chance",
+        "one",
+        "of",
+        "29",
+        "signs",
+        "is",
+        "picked",
+        "right",
+        "3"
+      ],
+      "text": "By chance, one of 29 signs is picked right 3.45% of the time. My model got 94.83% within its top three guesses.\n\nExtending STEM across ASL is my graduate project, peer reviewed and rebuilt on public video data, that recognises STEM and computing words in sign language. The study behind it found that only about 16% of ASL users go on to university, and missing STEM vocabulary, and too few people able to use it, was one of several main reasons.\n\nThe question was whether a model trained on a small public set could tell 29 such words apart. So I held out 2 clips of each word from 214 WLASL clips and trained on the rest. Each clip becomes MediaPipe hand landmarks plus OpenCV hand-crop features over 32 frames, read by a 1-D convolution and a bidirectional GRU.\n\nOn the held-out clips it was right 75.86% of the time on its first guess, and the correct answer was almost always among its first three guesses. Each clip took 0.34 ms of model time.\n\nThat gap decided the design. The browser page shows the top three guesses for each recording, so a wrong first guess still leaves the right answer on screen.\n\nFor gesture recognition with only a few clips per class, do you show the single top guess or several candidates?\n\n#MachineLearning #ComputerVision",
+      "story_id": "extending-stem-across-asl-1"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-11-25-fintech-credit-risk-fraud-command-center-2",
+    "format": "lesson",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "text": "An alert is only useful if you can act on it. My velocity rule was right on all 1,110 of its alerts; the amount-spike rule on 40 of 4,069.\n\nFinTech Credit Risk & Fraud Command Center is a personal portfolio project on credit risk and fraud detection, run on simulated card transactions. I built it because my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people.\n\nBefore letting any check act on its own, I needed to know which ones could be trusted. Three checks read only the amount, hour, location and customer: velocity (5 or more charges inside 10 minutes), a spike over 7 times the customer's median, and a foreign location. I scored their alerts against the cases the simulator planted, which the checks never see.\n\nVelocity never raised a false alarm but caught only 42.84% of the planted cases. Foreign location caught more, 56.5%, yet fewer than a third of its alerts were fraud. Spikes were almost all legitimate large purchases, at 0.98% precision.\n\nSo velocity is the rule trusted on its own, spikes stay a review signal rather than a block, and together the three catch every planted fraud case.\n\nHow do you decide when a fraud rule is precise enough to block a payment instead of queueing it for review?\n\n#DataEngineering #MachineLearning",
+    "image": "assets/approved/chat-2026-11-25-fintech-credit-risk-fraud-command-center-2.png",
+    "alt_text": "Scatter chart: Rule Precision vs Alerts. Velocity Alerts 1,110, Precision 1.0; Foreign location Alerts 4,942, Precision 0.2962; Amount spike Alerts 4,069, Precision 0.0098.",
+    "post_day": "2026-11-25",
+    "history_entry": {
+      "date": "2026-11-25",
+      "format": "lesson",
+      "subject": "FinTech Credit Risk & Fraud Command Center",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "an",
+        "alert",
+        "is",
+        "only",
+        "useful",
+        "if",
+        "you",
+        "can",
+        "act",
+        "on"
+      ],
+      "text": "An alert is only useful if you can act on it. My velocity rule was right on all 1,110 of its alerts; the amount-spike rule on 40 of 4,069.\n\nFinTech Credit Risk & Fraud Command Center is a personal portfolio project on credit risk and fraud detection, run on simulated card transactions. I built it because my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people.\n\nBefore letting any check act on its own, I needed to know which ones could be trusted. Three checks read only the amount, hour, location and customer: velocity (5 or more charges inside 10 minutes), a spike over 7 times the customer's median, and a foreign location. I scored their alerts against the cases the simulator planted, which the checks never see.\n\nVelocity never raised a false alarm but caught only 42.84% of the planted cases. Foreign location caught more, 56.5%, yet fewer than a third of its alerts were fraud. Spikes were almost all legitimate large purchases, at 0.98% precision.\n\nSo velocity is the rule trusted on its own, spikes stay a review signal rather than a block, and together the three catch every planted fraud case.\n\nHow do you decide when a fraud rule is precise enough to block a payment instead of queueing it for review?\n\n#DataEngineering #MachineLearning",
+      "story_id": "fintech-credit-risk-fraud-command-center-2"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-11-27-ai-model-observability-fairness-audits-2",
+    "format": "lesson",
+    "subject": "AI Model Observability & Fairness Audits",
+    "text": "Nobody reads 300 metric values a day for long. Over a 60-day run, my monitor asked a reviewer to read 25 alerts instead.\n\nAI Model Observability & Fairness Audits is a personal portfolio project that watches a deployed classifier on simulated inference records: drift tests on its inputs and bias checks on its decisions. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, I believe an engineer has to keep adapting.\n\nThe risk with monitoring is that it buries people. So each daily audit writes a row to an audit_alerts table only when a rule crosses its threshold: a KS p-value under 0.01, PSI above 0.25, disparate impact outside 0.8 to 1.25, or a true-positive-rate gap of more than 10 points between groups.\n\nI then counted what a reviewer would read with that table against reading every daily metric. Only about a third of the days raised anything at all. The KS test fired on every one of them; PSI flagged a major shift on just 4, and later, so KS was the earlier signal on this drift.\n\nThe reviewer now works from audit_alerts alone and opens a day only when it has a row there.\n\nIf you monitor models for drift and bias, do you alert on every threshold breach or group them into a daily digest?\n\n#MachineLearning #DataEngineering",
+    "image": "assets/approved/chat-2026-11-27-ai-model-observability-fairness-audits-2.png",
+    "alt_text": "Before and after: Review Load Before vs After. Days to review: 60 to 21; Alerts to read: 300 to 25. Simulated data.",
+    "post_day": "2026-11-27",
+    "history_entry": {
+      "date": "2026-11-27",
+      "format": "lesson",
+      "subject": "AI Model Observability & Fairness Audits",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "nobody",
+        "reads",
+        "300",
+        "metric",
+        "values",
+        "a",
+        "day",
+        "for",
+        "long",
+        "over"
+      ],
+      "text": "Nobody reads 300 metric values a day for long. Over a 60-day run, my monitor asked a reviewer to read 25 alerts instead.\n\nAI Model Observability & Fairness Audits is a personal portfolio project that watches a deployed classifier on simulated inference records: drift tests on its inputs and bias checks on its decisions. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, I believe an engineer has to keep adapting.\n\nThe risk with monitoring is that it buries people. So each daily audit writes a row to an audit_alerts table only when a rule crosses its threshold: a KS p-value under 0.01, PSI above 0.25, disparate impact outside 0.8 to 1.25, or a true-positive-rate gap of more than 10 points between groups.\n\nI then counted what a reviewer would read with that table against reading every daily metric. Only about a third of the days raised anything at all. The KS test fired on every one of them; PSI flagged a major shift on just 4, and later, so KS was the earlier signal on this drift.\n\nThe reviewer now works from audit_alerts alone and opens a day only when it has a row there.\n\nIf you monitor models for drift and bias, do you alert on every threshold breach or group them into a daily digest?\n\n#MachineLearning #DataEngineering",
+      "story_id": "ai-model-observability-fairness-audits-2"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-11-30-clinical-trials-patient-outcomes-analysi-2",
+    "format": "decision",
+    "subject": "Clinical Trials Patient Outcomes Analysis",
+    "text": "The dose that kept the most patients alive also hurt the most. Adverse events hit 23.75% on the high dose, against 8.42% on control.\n\nClinical Trials Patient Outcomes Analysis is a personal portfolio project that runs survival and safety statistics on simulated trial patients in three groups: control, a low dosage and a high one. I built it because of COVID: in India's second wave, fake news and fear made things much worse, because people lacked basic clarity on how an illness works.\n\nThe survival test had already shown the high dose living longest. That answer felt incomplete, though: a treatment is only better if its benefit outweighs its harm, so I needed to know whether side effects rose with the dosage.\n\nSo I counted adverse events in each group and ran a chi-square test of independence on them. The low dosage sat close to control at 10.67%, while the highest one more than doubled it. The test put the chance of a gap this large arising by luck at p = 0.008807.\n\nThe result changed how the report reads. The longer survival now sits beside its safety cost, so whoever reads it weighs the two together instead of seeing one side alone.\n\nWhen a treatment improves one outcome but worsens another, how do you present the trade-off to people who are not statisticians?\n\n#DataScience #Healthcare",
+    "image": "assets/approved/chat-2026-11-30-clinical-trials-patient-outcomes-analysi-2.png",
+    "alt_text": "Scatter: survival at day 365 against adverse event rate by dose group: Control 8.42%/15.82%, Low 10.67%/33.27%, High 23.75%/53.20%. Simulated data.",
+    "post_day": "2026-11-30",
+    "history_entry": {
+      "date": "2026-11-30",
+      "format": "decision",
+      "subject": "Clinical Trials Patient Outcomes Analysis",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "the",
+        "dose",
+        "that",
+        "kept",
+        "the",
+        "most",
+        "patients",
+        "alive",
+        "also",
+        "hurt"
+      ],
+      "text": "The dose that kept the most patients alive also hurt the most. Adverse events hit 23.75% on the high dose, against 8.42% on control.\n\nClinical Trials Patient Outcomes Analysis is a personal portfolio project that runs survival and safety statistics on simulated trial patients in three groups: control, a low dosage and a high one. I built it because of COVID: in India's second wave, fake news and fear made things much worse, because people lacked basic clarity on how an illness works.\n\nThe survival test had already shown the high dose living longest. That answer felt incomplete, though: a treatment is only better if its benefit outweighs its harm, so I needed to know whether side effects rose with the dosage.\n\nSo I counted adverse events in each group and ran a chi-square test of independence on them. The low dosage sat close to control at 10.67%, while the highest one more than doubled it. The test put the chance of a gap this large arising by luck at p = 0.008807.\n\nThe result changed how the report reads. The longer survival now sits beside its safety cost, so whoever reads it weighs the two together instead of seeing one side alone.\n\nWhen a treatment improves one outcome but worsens another, how do you present the trade-off to people who are not statisticians?\n\n#DataScience #Healthcare",
+      "story_id": "clinical-trials-patient-outcomes-analysi-2"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-02-talentvenue-eventintel-enterprise-data-p-1",
+    "format": "lesson",
+    "subject": "TalentVenue EventIntel",
+    "text": "An 86.20% accurate model can still miss half of what matters. Mine flagged contract cancellations with a recall of only 0.48.\n\nTalentVenue EventIntel is my capstone for the ElevateMe Bootcamp data analytics certificate, built on a real event and talent-management company's database. It came with real problems: reports recalculated money totals one booking at a time on every read, payments could not easily be checked against the ledger, and 14.7% of deals were cancelled.\n\nThat last number was the one I wanted to predict. So I engineered features from the staged tables, split them 80/20 with stratification, and trained a Random Forest of 100 trees. Of the 2,000 held-out records, 352 were cancelled.\n\nThe headline accuracy looked strong, and the ROC-AUC of 0.8707 says the model ranks risk well. But most bookings complete, so accuracy flatters it: at the default threshold it caught about half of the cancellations, and 0.65 of its cancellation flags were right.\n\nSo it runs as a Snowflake Python UDF, scoring each one inside SQL where analysts already work, and a TypeScript CLI checks the feature-mappings file before the dashboard reads it. The score sorts the pipeline by risk rather than deciding on its own.\n\nWhen most of your outcomes are the common class, which metric do you put in front of the business first?\n\n#DataAnalytics #MachineLearning",
+    "image": "assets/approved/chat-2026-12-02-talentvenue-eventintel-enterprise-data-p-1.png",
+    "alt_text": "Bar chart, How the model does on each outcome, by outcome: Precision: Cancelled 0.65, Completed 0.89; Recall: Cancelled 0.48, Completed 0.94.",
+    "post_day": "2026-12-02",
+    "history_entry": {
+      "date": "2026-12-02",
+      "format": "lesson",
+      "subject": "TalentVenue EventIntel",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "an",
+        "86",
+        "20%",
+        "accurate",
+        "model",
+        "can",
+        "still",
+        "miss",
+        "half",
+        "of"
+      ],
+      "text": "An 86.20% accurate model can still miss half of what matters. Mine flagged contract cancellations with a recall of only 0.48.\n\nTalentVenue EventIntel is my capstone for the ElevateMe Bootcamp data analytics certificate, built on a real event and talent-management company's database. It came with real problems: reports recalculated money totals one booking at a time on every read, payments could not easily be checked against the ledger, and 14.7% of deals were cancelled.\n\nThat last number was the one I wanted to predict. So I engineered features from the staged tables, split them 80/20 with stratification, and trained a Random Forest of 100 trees. Of the 2,000 held-out records, 352 were cancelled.\n\nThe headline accuracy looked strong, and the ROC-AUC of 0.8707 says the model ranks risk well. But most bookings complete, so accuracy flatters it: at the default threshold it caught about half of the cancellations, and 0.65 of its cancellation flags were right.\n\nSo it runs as a Snowflake Python UDF, scoring each one inside SQL where analysts already work, and a TypeScript CLI checks the feature-mappings file before the dashboard reads it. The score sorts the pipeline by risk rather than deciding on its own.\n\nWhen most of your outcomes are the common class, which metric do you put in front of the business first?\n\n#DataAnalytics #MachineLearning",
+      "story_id": "talentvenue-eventintel-enterprise-data-p-1"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-04-member-messages-qa-system-semantic-searc-2x",
+    "format": "lesson",
+    "subject": "Member Messages QA System",
+    "text": "My Q&A system told me Hans needed 20 front-row seats. The number came from a date, November 20.\n\nThe Member Messages QA System was my first chatbot-style project, and a basic one on purpose. Answers about people are usually buried in loose messages: a booking here, a phone number there. I wanted to see whether a small system could find the person first and then the message that holds it, without a language model making up the answer.\n\nSo it pairs semantic search with spaCy name matching, and I checked it on 26 hand-written questions. The first run got 22 right, 85%. Reading the misses, the extraction rules treated dates as quantities and did not know number words like \"four\". Hans got the seat answer above, and two related questions about him were wrong too.\n\nI changed the rules to skip dates and accept number words, then ran the same questions again: 25 right, 96%.\n\nThe evaluation now runs in CI, so if a later rule change brings the date problem back, the build fails before anyone reads a wrong count.\n\nWhen you test extraction rules, do you write the tricky questions yourself or collect them from real users?\n\n#NLP #DataEngineering",
+    "image": "assets/approved/chat-2026-12-04-member-messages-qa-system-semantic-searc-2x.png",
+    "alt_text": "Card: the question 'How many front-row seats does Hans need?' was answered 'Hans Müller has 20 item(s)' before the fix; the 20 came from the date November 20. The rules now skip dates and accept number words such as four, and the same questions run in CI.",
+    "post_day": "2026-12-04",
+    "history_entry": {
+      "date": "2026-12-04",
+      "format": "lesson",
+      "subject": "Member Messages QA System",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "my",
+        "q",
+        "a",
+        "system",
+        "told",
+        "me",
+        "hans",
+        "needed",
+        "20",
+        "front"
+      ],
+      "text": "My Q&A system told me Hans needed 20 front-row seats. The number came from a date, November 20.\n\nThe Member Messages QA System was my first chatbot-style project, and a basic one on purpose. Answers about people are usually buried in loose messages: a booking here, a phone number there. I wanted to see whether a small system could find the person first and then the message that holds it, without a language model making up the answer.\n\nSo it pairs semantic search with spaCy name matching, and I checked it on 26 hand-written questions. The first run got 22 right, 85%. Reading the misses, the extraction rules treated dates as quantities and did not know number words like \"four\". Hans got the seat answer above, and two related questions about him were wrong too.\n\nI changed the rules to skip dates and accept number words, then ran the same questions again: 25 right, 96%.\n\nThe evaluation now runs in CI, so if a later rule change brings the date problem back, the build fails before anyone reads a wrong count.\n\nWhen you test extraction rules, do you write the tricky questions yourself or collect them from real users?\n\n#NLP #DataEngineering",
+      "story_id": "member-messages-qa-system-semantic-searc-2x"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-07-real-time-iot-telematics-predictive-main-1",
+    "format": "lesson",
+    "subject": "Real-Time IoT Telematics Predictive Maintenance",
+    "text": "An alarm on every odd reading gets ignored. A rolling z-score caught 210 of 214 planted spikes with few false flags.\n\nReal-Time IoT Telematics Predictive Maintenance is a personal portfolio project that monitors simulated vehicle telemetry from 5 devices. A sensor that drifts or jumps can mean a failing part, and I wanted to learn whether a simple rolling z-score could catch real spikes without flooding a fleet with false alarms. It was also my first time handling data that never stops arriving, in micro-batches.\n\nSo I flagged any battery-temperature or motor-vibration value whose z-score, over the last 50 readings, passed 3, and matched the flags against spikes the simulator planted and the detector never sees. Across 11,315 readings it raised 232 flags.\n\nPrecision came out at 90.52% and recall at 98.13%. The detector did slightly better on vibration, 99.06%, than on temperature, 97.22%, which was close enough to keep one method for both.\n\nSo the same threshold of 3 now runs on both sensors, and a warning repeats at most every 4 hours while a condition lasts, which gave 404 maintenance alerts across the fleet for the month.\n\nFor streaming telemetry, do you tune one anomaly threshold per sensor type or keep a single shared one?\n\n#DataEngineering #IoT",
+    "image": "assets/approved/chat-2026-12-07-real-time-iot-telematics-predictive-main-1.png",
+    "alt_text": "Line chart, Closing health score per device, each day: health score by day for each group, from the project's exports/device_daily_health.csv. At the end: DEV-001 22.25; DEV-002 34.35; DEV-003 10; DEV-004 24.35; DEV-005 10. Simulated data.",
+    "post_day": "2026-12-07",
+    "history_entry": {
+      "date": "2026-12-07",
+      "format": "lesson",
+      "subject": "Real-Time IoT Telematics Predictive Maintenance",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "an",
+        "alarm",
+        "on",
+        "every",
+        "odd",
+        "reading",
+        "gets",
+        "ignored",
+        "a",
+        "rolling"
+      ],
+      "text": "An alarm on every odd reading gets ignored. A rolling z-score caught 210 of 214 planted spikes with few false flags.\n\nReal-Time IoT Telematics Predictive Maintenance is a personal portfolio project that monitors simulated vehicle telemetry from 5 devices. A sensor that drifts or jumps can mean a failing part, and I wanted to learn whether a simple rolling z-score could catch real spikes without flooding a fleet with false alarms. It was also my first time handling data that never stops arriving, in micro-batches.\n\nSo I flagged any battery-temperature or motor-vibration value whose z-score, over the last 50 readings, passed 3, and matched the flags against spikes the simulator planted and the detector never sees. Across 11,315 readings it raised 232 flags.\n\nPrecision came out at 90.52% and recall at 98.13%. The detector did slightly better on vibration, 99.06%, than on temperature, 97.22%, which was close enough to keep one method for both.\n\nSo the same threshold of 3 now runs on both sensors, and a warning repeats at most every 4 hours while a condition lasts, which gave 404 maintenance alerts across the fleet for the month.\n\nFor streaming telemetry, do you tune one anomaly threshold per sensor type or keep a single shared one?\n\n#DataEngineering #IoT",
+      "story_id": "real-time-iot-telematics-predictive-main-1"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-09-multi-state-land-use-emissions-analysis-3x",
+    "format": "decision",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "text": "Vectorising my shock detector cut its time by 51.65%. On a much larger set, the saving fell to 24.24%.\n\nMulti-State Land Use Emissions Analysis started because land use, like forests burning or land turning into suburbs, changes how much carbon a state stores or releases, and I wanted to learn how that is measured from public data. The pipeline runs on the EPA's state inventory for 5 states.\n\nOne step flags shock days: a value that jumps away from its rolling median. I first wrote it as a Python function called once per series, then as grouped pandas operations. For timing I used simulated series shaped like the real data, at the project's own scale and at 50 states over 3 years.\n\nAt 5,350 records the grouped version took 9.5 ms against 19.6 ms. At 273,750 records it took 307.6 ms against 406.1 ms. Faster both times, but the gap narrowed as the data grew, so I would not promise the same saving at any scale.\n\nSpeed alone was not enough to switch. A test checks that both versions flag exactly the same days, and they do. With that in place, the grouped pandas code is what the pipeline uses.\n\nWhen you replace a loop with a vectorised version, what do you check besides the timing?\n\n#DataEngineering #Python",
+    "image": "assets/approved/chat-2026-12-09-multi-state-land-use-emissions-analysis-3x.png",
+    "alt_text": "Bar chart, Vectorised vs Per‑Series Shock Detection Timing, by records: Per series (ms): 5,350 19.6, 273,750 406.1; Vectorised (ms): 5,350 9.5, 273,750 307.6; Time saved: 5,350 0.5165, 273,750 0.2424. Simulated data.",
+    "post_day": "2026-12-09",
+    "history_entry": {
+      "date": "2026-12-09",
+      "format": "decision",
+      "subject": "Multi-State Land Use Emissions Analysis",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "vectorising",
+        "my",
+        "shock",
+        "detector",
+        "cut",
+        "its",
+        "time",
+        "by",
+        "51",
+        "65%"
+      ],
+      "text": "Vectorising my shock detector cut its time by 51.65%. On a much larger set, the saving fell to 24.24%.\n\nMulti-State Land Use Emissions Analysis started because land use, like forests burning or land turning into suburbs, changes how much carbon a state stores or releases, and I wanted to learn how that is measured from public data. The pipeline runs on the EPA's state inventory for 5 states.\n\nOne step flags shock days: a value that jumps away from its rolling median. I first wrote it as a Python function called once per series, then as grouped pandas operations. For timing I used simulated series shaped like the real data, at the project's own scale and at 50 states over 3 years.\n\nAt 5,350 records the grouped version took 9.5 ms against 19.6 ms. At 273,750 records it took 307.6 ms against 406.1 ms. Faster both times, but the gap narrowed as the data grew, so I would not promise the same saving at any scale.\n\nSpeed alone was not enough to switch. A test checks that both versions flag exactly the same days, and they do. With that in place, the grouped pandas code is what the pipeline uses.\n\nWhen you replace a loop with a vectorised version, what do you check besides the timing?\n\n#DataEngineering #Python",
+      "story_id": "multi-state-land-use-emissions-analysis-3x"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-11-ai-ml-data-science-simulation-2",
+    "format": "decision",
+    "subject": "AI-ML Data Science Simulation",
+    "text": "A store that reorders from last week's sales runs out when demand moves. A forecast cut stock-out days from 51 to 20 in my test.\n\nAI-ML Data Science Simulation is a personal portfolio project that forecasts daily demand for 5 branches on simulated sales data. I wanted to learn whether a prediction actually beats that habit, and by how much, before trusting one.\n\nAccuracy on a chart was not enough; what matters to a store is shelves. So I replayed reordering on the held-out period both ways: every Monday, shelves were topped up to last week's sales plus 10%, or to the Random Forest forecast plus 10%, and each day's sales were drawn from what was there.\n\nThe habit filled 92.1% of orders; the forecast filled 99.5%, with far fewer units short and less left unsold each week. Almost all the gain came in promotion weeks, which last week's sales cannot see coming but the published calendar can.\n\nSo the model's prediction drives the reorder, with the promotion calendar as one of its inputs, and fewer shelves run empty while less sits unsold.\n\nWhen you replace a rule of thumb with a forecast for reordering, do you judge it on stock-outs, on leftover stock, or both?\n\n#DataScience #MachineLearning",
+    "image": "assets/approved/chat-2026-12-11-ai-ml-data-science-simulation-2.png",
+    "alt_text": "Bar chart, Reorder Policy Comparison, by reorder policy: Stock-out days: Last week's sales 51, Random Forest forecast 20; Units short: Last week's sales 7038.2, Random Forest forecast 419.1; Fill rate: Last week's sales 92.1%, Random Forest forecast 99.5%. Simulated data.",
+    "post_day": "2026-12-11",
+    "history_entry": {
+      "date": "2026-12-11",
+      "format": "decision",
+      "subject": "AI-ML Data Science Simulation",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "a",
+        "store",
+        "that",
+        "reorders",
+        "from",
+        "last",
+        "week's",
+        "sales",
+        "runs",
+        "out"
+      ],
+      "text": "A store that reorders from last week's sales runs out when demand moves. A forecast cut stock-out days from 51 to 20 in my test.\n\nAI-ML Data Science Simulation is a personal portfolio project that forecasts daily demand for 5 branches on simulated sales data. I wanted to learn whether a prediction actually beats that habit, and by how much, before trusting one.\n\nAccuracy on a chart was not enough; what matters to a store is shelves. So I replayed reordering on the held-out period both ways: every Monday, shelves were topped up to last week's sales plus 10%, or to the Random Forest forecast plus 10%, and each day's sales were drawn from what was there.\n\nThe habit filled 92.1% of orders; the forecast filled 99.5%, with far fewer units short and less left unsold each week. Almost all the gain came in promotion weeks, which last week's sales cannot see coming but the published calendar can.\n\nSo the model's prediction drives the reorder, with the promotion calendar as one of its inputs, and fewer shelves run empty while less sits unsold.\n\nWhen you replace a rule of thumb with a forecast for reordering, do you judge it on stock-outs, on leftover stock, or both?\n\n#DataScience #MachineLearning",
+      "story_id": "ai-ml-data-science-simulation-2"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-14-tax-anomaly-audit-compliance-engine-3",
+    "format": "decision",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "text": "Same checks, same answers, very different wait. On 100,000 ledger entries, column operations beat a row-by-row loop by 99.86%.\n\nTax Anomaly Audit Compliance Engine is a personal portfolio project that checks a simulated general ledger for bad entries before anything else reads it. I built it because as a new student in the US I had to file my taxes on my own, and learning how to do that is where this project came from.\n\nThe rules are plain: required fields present, a positive value, a date inside the ledger year, an account that belongs to its department, no duplicates, and tax equal to the category rate times the amount. The question was how to run them, one row at a time in a loop, or as operations over whole columns.\n\nSo I ran the same rules both ways. The column version won by a wide margin, and the result was the part that mattered: both flagged exactly the same 3,405 invalid entries, so the speed cost nothing in accuracy.\n\nSo the pipeline's validation step runs as column operations, and a full ledger pass now fits inside every run instead of being saved for occasional batches.\n\nWhen you rewrite a slow row-by-row check, how do you prove the faster version flags exactly the same records?\n\n#DataEngineering #Python",
+    "image": "assets/approved/chat-2026-12-14-tax-anomaly-audit-compliance-engine-3.png",
+    "alt_text": "Chart: validating 100,000 simulated ledger entries took 40.579 s as a row-by-row loop and 0.057 s as column operations. Both flagged the same 3,405 entries. The six checks: required fields, positive value, date in ledger year, account fits department, no duplicates, tax equals rate times amount. Simulated data.",
+    "post_day": "2026-12-14",
+    "history_entry": {
+      "date": "2026-12-14",
+      "format": "decision",
+      "subject": "Tax Anomaly Audit Compliance Engine",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "same",
+        "checks",
+        "same",
+        "answers",
+        "very",
+        "different",
+        "wait",
+        "on",
+        "100",
+        "000"
+      ],
+      "text": "Same checks, same answers, very different wait. On 100,000 ledger entries, column operations beat a row-by-row loop by 99.86%.\n\nTax Anomaly Audit Compliance Engine is a personal portfolio project that checks a simulated general ledger for bad entries before anything else reads it. I built it because as a new student in the US I had to file my taxes on my own, and learning how to do that is where this project came from.\n\nThe rules are plain: required fields present, a positive value, a date inside the ledger year, an account that belongs to its department, no duplicates, and tax equal to the category rate times the amount. The question was how to run them, one row at a time in a loop, or as operations over whole columns.\n\nSo I ran the same rules both ways. The column version won by a wide margin, and the result was the part that mattered: both flagged exactly the same 3,405 invalid entries, so the speed cost nothing in accuracy.\n\nSo the pipeline's validation step runs as column operations, and a full ledger pass now fits inside every run instead of being saved for occasional batches.\n\nWhen you rewrite a slow row-by-row check, how do you prove the faster version flags exactly the same records?\n\n#DataEngineering #Python",
+      "story_id": "tax-anomaly-audit-compliance-engine-3"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-16-sentence-transformers-multi-task-learnin-1",
+    "format": "lesson",
+    "subject": "Sentence Transformers",
+    "text": "Fine-tuning does not change everything a model says. My LoRA adapter changed 1 of 5 held-out answers and left 4 of 5 identical.\n\nThis is a personal portfolio project where I built a sentence transformer myself on Small BERT, because using ready-made embedding models left me not knowing what happens inside them. Then I wanted to know what fine-tuning really changes, so I trained a LoRA adapter on Qwen2.5-0.5B-Instruct on a free Colab T4 GPU.\n\nIt was small: rank 16, on the attention projections only, trained on 540 examples from Databricks Dolly-15k with 60 held out. Training loss fell from 1.779 to 1.650 over three epochs, which says it learned something, but not what.\n\nNext I asked the base version and the tuned one the same held-out instructions with greedy decoding, so any difference would come from the fine-tuning alone. The one answer that changed was open-ended: fun things to do in New York City. The short factual prompts came back exactly as before.\n\nSo I report it as it is: a small adapter on 540 examples changes how it answers open questions, not what it knows. A test now checks that at least one prompt changes, so a broken run is caught.\n\nWhen you fine-tune a small model, how do you check what actually changed beyond the training loss?\n\n#MachineLearning #LLM",
+    "image": "assets/approved/chat-2026-12-16-sentence-transformers-multi-task-learnin-1.png",
+    "alt_text": "Line chart: Training Loss Over Epochs. Loss Epoch 1, Loss 1.779; Loss Epoch 2, Loss 1.760; Loss Epoch 3, Loss 1.650.",
+    "post_day": "2026-12-16",
+    "history_entry": {
+      "date": "2026-12-16",
+      "format": "lesson",
+      "subject": "Sentence Transformers",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "fine",
+        "tuning",
+        "does",
+        "not",
+        "change",
+        "everything",
+        "a",
+        "model",
+        "says",
+        "my"
+      ],
+      "text": "Fine-tuning does not change everything a model says. My LoRA adapter changed 1 of 5 held-out answers and left 4 of 5 identical.\n\nThis is a personal portfolio project where I built a sentence transformer myself on Small BERT, because using ready-made embedding models left me not knowing what happens inside them. Then I wanted to know what fine-tuning really changes, so I trained a LoRA adapter on Qwen2.5-0.5B-Instruct on a free Colab T4 GPU.\n\nIt was small: rank 16, on the attention projections only, trained on 540 examples from Databricks Dolly-15k with 60 held out. Training loss fell from 1.779 to 1.650 over three epochs, which says it learned something, but not what.\n\nNext I asked the base version and the tuned one the same held-out instructions with greedy decoding, so any difference would come from the fine-tuning alone. The one answer that changed was open-ended: fun things to do in New York City. The short factual prompts came back exactly as before.\n\nSo I report it as it is: a small adapter on 540 examples changes how it answers open questions, not what it knows. A test now checks that at least one prompt changes, so a broken run is caught.\n\nWhen you fine-tune a small model, how do you check what actually changed beyond the training loss?\n\n#MachineLearning #LLM",
+      "story_id": "sentence-transformers-multi-task-learnin-1"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-18-fintech-credit-risk-fraud-command-center-3",
+    "format": "decision",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "text": "A risk score that arrives after the applicant clicks submit protects no one. Mine comes back in 67 ms at the median.\n\nThe FinTech Credit Risk & Fraud Command Center is personal for me. My father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people. Catching risk only helps if the check runs while the decision is still open.\n\nSo the question I tested was whether the scoring API is fast enough to sit inside an application flow. I called POST /api/predict 200 times on a laptop. With the model loaded once at startup and cached, the median was 67 ms and the 95th percentile was 85 ms.\n\nThe other option was loading the model on every request. I chose to load it once at startup and keep it in memory, so each call only pays for the scoring itself.\n\nA fast number on one day is not a promise, though. The build limit is 100 ms for the median, and a test fails CI if latency reaches it, so a slower change cannot slip in unnoticed.\n\nWhere do you set the latency limit for a model inside a live flow, and who decides it?\n\n#FinTech #MachineLearning",
+    "image": "assets/approved/chat-2026-12-18-fintech-credit-risk-fraud-command-center-3.png",
+    "alt_text": "Diagram: the applicant submits the form, POST /api/predict is called, the model is already in memory (loaded once at startup), and the risk score comes back. Below, latency over 200 calls: median 67 ms and 95th percentile 85 ms, against a CI limit of 100 ms.",
+    "post_day": "2026-12-18",
+    "history_entry": {
+      "date": "2026-12-18",
+      "format": "decision",
+      "subject": "FinTech Credit Risk & Fraud Command Center",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "a",
+        "risk",
+        "score",
+        "that",
+        "arrives",
+        "after",
+        "the",
+        "applicant",
+        "clicks",
+        "submit"
+      ],
+      "text": "A risk score that arrives after the applicant clicks submit protects no one. Mine comes back in 67 ms at the median.\n\nThe FinTech Credit Risk & Fraud Command Center is personal for me. My father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people. Catching risk only helps if the check runs while the decision is still open.\n\nSo the question I tested was whether the scoring API is fast enough to sit inside an application flow. I called POST /api/predict 200 times on a laptop. With the model loaded once at startup and cached, the median was 67 ms and the 95th percentile was 85 ms.\n\nThe other option was loading the model on every request. I chose to load it once at startup and keep it in memory, so each call only pays for the scoring itself.\n\nA fast number on one day is not a promise, though. The build limit is 100 ms for the median, and a test fails CI if latency reaches it, so a slower change cannot slip in unnoticed.\n\nWhere do you set the latency limit for a model inside a live flow, and who decides it?\n\n#FinTech #MachineLearning",
+      "story_id": "fintech-credit-risk-fraud-command-center-3"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-21-automated-daily-data-insights-1",
+    "format": "project_spotlight",
+    "subject": "Automated Daily Data Insights",
+    "text": "A free scheduler is only useful if it keeps running. Mine has run 124 times since June, and all 124 succeeded.\n\nAutomated Daily Data Insights is a personal portfolio project that runs by itself every trading day: it pulls market prices, flags unusual days and commits a chart and a report. Most pipelines I had built ran once on my laptop, so I wanted one that runs on real data with no server to pay for, and to see whether a free GitHub Actions schedule is reliable enough for that.\n\nHosted runners fail in ordinary ways: a network blip, a rate limit, a day with no new close. So the script fetches 60 days of prices with up to three retries, skips a day that brings nothing new, and drops any row with a missing value before it reaches the report. Each of those has its own test.\n\nThe record from 2026-06-19 to 2026-10-20 is the answer. Every scheduled run finished, and none produced a wrong report.\n\nSo it stays on the Actions schedule with no server, and a fresh report lands in the repository each trading day without me touching it.\n\nIf you run a daily pipeline on a free scheduler, what do you put in place to catch the day it silently does not run?\n\n#DataEngineering #GitHubActions",
+    "image": "assets/approved/chat-2026-12-21-automated-daily-data-insights-1.png",
+    "alt_text": "Line chart: SPY closing price for each of the 104 trading days the pipeline recorded in insights/history.md, from $754.83 to $765.37.",
+    "post_day": "2026-12-21",
+    "history_entry": {
+      "date": "2026-12-21",
+      "format": "project_spotlight",
+      "subject": "Automated Daily Data Insights",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "a",
+        "free",
+        "scheduler",
+        "is",
+        "only",
+        "useful",
+        "if",
+        "it",
+        "keeps",
+        "running"
+      ],
+      "text": "A free scheduler is only useful if it keeps running. Mine has run 124 times since June, and all 124 succeeded.\n\nAutomated Daily Data Insights is a personal portfolio project that runs by itself every trading day: it pulls market prices, flags unusual days and commits a chart and a report. Most pipelines I had built ran once on my laptop, so I wanted one that runs on real data with no server to pay for, and to see whether a free GitHub Actions schedule is reliable enough for that.\n\nHosted runners fail in ordinary ways: a network blip, a rate limit, a day with no new close. So the script fetches 60 days of prices with up to three retries, skips a day that brings nothing new, and drops any row with a missing value before it reaches the report. Each of those has its own test.\n\nThe record from 2026-06-19 to 2026-10-20 is the answer. Every scheduled run finished, and none produced a wrong report.\n\nSo it stays on the Actions schedule with no server, and a fresh report lands in the repository each trading day without me touching it.\n\nIf you run a daily pipeline on a free scheduler, what do you put in place to catch the day it silently does not run?\n\n#DataEngineering #GitHubActions",
+      "story_id": "automated-daily-data-insights-1"
+    },
+    "document": null,
+    "document_title": null
+  },
+  {
+    "id": "chat-2026-12-23-extending-stem-across-asl-3",
+    "format": "decision",
+    "subject": "Extending STEM across ASL",
+    "text": "My sign recognition model takes 8.9 ms. The whole request takes 1090.5 ms, and almost none of that wait is the model.\n\nExtending STEM across ASL comes from a study behind the project: only about 16% of ASL users go on to higher education at a university, and a lack of signs for STEM terms, and of people who know them, was one of several main reasons. This project recognises word signs from webcam video.\n\nFor it to work live, the answer has to come back while the person is still signing. So I sent 20 requests of 30 JPEG frames each, a two-second recording, to the /recognize-sign endpoint and timed every stage on a laptop CPU.\n\nDecoding the frames took 76.2 ms at the median. Extracting hand features took 997.0 ms. The model itself was the smallest stage of all.\n\nThe hand landmarker is where the time goes, so that is what I changed: it is built once and reused across requests. Every answer also returns its time per stage, so the next slow step shows up in the response itself.\n\nWhen the slowest step in a pipeline is the preprocessing rather than the model, where do you look first to speed it up?\n\n#ComputerVision #Accessibility",
+    "image": "assets/approved/chat-2026-12-23-extending-stem-across-asl-3.png",
+    "alt_text": "Bar chart, Webcam sign recognition pipeline latency breakdown, by stage (median): Time: Decode frames 76.2 ms, Hand features 997.0 ms, Model 8.9 ms, Total 1081.2 ms, Whole request 1090.5 ms.",
+    "post_day": "2026-12-23",
+    "history_entry": {
+      "date": "2026-12-23",
+      "format": "decision",
+      "subject": "Extending STEM across ASL",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "my",
+        "sign",
+        "recognition",
+        "model",
+        "takes",
+        "8",
+        "9",
+        "ms",
+        "the",
+        "whole"
+      ],
+      "text": "My sign recognition model takes 8.9 ms. The whole request takes 1090.5 ms, and almost none of that wait is the model.\n\nExtending STEM across ASL comes from a study behind the project: only about 16% of ASL users go on to higher education at a university, and a lack of signs for STEM terms, and of people who know them, was one of several main reasons. This project recognises word signs from webcam video.\n\nFor it to work live, the answer has to come back while the person is still signing. So I sent 20 requests of 30 JPEG frames each, a two-second recording, to the /recognize-sign endpoint and timed every stage on a laptop CPU.\n\nDecoding the frames took 76.2 ms at the median. Extracting hand features took 997.0 ms. The model itself was the smallest stage of all.\n\nThe hand landmarker is where the time goes, so that is what I changed: it is built once and reused across requests. Every answer also returns its time per stage, so the next slow step shows up in the response itself.\n\nWhen the slowest step in a pipeline is the preprocessing rather than the model, where do you look first to speed it up?\n\n#ComputerVision #Accessibility",
+      "story_id": "extending-stem-across-asl-3"
+    },
+    "document": null,
+    "document_title": null
   }
 ]

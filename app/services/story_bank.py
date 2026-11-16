@@ -187,6 +187,8 @@ def group_table(story: dict) -> dict | None:
         if len(table) < 3 or len(table[0]) < 2:
             continue
         header, body = table[0], [r for r in table[1:] if len(r) == len(table[0])]
+        if header[0].strip().lower() in ("result", "results", "metric", "measure", "value"):
+            continue  # a list of different measures (accuracy beside milliseconds), not groups measured the same way
         if len(body) < 2 or not any(v in r for r in body for v in values):
             continue
         cols = [c for i, c in enumerate(header[1:], 1) if sum(bool(numbers_in(r[i])) for r in body) >= 2]
@@ -209,8 +211,11 @@ def enrich(story: dict) -> dict:
     table = group_table(out)
     if table:
         out["groups"] = table
-    if SIMULATED_RE.search(" ".join([out.get("excerpt", ""), out.get("detail", ""), out.get("test", "")])):
-        out["simulated"] = True
+    said = bool(SIMULATED_RE.search(" ".join([out.get("excerpt", ""), out.get("detail", ""), out.get("test", "")])))
+    # With the write-up's own section in hand, it decides: a flag saved when the bank was mined can be stale (Sentence Transformers
+    # was marked simulated though its section never says so).
+    if said or out.get("excerpt"):
+        out["simulated"] = said
     return out
 
 

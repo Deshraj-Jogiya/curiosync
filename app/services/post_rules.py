@@ -181,6 +181,18 @@ def tidy_hashtags(text: str) -> str:
     return body + ("\n\n" + " ".join(tags) if tags else "")
 
 
+def measure_names(story: dict) -> list[str]:
+    """Measures a story reports for more than one row: the part of a result label left after the row's own name (a date, a group),
+    counted when two or more labels end in it ("2026-06-05 Z-score" and "2026-05-15 Z-score" -> "Z-score")."""
+    counts: dict[str, int] = {}
+    for r in story.get("results") or []:
+        label = str(r.get("label", "")).strip()
+        m = re.match(r"^(?:\d{4}-\d{2}-\d{2}|\S+)\s+(.+)$", label)
+        if m:
+            counts[m.group(1)] = counts.get(m.group(1), 0) + 1
+    return [k for k, n in counts.items() if n >= 2]
+
+
 def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -> list[str]:
     """Return every rule the draft breaks; an empty list means it may be published.
 
@@ -192,7 +204,9 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         return ["empty draft"]
     # Names of the groups a story compares (Control, Low-dosage, High-dosage) repeat in any comparison; capping them made the writer
     # swap in "the highest therapy arm" for the high-dosage arm.
-    exempt = name_words(item.get("title", "")) | name_words(" ".join(item.get("group_names", [])))
+    exempt = name_words(item.get("title", "")) | name_words(" ".join(item.get("group_names", []) + item.get("measure_names", [])))
+    # "Z-score" is counted as "score" when the writer uses a non-breaking hyphen (U+2011), so a hyphenated name exempts its parts too.
+    exempt |= {_stem(part) for w in exempt for part in re.split("[-‑]", w) if len(part) >= 4}
     problems = writing_problems(text, source_text, exempt)
 
     for n in unsupported_numbers(text, source_text):
@@ -386,8 +400,8 @@ def repetition_problems(text: str, exempt: set[str] | frozenset = frozenset()) -
         # A word of the project's name may come up twice more: once when the name is said, once on its own.
         limit = MAX_WORD_USES + (2 if w in exempt else 0)
         if n > limit:
-            problems.append(f"repetition: '{w}' is used {n} times; use it at most {limit} times, then name the specific "
-                            "thing or say 'it'")
+            problems.append(f"repetition: '{w}' is used {n} times; use it at most {limit} times, then rephrase or name the "
+                            "specific thing; use 'it' only where the sentence just before names that thing")
     for sentence in re.split(r"(?<=[.!?])\s+", body):
         seen: dict[str, int] = {}
         for w in re.findall(r"[a-z][a-z'-]+", sentence.lower()):

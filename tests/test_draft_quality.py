@@ -97,3 +97,23 @@ def test_a_term_of_art_gives_way_to_the_everyday_word():
     assert jargon_problems("I compared three treatment arms. Survival differed.")
     assert jargon_problems("I compared three arms. An arm is a group of patients on one treatment.")  # no definitions either
     assert not jargon_problems("I compared three groups: control, a low dosage and a high one.")
+
+
+def test_a_stale_simulated_flag_gives_way_to_the_write_up():
+    story = {**STORY, "detail": "", "excerpt": "## What changed?\n\n| Run | Loss |\n|---|---|\n| 1 | 1.7 |\n", "simulated": True}
+    assert enrich(story)["simulated"] is False
+    assert enrich({**STORY, "simulated": False})["simulated"] is True
+
+
+def test_a_measure_reported_for_each_row_may_repeat_without_a_bare_it():
+    from app.services.post_rules import check_draft, measure_names
+
+    story = {"results": [{"label": "2026-06-05 return", "value": "-2.58%"}, {"label": "2026-06-05 Z-score", "value": "3.17"},
+                         {"label": "2026-05-15 return", "value": "-1.2%"}, {"label": "2026-05-15 Z-score", "value": "2.08"}]}
+    assert set(measure_names(story)) == {"return", "Z-score"}
+    text = ("Each score is a Z‑score. The first Z‑score was high. The second Z‑score was lower. A third "
+            "Z‑score sits here. The last Z‑score closes it.")
+    item = {"title": "Automated Daily Data Insights", "kind": "project"}
+    capped = [p for p in check_draft(text, item, text, []) if "'score'" in p]
+    assert capped and "only where the sentence just before names" in capped[0]
+    assert not [p for p in check_draft(text, {**item, "measure_names": measure_names(story)}, text, []) if "'score'" in p]

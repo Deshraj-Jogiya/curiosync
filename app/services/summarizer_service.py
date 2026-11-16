@@ -14,7 +14,7 @@ from app.config import Settings
 from app.services.compliance_service import humanize_draft
 from app.services.llm_service import call_llm_with_fallback
 from app.services.post_plan import HOOK_TYPES, matching_news, news_allowed, pick_hook, pick_subject
-from app.services.post_rules import (MAX_CHARS, MIN_CHARS, check_draft, comma_thousands, drop_sentences_with_numbers,
+from app.services.post_rules import (MAX_CHARS, measure_names, MIN_CHARS, check_draft, comma_thousands, drop_sentences_with_numbers,
                                      tidy_hashtags, unsupported_numbers)
 from app.services.profile_source import format_item, load_profile, profile_context
 from app.utils.logging import logger
@@ -464,6 +464,10 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         fmt = "lesson"
     if story and story.get("groups"):
         item = {**item, "group_names": [r["name"] for r in story["groups"]["rows"]] + [story["groups"]["group"]]}
+    if story and measure_names(story):
+        # The measure a story reports for several rows (a Z-score for each flagged day) has to be named each time; capping it made the
+        # writer swap "Z-score" for a bare "it" ("the close, the return, it and a link", run 43793838439).
+        item = {**item, "measure_names": measure_names(story)}
     if story and story.get("simulated"):
         # The write-up says the data is simulated even when the profile entry does not (Clinical Trials: "de-identified" in the
         # profile, "all 250 patient records are simulated" in FINDINGS); the post must say so, and leaving it out is a truth problem.
