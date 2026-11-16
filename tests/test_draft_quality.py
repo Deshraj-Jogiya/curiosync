@@ -89,3 +89,10 @@ def test_the_curves_image_is_preferred_and_its_alt_text_names_the_source_file():
     s = {**enrich(STORY), "curves": curves_from_csv(CSV, "exports/km_curves.csv")}
     path, alt, kind = story_image(s, {"title": s["subject"], "context": "Personal portfolio project"}, DRAFT)
     assert kind == "curves" and "exports/km_curves.csv" in alt and "High-dosage 53.2%" in alt
+
+
+def test_a_term_of_art_must_be_explained_where_it_first_appears():
+    from app.services.post_rules import jargon_problems
+
+    assert jargon_problems("I compared three treatment arms. Survival differed.")
+    assert not jargon_problems("I compared three treatment arms. An arm is a group of patients on one treatment.")

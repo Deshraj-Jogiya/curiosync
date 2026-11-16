@@ -428,6 +428,22 @@ def _content_words(text: str) -> set[str]:
     return {w for w in re.findall(r"[a-z][a-z-]+", text.lower()) if len(w) > 3 and w not in _STOP}
 
 
+# Terms of art a reader outside the field misreads, with what an explanation of each says. A trial "arm" read as a human arm
+# (owner, 2026-11-15, on the Clinical Trials post).
+JARGON = {"arm": (r"\barms?\b", r"\bgroups?\b"), "cohort": (r"\bcohorts?\b", r"\bgroups?\b")}
+
+
+def jargon_problems(text: str) -> list[str]:
+    """A term of art used without saying, in the sentence where it first appears or the next one, what it means."""
+    sentences = [x for x in re.split(r"(?<=[.!?:])\s+", text.split("\n#")[0]) if x.strip()]
+    out = []
+    for term, (use, meaning) in JARGON.items():
+        first = next((i for i, x in enumerate(sentences) if re.search(use, x, re.IGNORECASE)), None)
+        if first is not None and not re.search(meaning, " ".join(sentences[first:first + 2]), re.IGNORECASE):
+            out.append(f"plain words: '{term}' is a term of art; say what it means the first time it appears")
+    return out
+
+
 def flow_problems(text: str) -> list[str]:
     """Places where the reading thread drops, judged without a model: body paragraphs that open by announcing a step, and
     one-sentence fragments in the middle of the post (the first line, the closing question and the hashtags are left alone)."""
@@ -458,6 +474,7 @@ def flow_problems(text: str) -> list[str]:
             problems.append(f"voice: \"{_IMPERSONAL.search(p).group(0)}\" talks about engineers in general (his own reason may, a stake may not); say what you needed "
                             "to know in this project, in the first person")
             break
+    problems += jargon_problems(text)
     if paras:
         opening = [s for s in re.split(r"(?<=[.!?])\s+", paras[0]) if s]
         if len(opening) == 1 and _METRIC.search(opening[0]):

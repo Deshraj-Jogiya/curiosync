@@ -202,5 +202,36 @@
     },
     "document": null,
     "document_title": null
+  },
+  {
+    "id": "chat-2026-11-16-clinical",
+    "format": "project_spotlight",
+    "subject": "Clinical Trials Patient Outcomes Analysis",
+    "text": "A higher dose only matters if patients live longer. At day 365, survival stood at 53.20% on the high dose against 15.82% on control.\n\nClinical Trials Patient Outcomes Analysis is a personal portfolio project that runs survival statistics on 250 simulated patients split into three treatment arms. An arm is the trial term for a group of patients who all get the same treatment: here one control arm and two on a low or a high dosage. I built it because of COVID: in India's second wave, fake news and fear made things much worse, because people lacked basic clarity on how an illness works.\n\nThe first question was plain: does a higher dosage help patients live longer?\n\nSo I fitted Kaplan-Meier curves for the control, low-dosage and high-dosage arms over the full year. The catch is that many patients were still alive when the trial ended. Kaplan-Meier counts them as survivors up to day 365 instead of as deaths, and the median is read off the curve. In the high-dosage arm more than half were still alive, so its median is never reached.\n\nThe arms separated in order. The median was 144 days on control and 288 on low dosage, and mortality fell from 69.47% to 60.0% to 42.5% as the dose rose. Pairwise log-rank tests found every pair of arms different at p < 0.05, most clearly control against high dosage (p = 1.08e-06).\n\nThat answers only half of the question, though. The same high-dosage arm also had the highest adverse-event rate, so the gain in survival comes with a safety cost, measured next with a chi-square test.\n\nWhen a trial ends before an arm reaches its median, what do you report in its place: survival at a fixed day, or a restricted mean?\n\n#DataScience #MachineLearning",
+    "image": "assets/approved/chat-2026-11-16-clinical.png",
+    "alt_text": "Line chart, Survival Comparison Across Dosage Arms: survival probability by day for each arm, from the project's exports/km_curves.csv. At the end: Control 15.82%; High-dosage 53.2%; Low-dosage 33.27%. Simulated data.",
+    "post_day": "2026-11-16",
+    "history_entry": {
+      "date": "2026-11-16",
+      "format": "project_spotlight",
+      "subject": "Clinical Trials Patient Outcomes Analysis",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "a",
+        "higher",
+        "dose",
+        "only",
+        "matters",
+        "if",
+        "patients",
+        "live",
+        "longer",
+        "at"
+      ],
+      "text": "A higher dose only matters if patients live longer. At day 365, survival stood at 53.20% on the high dose against 15.82% on control.\n\nClinical Trials Patient Outcomes Analysis is a personal portfolio project that runs survival statistics on 250 simulated patients split into three treatment arms. An arm is the trial term for a group of patients who all get the same treatment: here one control arm and two on a low or a high dosage. I built it because of COVID: in India's second wave, fake news and fear made things much worse, because people lacked basic clarity on how an illness works.\n\nThe first question was plain: does a higher dosage help patients live longer?\n\nSo I fitted Kaplan-Meier curves for the control, low-dosage and high-dosage arms over the full year. The catch is that many patients were still alive when the trial ended. Kaplan-Meier counts them as survivors up to day 365 instead of as deaths, and the median is read off the curve. In the high-dosage arm more than half were still alive, so its median is never reached.\n\nThe arms separated in order. The median was 144 days on control and 288 on low dosage, and mortality fell from 69.47% to 60.0% to 42.5% as the dose rose. Pairwise log-rank tests found every pair of arms different at p < 0.05, most clearly control against high dosage (p = 1.08e-06).\n\nThat answers only half of the question, though. The same high-dosage arm also had the highest adverse-event rate, so the gain in survival comes with a safety cost, measured next with a chi-square test.\n\nWhen a trial ends before an arm reaches its median, what do you report in its place: survival at a fixed day, or a restricted mean?\n\n#DataScience #MachineLearning",
+      "story_id": "clinical-trials-patient-outcomes-analysi-1"
+    },
+    "document": null,
+    "document_title": null
   }
 ]
