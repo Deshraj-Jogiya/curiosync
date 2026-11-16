@@ -518,5 +518,21 @@
       "unsupported by the facts: Claiming the test was done to verify adapter changes before spending compute on larger runs (FACTS do not mention larger runs or saving compute on future runs).",
       "reading flow: Paragraph 2 abruptly inserts background about ready-made embedding models and building a Sentence Transformer on Small BERT, breaking the focus on the Qwen2.5 LoRA experiment established in Paragraph 1 and continued in Paragraph 3."
     ]
+  },
+  {
+    "date": "2026-11-15",
+    "story_id": "clinical-trials-patient-outcomes-analysi-1",
+    "comment": "Follows the text rules but is below the level of the approved posts. 1) No comparison: it gives only the control group's numbers, so the opening restates the conclusion and the close repeats the opening; set the groups against each other (high dose 53.20% against control 15.82% at day 365). 2) Untrue: it calls the data de-identified, but the 250 patients are simulated; say simulated. 3) 'An engineer must verify' is general; say what I needed to know, in the first person. 4) Plain words: 'arm' reads as a human arm to someone outside the field; say 'group', and never stop the post for a stand-alone definition, which breaks the reader's interest. 5) The image only repeated two numbers already in the text; show the real survival curves for each group. Replaced by the corrected post queued for Mon 11/16."
+  },
+  {
+    "date": "2026-11-15",
+    "story_id": "extending-stem-across-asl-1",
+    "comment": "",
+    "rules": [
+      "repetition: 'gesture' is used 6 times; use it at most 4 times, then name the specific thing or say 'it'",
+      "repetition: \"So I checked how well the model performed on unsee...\" uses 'hand' twice in one sentence",
+      "repetition: \"Because the correct gesture appears among the thre...\" uses 'three' twice in one sentence",
+      "number 16% is not in the story"
+    ]
   }
 ]
