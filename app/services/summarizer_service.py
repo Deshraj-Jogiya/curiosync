@@ -475,8 +475,10 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
     if story:
         from app.services.story_bank import story_text
 
-        # The fact check sees the story, the project's facts and the owner's notes; numbers must come from the story alone.
-        story_facts = story_text(story) + "\n" + profile_context(profile)
+        # The fact check sees the story, the project's facts and the owner's notes; numbers must come from the story or his notes.
+        # The ASL draft for Wed 11/18 was stopped for "16%" (the share of ASL users who reach university), his own reason for the
+        # project, because the notes were left out here.
+        story_facts = story_text(story) + "\n" + profile_context(profile) + "\n" + "\n".join(item.get("notes", []))
         # Labelled sections: an unlabelled block let the fact check miss that a motivation came from the owner's own notes.
         notes = "\n".join(f"- {n}" for n in item.get("notes", [])) or "(none)"
         facts = (f"STORY (the test this post is about):\n{story_text(story)}\n\nPROJECT FACTS:\n{format_item(item)}\n"
