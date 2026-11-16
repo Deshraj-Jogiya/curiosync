@@ -98,8 +98,13 @@ def _exact_conversions(known: set[str]) -> set[str]:
                 value = Decimal(_bare(n)) / 100
                 extra.add(format(value.normalize(), "f"))
             elif "." in n and Decimal(_bare(n)) <= 1:
-                value = Decimal(_bare(n)) * 100
-                extra.add(format(value.normalize(), "f") + "%")
+                # Every exact way of writing it: 0.5320 is 53.20% as well as 53.2% (trailing zeros keep the precision stated).
+                text = format(Decimal(_bare(n)) * 100, "f")
+                while True:
+                    extra.add(text + "%")
+                    if "." not in text or not text.endswith(("0", ".")):
+                        break
+                    text = text[:-1]
         except (InvalidOperation, ValueError):
             continue
     return extra
@@ -185,7 +190,10 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
     text = draft.strip()
     if not text:
         return ["empty draft"]
-    problems = writing_problems(text, source_text, name_words(item.get("title", "")))
+    # Names of the groups a story compares (Control, Low-dosage, High-dosage) repeat in any comparison; capping them made the writer
+    # swap in "the highest therapy arm" for the high-dosage arm.
+    exempt = name_words(item.get("title", "")) | name_words(" ".join(item.get("group_names", [])))
+    problems = writing_problems(text, source_text, exempt)
 
     for n in unsupported_numbers(text, source_text):
         problems.append(f"number '{n}' is not in the facts")
@@ -401,13 +409,23 @@ def repetition_problems(text: str, exempt: set[str] | frozenset = frozenset()) -
 
 # A closer that claims a benefit in general terms instead of stating what the work does or reached.
 _VAGUE_CLOSE = re.compile(r"\b(?:this|the|my) (?:approach|work|solution|system|project|change|decision|design|setup|pipeline|platform|method|tool)\b[^.]{0,40}\b(?:ensures?|enables?|"
-                          r"allows?|helps?|lets|makes?|making|keeps?|paves?|drives?|empowers?|guarantees?)\b"
+                          r"allows?|helps?|helping|lets|makes?|making|keeps?|paves?|drives?|empowers?|guarantees?|provides?|offers?|informs?)\b"
                           # "This keeps live classification responsive, making STEM learning accessible": a claim with no noun
                           # after "This" (ASL draft, 2026-11-04; the owner rejected the same close on 2026-10-28).
                           r"|^\s*(?:this|that|it)\s+(?:keeps|ensures|enables|allows|helps|lets|makes|means|gives|brings|delivers|"
                           r"paves|drives|empowers|guarantees|supports|improves)\b", re.IGNORECASE)
 
 _METRIC = re.compile(r"\d+(?:\.\d+)?\s?%|\b0\.\d+|\b\d+(?:\.\d+)?x\b")
+
+
+_IMPERSONAL = re.compile(r"\b(?:an?|every|any) (?:engineer|developer|analyst|data scientist|team)s? (?:must|should)\b",
+                         re.IGNORECASE)
+_STOP = {"that", "this", "with", "from", "were", "than", "they", "their", "have", "which", "what", "when", "into", "each", "every",
+         "more", "most", "also", "only", "over", "after", "before"}
+
+
+def _content_words(text: str) -> set[str]:
+    return {w for w in re.findall(r"[a-z][a-z-]+", text.lower()) if len(w) > 3 and w not in _STOP}
 
 
 def flow_problems(text: str) -> list[str]:
@@ -429,6 +447,17 @@ def flow_problems(text: str) -> list[str]:
     if len(paras) > 1 and _VAGUE_CLOSE.search(result) and not numbers_in(result):
         problems.append("closing: the result paragraph is a general claim (\"this approach ensures/enables...\"); state the concrete "
                         "result: what someone can now do, or the number the work reached")
+    if len(paras) > 2 and result is not paras[0]:
+        # The 2026-11-16 Clinical draft closed on "...and the high-dosage arm survives longest", its own first line again.
+        first, last = _content_words(paras[0]), _content_words(result)
+        if first and last and len(first & last) >= 4 and len(first & last) / min(len(first), len(last)) >= 0.35:
+            problems.append("closing: the result paragraph repeats the first line; say what the result now lets you or the "
+                            "project's user do")
+    for p in paras:
+        if _IMPERSONAL.search(p):
+            problems.append(f"voice: \"{_IMPERSONAL.search(p).group(0)}\" talks about engineers in general (his own reason may, a stake may not); say what you needed "
+                            "to know in this project, in the first person")
+            break
     if paras:
         opening = [s for s in re.split(r"(?<=[.!?])\s+", paras[0]) if s]
         if len(opening) == 1 and _METRIC.search(opening[0]):

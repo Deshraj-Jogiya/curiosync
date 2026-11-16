@@ -27,7 +27,7 @@ DRAFTS_PER_RUN = 3
 MAX_REWRITES = 3
 
 
-HARD_PROBLEMS = ("unsupported by the facts", "fact check could not run", "fact check returned no readable answer", "no draft returned")
+HARD_PROBLEMS = ("unsupported by the facts", "the project used simulated or synthetic data", "fact check could not run", "fact check returned no readable answer", "no draft returned")
 
 
 def is_hard(problem: str) -> bool:
@@ -402,6 +402,40 @@ async def _add_opening_setting(text: str, facts: str, settings: Settings, check,
     return best
 
 
+EDIT_PROMPT = """You edit LinkedIn posts for Deshraj Jogiya. The DRAFT below follows his rules but reads flatter than the posts he
+approved. Rewrite it so it reaches the level of APPROVED EXAMPLES, using only STORY and the facts given (never a new number, tool,
+person, reason or feeling; every number exactly as STORY writes it, or the exact percent form of a share such as 0.5320 as 53.20%).
+
+What the approved posts do that the draft must do too:
+1. The first paragraph is two short sentences, at most 135 characters in all: first what was at stake, in plain words a stranger
+   understands ("A drift alert is only worth something if you act on it."), then the contrast: the outcome set against what it was
+   compared with (one group, option or state against another), with both numbers. Not a restated conclusion, not a definition.
+2. The next paragraph names the project, says in plain words what it does, and gives his own reason from YOUR OWN NOTES, in his words.
+   If the data is simulated, say so here.
+3. One short paragraph says what was at stake in THIS project, in the first person ("I needed to know whether..."), never "an
+   engineer must" or another general statement.
+4. The test, then the turning point: the result that changed how the work reads, given as a comparison between groups or options
+   with their numbers inside the sentences (when STORY lists results by group, compare at least two groups).
+5. A close that says what the result now lets him do with this project, or what the project's own output now shows, in one concrete
+   sentence that does not repeat the first line and claims no users the facts do not name, then one specific practitioner question of at least ten words about this post's own choice.
+6. 800 to 1500 characters before the hashtags, short paragraphs, plain words, no word used more than four times, no number more
+   than twice, no slogans, then the same two hashtags.
+
+Return only the rewritten post.
+
+APPROVED EXAMPLES (shape and voice only; none of their facts):
+{examples}
+
+{story}
+
+YOUR OWN NOTES:
+{notes}
+
+DRAFT:
+{draft}
+"""
+
+
 async def _one_draft(prompt: str, settings: Settings) -> str:
     return _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": prompt}], settings=settings, temperature=1.0,
                                                 tier="write"))
@@ -422,6 +456,12 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
     if fmt == "decision" and not item.get("notes") and not story:
         # Why a decision was made can only come from the owner; without his notes a decision post would have to invent the reasons.
         fmt = "lesson"
+    if story and story.get("groups"):
+        item = {**item, "group_names": [r["name"] for r in story["groups"]["rows"]] + [story["groups"]["group"]]}
+    if story and story.get("simulated"):
+        # The write-up says the data is simulated even when the profile entry does not (Clinical Trials: "de-identified" in the
+        # profile, "all 250 patient records are simulated" in FINDINGS); the post must say so, and leaving it out is a truth problem.
+        item = {**item, "simulated": True}
     hook_type = pick_hook(item, history)
     prompt = build_prompt(fmt, profile, item, hook_type, news, story, feedback)
     facts = source_text(profile, item, news)
@@ -527,6 +567,34 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
                 attempts += 1
                 break
 
+    async def polish(text: str, found: list[str]) -> tuple[str, list[str], int]:
+        """One editing pass toward the approved posts (owner, 2026-11-15: drafts "follow the rules for text but are not at the level
+        of the previously approved posts"). The edit is kept only when it passes the same rules with no more problems and the fact
+        check finds nothing; otherwise the draft stays as it was."""
+        if not story:
+            return text, found, 0
+        from app.services.story_bank import story_text
+
+        notes = "\n".join(f"- {n}" for n in item.get("notes", [])) or "(none)"
+        ask = EDIT_PROMPT.format(examples=approved_examples(item.get("title", "")),
+                                 story=STORY_RULES.format(story=story_text(story)), notes=notes, draft=text)
+        try:
+            edited = _finish(await call_llm_with_fallback(messages=[{"role": "user", "content": ask}], settings=settings,
+                                                          temperature=0.5, tier="write"))
+        except Exception as exc:
+            logger.warning("Editing pass failed: %s", str(exc)[:200])
+            return text, found, 1
+        left = rule_problems(edited)
+        if any(is_hard(p) for p in left) or len(left) > len(found):
+            logger.info("Editing pass dropped: %s", left)
+            return text, found, 1
+        crit = await critic_problems(edited, facts, settings)
+        if any(is_hard(p) for p in crit):
+            logger.info("Editing pass dropped by the fact check: %s", crit)
+            return text, found, 2
+        logger.info("Draft edited toward the approved posts")
+        return edited, left + crit, 2
+
     if problems and not any(is_hard(p) for p in problems):
         # Only style problems are left. Since the late-October rules almost no draft cleared every style check, so nothing reached
         # the owner for weeks (owner, 2026-11-15: "still not running well"). The fact check still has to pass; style problems go
@@ -534,12 +602,20 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         crit = await critic_problems(best, facts, settings)
         attempts += 1
         if not any(is_hard(p) for p in crit):
+            best, notes_left, used = await polish(best, problems + crit)
+            attempts += used
+            problems, crit = notes_left, []
             logger.info("Draft sent for review with style notes", extra={"notes": problems + crit})
             return {"text": best, "subject": item["title"], "format": fmt, "hook_type": hook_type, "item": item, "attempts": attempts,
                     "news": news, "story": story, "facts": facts, "style_notes": problems + crit}
         problems = problems + crit
     if problems:
         raise DraftRejected(problems, best)
+    best, notes_left, used = await polish(best, [])
+    attempts += used
+    if notes_left:
+        return {"text": best, "subject": item["title"], "format": fmt, "hook_type": hook_type, "item": item, "attempts": attempts,
+                "news": news, "story": story, "facts": facts, "style_notes": notes_left}
     logger.info("Draft accepted", extra={"format": fmt, "chars": len(best), "attempts": attempts})
     return {"text": best, "subject": item["title"], "format": fmt, "hook_type": hook_type, "item": item, "attempts": attempts,
             "news": news, "story": story, "facts": facts, "style_notes": []}

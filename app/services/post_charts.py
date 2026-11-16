@@ -54,15 +54,15 @@ def _title(draw, story: dict, y: int) -> int:
 
 def _plot_area(draw, top: int, x_label: str, y_label: str, gutter: int = 20):
     left, right, bottom = MARGIN + 90, W - MARGIN - gutter, H - 260
-    small = _font(24)
+    small = _font(30)
     draw.text((left, bottom + 62), x_label, font=small, fill=MUTED)
     draw.text((MARGIN, top - 4), y_label, font=small, fill=MUTED)
     return left, right, top + 60, bottom
 
 
-def _axes(draw, box, xs: tuple[float, float], ys: tuple[float, float]):
+def _axes(draw, box, xs: tuple[float, float], ys: tuple[float, float], yfmt=None):
     left, right, top, bottom = box
-    small = _font(22)
+    small = _font(30)
     yt = _ticks(*ys)
     lo, hi = yt[0], yt[-1]
 
@@ -71,8 +71,8 @@ def _axes(draw, box, xs: tuple[float, float], ys: tuple[float, float]):
 
     for t in yt:
         draw.line([(left, sy(t)), (right, sy(t))], fill=GRID, width=1)
-        label = _fmt(t)
-        draw.text((left - 14 - draw.textlength(label, font=small), sy(t) - 12), label, font=small, fill=MUTED)
+        label = (yfmt or _fmt)(t)
+        draw.text((left - 14 - draw.textlength(label, font=small), sy(t) - 17), label, font=small, fill=MUTED)
     xt = _ticks(*xs)
     xlo, xhi = xt[0], xt[-1]
 
@@ -189,6 +189,67 @@ def _before_after(story: dict, item: dict) -> Image.Image | None:
 
 
 RENDERERS = {"line": _line, "scatter": _scatter, "before_after": _before_after}
+
+CURVE_TONES = [(168, 172, 178), (110, 118, 124)]  # the groups the decision does not name: two muted tones, never a second accent
+
+
+def _pretty(name: str) -> str:
+    name = re.sub(r"[_]+", " ", name).strip()
+    return name[:1].upper() + name[1:]
+
+
+def render_curves(story: dict, item: dict) -> tuple[str, str] | None:
+    """The story's curves from the project's own exported data (story_bank.source_curves), one line per group; a survival-style
+    curve that only falls is drawn as steps, as a Kaplan-Meier curve is. The group the decision names is in the accent."""
+    c = story.get("curves")
+    if not c or not 2 <= len(c["groups"]) <= 4:
+        return None
+    item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
+    accent = _accent(item["title"])
+    img, draw = _canvas()
+    y0 = _title(draw, story, _header(draw, item, accent))
+    box = _plot_area(draw, y0, _pretty(c["x_label"]), _pretty(c["y_label"]), gutter=250)
+    pts = [p for v in c["groups"].values() for p in v]
+    ys = [p[1] for p in pts]
+    lo = 0 if min(ys) >= 0 else min(ys)
+    # A probability or rate is shown as a percent, as the posts write it (0.532 as 53.2%).
+    pct = lo >= 0 and max(ys) <= 1 and bool(re.search(r"probab|rate|share|surviv", c["y_label"], re.IGNORECASE))
+    vfmt = (lambda v: f"{v * 100:.4g}%") if pct else _fmt
+    sx, sy = _axes(draw, box, (min(p[0] for p in pts), max(p[0] for p in pts)), (lo, max(ys)), vfmt)
+    decision = (story.get("decision") or "").lower()
+    named = [g for g in c["groups"] if g.lower() in decision]
+    pick = named[0] if len(named) == 1 else None
+    ends, tone = [], 0
+    for name, line in sorted(c["groups"].items(), key=lambda kv: kv[0] == pick):  # the named group is drawn last, on top
+        if name == pick or pick is None and not ends:
+            colour = accent
+        else:
+            colour = CURVE_TONES[min(tone, len(CURVE_TONES) - 1)]
+            tone += 1
+        falling = all(b[1] <= a[1] for a, b in zip(line, line[1:]))
+        path = []
+        for k, (x, y) in enumerate(line):
+            if falling and k:
+                path.append((sx(x), sy(line[k - 1][1])))
+            path.append((sx(x), sy(y)))
+        draw.line(path, fill=colour, width=7 if colour == accent else 5)
+        ends.append([sy(line[-1][1]), f"{name} {vfmt(line[-1][1])}", colour])
+    ends.sort()
+    for k in range(1, len(ends)):
+        ends[k][0] = max(ends[k][0], ends[k - 1][0] + 76)
+    for y, tag, colour in ends:
+        fitted = fit_text(draw, tag, 230, 2, [30, 28], bold=True)
+        tf, tl = fitted or (_font(28, True), [tag])
+        for k, ln in enumerate(tl):
+            draw.text((box[1] + 20, y - 18 + k * (tf.size + 2)), ln, font=tf, fill=colour)
+    _footer(draw)
+    group = ((story.get("groups") or {}).get("group") or "group").lower()
+    alt = (f"Line chart, {story['chart_title']}: {_pretty(c['y_label']).lower()} by {_pretty(c['x_label']).lower()} for each "
+           f"{group}, from the project's {c['file']}. At the end: "
+           + "; ".join(f"{n} {vfmt(v[-1][1])}" for n, v in c["groups"].items()) + ".")
+    if item.get("simulated"):
+        alt += " Simulated data."
+    return _save(img), alt
 
 
 def stage_flow_results(story: dict) -> list[dict] | None:

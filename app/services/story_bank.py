@@ -87,6 +87,12 @@ def story_text(story: dict) -> str:
     lines = [f"Question: {story['question']}", f"How it was tested: {story['test']}", "Results:"]
     lines += [f"- {r['label']}: {r['value']}" for r in story["results"]]
     lines.append(f"Decision: {story['decision']}")
+    if story.get("groups"):
+        g = story["groups"]
+        lines.append(f"Results by {g['group'].lower()} (compare these; every value is as the write-up states it):")
+        lines += [f"- {r['name']}: " + "; ".join(f"{c} {v}" for c, v in r["values"].items()) for r in g["rows"]]
+    if story.get("simulated"):
+        lines.append("Data: simulated (the write-up says so); the post must say the data is simulated.")
     if story.get("detail"):
         lines.append(f"Detail: {story['detail']}")
     if story.get("excerpt"):
@@ -147,6 +153,124 @@ def section_with_numbers(docs: str, story: dict) -> str:
     return "\n".join(best).strip()[:MAX_EXCERPT_CHARS] if best else ""
 
 
+SIMULATED_RE = re.compile(r"\b(simulated|synthetic)\b", re.IGNORECASE)
+
+
+def _cells(line: str) -> list[str]:
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def markdown_tables(text: str) -> list[list[list[str]]]:
+    """Every markdown table in the text as rows of cells, header row first (the |---| line dropped)."""
+    tables, rows = [], []
+    for line in text.splitlines() + [""]:
+        if line.strip().startswith("|"):
+            if not re.fullmatch(r"\|?[\s:|-]+\|?", line.strip()):
+                rows.append(_cells(line))
+        elif rows:
+            tables.append(rows)
+            rows = []
+    return tables
+
+
+def group_table(story: dict) -> dict | None:
+    """The table behind a story when its write-up compares groups row by row (one row per arm, model or option) and the story kept
+    only one row's numbers. The miner turned the clinical survival table (Control 0.1582, Low 0.3327, High 0.5320) into the Control
+    row alone, so the 2026-11-16 draft could not compare the arms and its chart showed only numbers the post already stated.
+    Returns {"group": header of the name column, "columns": [...], "rows": [{"name": ..., "values": {column: value}}]}; values are
+    copied from the document as written."""
+    values = {str(r.get("value", "")).strip() for r in story.get("results", [])}
+    for table in markdown_tables(story.get("excerpt", "")):
+        if len(table) < 3 or len(table[0]) < 2:
+            continue
+        header, body = table[0], [r for r in table[1:] if len(r) == len(table[0])]
+        if len(body) < 2 or not any(v in r for r in body for v in values):
+            continue
+        cols = [c for i, c in enumerate(header[1:], 1) if sum(bool(numbers_in(r[i])) for r in body) >= 2]
+        if not cols:
+            continue
+        rows = [{"name": r[0], "values": {c: r[header.index(c)] for c in cols}} for r in body]
+        return {"group": header[0], "columns": cols, "rows": rows}
+    return None
+
+
+def enrich(story: dict) -> dict:
+    """Facts a story's own write-up states that mining dropped: the group-by-group table and whether the data was simulated."""
+    out = dict(story)
+    if out.get("excerpt"):
+        # A write-up edited after mining (the clinical median moved from 118.0 to 144 days) leaves stale values in the story; a value
+        # its own section no longer states is dropped rather than posted.
+        current = [r for r in out.get("results", []) if not unsupported_numbers(str(r.get("value", "")), out["excerpt"])]
+        if len(current) < len(out.get("results", [])):
+            out["results"] = current
+    table = group_table(out)
+    if table:
+        out["groups"] = table
+    if SIMULATED_RE.search(" ".join([out.get("excerpt", ""), out.get("detail", ""), out.get("test", "")])):
+        out["simulated"] = True
+    return out
+
+
+_SOURCE_CSV = re.compile(r"`([\w./-]+\.csv)`")
+_Y_NAME = re.compile(r"probab|rate|surviv|accura|share|score|precision|recall|ratio", re.IGNORECASE)
+_X_NAME = re.compile(r"day|week|month|year|epoch|step|time|threshold|hour|minute|entr", re.IGNORECASE)
+MAX_CURVE_ROWS = 2000
+
+
+def _num(v: str) -> float | None:
+    try:
+        return float(str(v).replace(",", "").rstrip("%"))
+    except ValueError:
+        return None
+
+
+def curves_from_csv(text: str, path: str) -> dict | None:
+    """Curves in a project's own exported CSV: one text column naming 2-4 groups, an ordered numeric x column (day, epoch,
+    threshold) and a numeric y column that is a rate or probability. None when the file has no such shape; nothing is guessed."""
+    import csv
+    import io
+
+    rows = list(csv.DictReader(io.StringIO(text)))
+    if not rows or len(rows) > MAX_CURVE_ROWS:
+        return None
+    cols = list(rows[0].keys())
+    numeric = [c for c in cols if all(_num(r[c]) is not None for r in rows)]
+    text_cols = [c for c in cols if c not in numeric and 2 <= len({r[c] for r in rows}) <= 4]
+    xs = [c for c in numeric if _X_NAME.search(c)]
+    ys = [c for c in numeric if _Y_NAME.search(c) and c not in xs[:1]]
+    if len(text_cols) != 1 or not xs or not ys:
+        return None
+    g, x, y = text_cols[0], xs[0], ys[0]
+    groups: dict[str, list[list[float]]] = {}
+    for r in rows:
+        groups.setdefault(r[g], []).append([_num(r[x]), _num(r[y])])
+    if any(len(v) < 3 for v in groups.values()):
+        return None
+    for v in groups.values():
+        v.sort()
+    return {"file": path, "group": g, "x_label": x, "y_label": y, "groups": groups}
+
+
+async def source_curves(story: dict, item: dict) -> dict | None:
+    """The curves behind a story, read from the CSV files its write-up names as the source (Clinical Trials: exports/km_curves.csv
+    holds the Kaplan-Meier curve of every arm). Real data from the repository, so the image shows the analysis itself."""
+    repo = _repo(item.get("github_url", ""))
+    if not repo:
+        return None
+    for path in _SOURCE_CSV.findall(story.get("excerpt", ""))[:3]:
+        url = f"https://raw.githubusercontent.com/{repo}/HEAD/{path.lstrip('./')}"
+        try:
+            async with httpx.AsyncClient(timeout=20) as client:
+                resp = await client.get(url)
+        except httpx.HTTPError:
+            continue
+        if resp.status_code == 200:
+            found = curves_from_csv(resp.text, path)
+            if found:
+                return found
+    return None
+
+
 async def with_excerpt(story: dict, item: dict) -> dict:
     """The story plus its full section from the repository's own documents, so the writer and the fact check see every detail the
     project states (the 2026-11-03 drafts were rejected for "weekly" reordering, which FINDINGS says but the short story did not)."""
@@ -156,7 +280,13 @@ async def with_excerpt(story: dict, item: dict) -> dict:
         logger.warning("Could not read the documents for %s: %s", item.get("title"), exc)
         return story
     excerpt = section_for(docs, story.get("question", "")) or section_with_numbers(docs, story)
-    return {**story, "excerpt": excerpt} if excerpt else story
+    out = enrich({**story, "excerpt": excerpt} if excerpt else story)
+    try:
+        curves = await source_curves(out, item)
+    except Exception as exc:  # the image falls back to the story's own numbers
+        logger.warning("Could not read the source data for %s: %s", item.get("title"), exc)
+        curves = None
+    return {**out, "curves": curves} if curves else out
 
 
 RULE_FAIL_REST_DAYS = 3

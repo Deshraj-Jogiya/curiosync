@@ -88,7 +88,7 @@ def _canvas():
 def _header(draw, item: dict, accent) -> int:
     y = MARGIN
     tag = item.get("context") or (item.get("org") or "")
-    if item.get("simulated"):
+    if item.get("simulated") and not re.search(r"simulat|synthetic", tag, re.IGNORECASE):
         tag = (tag + "  |  " if tag else "") + "Simulated data"
     if tag:
         fitted = fit_text(draw, tag.upper(), W - 2 * MARGIN, 2, [26, 24, 22, 20], bold=True)
@@ -352,7 +352,8 @@ def _as_written(value: str, post_text: str) -> str:
     if v.endswith("%") or not post_text:
         return v
     shown = [n for n in _exact_conversions(numbers_in(v)) if n.endswith("%")]
-    return shown[0] if shown and shown[0] in numbers_in(post_text) else v
+    in_post = [n for n in shown if n in numbers_in(post_text)]
+    return in_post[0] if in_post else v
 
 
 def _rate_bars(story: dict, item: dict, results: list[dict], post_text: str = "") -> tuple[str, str] | None:
@@ -613,6 +614,86 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
         y += slot
     _footer(draw)
     alt = f"{story['chart_title']}: " + "; ".join(f"{r['label']} {r['value']}" for r in results) + "."
+    if story.get("simulated"):
+        alt += " Simulated data."
+    return _save(img), alt
+
+
+def _group_columns(groups: dict) -> list[str]:
+    """Columns to chart, at most 3 (and 9 bars in all)."""
+    rows = groups["rows"]
+    # Only measures every group has a number for: a bar left empty for "not reached" (a median past the end of the trial) reads as
+    # zero, the opposite of what it means.
+    cols = [c for c in groups["columns"] if all(_value_number(r["values"][c]) is not None for r in rows)]
+    return cols[:max(1, min(3, 9 // max(1, len(rows))))]
+
+
+def _highlight(groups: dict, story: dict) -> str | None:
+    """The group the story's decision names (the arm or model it chose), drawn in the accent; the others are muted."""
+    decision = (story.get("decision") or "").lower()
+    named = [r["name"] for r in groups["rows"] if r["name"].lower() in decision]
+    return named[0] if len(named) == 1 else None
+
+
+def render_group_chart(story: dict, item: dict) -> tuple[str, str] | None:
+    """Each measure of the story's group table as its own panel of bars, one bar per group (arm, model, option), so the reader sees
+    the comparison the post makes instead of the two or three figures it already states (Clinical Trials, 2026-11-16: the only
+    image showed the control arm's survival and mortality, both already in the text)."""
+    groups = story.get("groups")
+    if not groups or len(groups.get("rows", [])) < 2:
+        return None
+    cols = _group_columns(groups)
+    if not cols:
+        return None
+    rows = groups["rows"]
+    pick = _highlight(groups, story)
+    accent = _accent(item["title"])
+    img, draw = _canvas()
+    y = _header(draw, {**item, "simulated": story.get("simulated") or item.get("simulated")}, accent)
+    width = W - 2 * MARGIN
+    fitted = fit_text(draw, story["chart_title"], width, 2, [44, 40, 36], bold=True)
+    if fitted:
+        font, lines = fitted
+        for ln in lines:
+            draw.text((MARGIN, y), ln, font=font, fill=TEXT)
+            y += font.size + 10
+        y += 14
+    name_font = fit_text(draw, max((r["name"] for r in rows), key=len), 300, 1, [32, 30, 28, 26])
+    if not name_font:
+        return None
+    nf = name_font[0]
+    name_w = max(draw.textlength(r["name"], font=nf) for r in rows) + 28
+    vf = _font(34, True)
+    panel_h = (H - 150 - y) // len(cols)
+    bar_slot = min(84, (panel_h - 70) // len(rows))
+    bar_h = max(28, bar_slot - 22)
+    for c in cols:
+        draw.text((MARGIN, y), c, font=_font(32, True), fill=MUTED)
+        top_y = y + 56
+        values = [_value_number(r["values"][c]) for r in rows]
+        texts = [r["values"][c] for r in rows]
+        if all(t.strip().endswith("%") for t, v in zip(texts, values) if v is not None):
+            scale = 100.0
+        elif all(v <= 1 for v in values if v is not None):
+            scale = 1.0
+        else:
+            scale = max(v for v in values if v is not None) or 1.0
+        track_x = MARGIN + name_w
+        track_w = width - name_w - 170
+        for k, (r, v, t) in enumerate(zip(rows, values, texts)):
+            by = top_y + k * bar_slot
+            color = accent if (pick is None or r["name"] == pick) else (96, 110, 104)
+            draw.text((MARGIN, by + (bar_h - nf.size) // 2 - 4), r["name"], font=nf, fill=TEXT if color == accent else MUTED)
+            draw.rounded_rectangle([track_x, by, track_x + track_w, by + bar_h], radius=6, fill=PANEL)
+            if v is not None:
+                draw.rounded_rectangle([track_x, by, track_x + max(8, int(track_w * min(v / scale, 1.0))), by + bar_h],
+                                       radius=6, fill=color)
+            draw.text((track_x + track_w + 22, by + (bar_h - vf.size) // 2 - 6), t, font=vf,
+                      fill=color if v is not None else MUTED)
+        y += panel_h
+    _footer(draw)
+    alt = f"Bar chart, {story['chart_title']}, by {groups['group'].lower()}: " + "; ".join(
+        f"{c}: " + ", ".join(f"{r['name']} {r['values'][c]}" for r in rows) for c in cols) + "."
     if story.get("simulated"):
         alt += " Simulated data."
     return _save(img), alt

@@ -10,7 +10,8 @@ import tempfile
 
 from PIL import Image
 
-from app.services.post_charts import render_series, render_stage_flow
+from app.services.post_charts import render_curves, render_series, render_stage_flow
+from app.services.post_visual import render_group_chart
 from app.services.post_visual import (ACCENTS, BG, H, MARGIN, MUTED, TEXT, W, _accent, _canvas, _font, _footer, _header, fit_text,
                                       render_story_chart)
 
@@ -207,7 +208,9 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
     of options against metrics, the results the post states) and the first that fills at least MIN_FILL of the card is used. When
     none does, the fullest is used and its kind is marked "sparse", which the review page flags."""
     candidates = [
+        ("curves", lambda: render_curves(story, item)),
         ((story.get("series") or {}).get("type", "series"), lambda: render_series(story, item)),
+        ("group comparison", lambda: render_group_chart(story, item)),
         ("stage flow", lambda: render_stage_flow(story, item)),
         ("table", lambda: _table_image(story, item) if comparison_grid(story["results"]) else None),
         ("results chart", lambda: render_story_chart(story, item, post_text)),
