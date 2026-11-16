@@ -534,5 +534,10 @@
       "repetition: \"Because the correct gesture appears among the thre...\" uses 'three' twice in one sentence",
       "number 16% is not in the story"
     ]
+  },
+  {
+    "date": "2026-11-15",
+    "story_id": "automated-daily-data-insights-2",
+    "comment": "Rejected; a corrected version is queued by hand for Wed 11/18. (1) Factual error: the text says the -1.2% day (Z 2.08) was treated as a normal fluctuation, but the detector flags anything past 2 standard deviations and that day is in the report's anomaly log. (2) Two mentions of 'Z-score' were swapped for a bare 'it' ('with it at 2.08', 'the return, it and a link'), caused by the repetition rule; the measure is now exempt like group names. (3) The image only repeated the two numbers from the text; replaced with the 60-day SPY returns against the rolling 2-standard-deviation band, both flagged days marked."
   }
 ]
