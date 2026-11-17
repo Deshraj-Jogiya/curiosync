@@ -544,5 +544,10 @@
     "date": "2026-11-16",
     "story_id": "job-search-crm-ai-application-tailoring--1",
     "comment": "Rejected. 1) Stale and misleading: the cost figures are the 2026-09-15 log ($2.72 for 32 applications); the later automatic score-and-tailor rollout cost about $165, so 'costs stay low' is not true today. Do not use this cost story until the write-up is updated. 2) Repetition: '82 real LLM calls' is stated twice and 'total ... totaled $2.72 total' says total three times. 3) Order: it opens with numbers before saying what was tested and why (the reviewer flagged this). 4) The image only repeats the four numbers in the text; the media must add something the text does not say. Write from another project."
+  },
+  {
+    "date": "2026-11-16",
+    "story_id": "job-search-crm-ai-application-tailoring--1",
+    "comment": "Same story again with the same stale 2026-09-15 cost figures ($2.72 / 32 applications); the later rollout cost far more, so the number misleads. The image only repeats the text. Drop this CRM cost story and write from a different project."
   }
 ]
