@@ -729,5 +729,34 @@
     },
     "document": null,
     "document_title": null
+  },
+  {
+    "id": "chat-2026-12-25-multi-state-land-use-emissions-analysis-2",
+    "format": "lesson",
+    "subject": "Multi-State Land Use Emissions Analysis",
+    "text": "My first emissions forecast scored a perfect R² of 1.0. The perfect score was the bug, not the result.\n\nMulti-State Land Use Emissions Analysis started because land use, like forests burning or land turning into suburbs, changes how much carbon a state stores or releases, and I wanted to learn how that is measured from public data. It runs on the EPA's state inventory for 5 states, with a simulated daily series built on top.\n\nThe daily target, CO2 tons, is calculated as land area times a fixed emission factor. The first model was given that day's area and the product itself as features. It was not forecasting anything; it was redoing the multiplication.\n\nSo I rebuilt the features from what is known a week before the day being predicted: values from 7 and 14 days back, a rolling 7-day mean, and the calendar. Scored on the final 28 days, Linear Regression reached 0.9981 accuracy, Random Forest 0.9983, and copying the same day last week 0.9984.\n\nWith honest inputs, the models add nothing here, because daily land cover barely moves outside shocks. A test in CI now fails the build if the same-day area ever returns to the feature list.\n\nWhen a model scores perfectly, what is the first thing you check?\n\n#MachineLearning #DataEngineering",
+    "image": "assets/approved/chat-2026-12-25-multi-state-land-use-emissions-analysis-2.png",
+    "alt_text": "Two panels: the first version's features (same-day area and area x factor, crossed out; R² 1.0 because it recomputed the answer) and the current ones known a week ahead (values 7 and 14 days back, rolling 7-day mean, calendar, state, land type; a CI test keeps the same-day area out). Below, a line chart of the held-out 28 days for Washington forest, simulated tons CO2 per day: actual, same day last week, Linear Regression and Random Forest all sit near -52,300; a one-day shock to about -50,700 is missed by every forecast and repeated a week later by the last-week copy.",
+    "post_day": "2026-12-25",
+    "history_entry": {
+      "date": "2026-12-25",
+      "format": "lesson",
+      "subject": "Multi-State Land Use Emissions Analysis",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "my",
+        "first",
+        "emissions",
+        "forecast",
+        "scored",
+        "a",
+        "perfect",
+        "r",
+        "of",
+        "1"
+      ],
+      "text": "My first emissions forecast scored a perfect R² of 1.0. The perfect score was the bug, not the result.\n\nMulti-State Land Use Emissions Analysis started because land use, like forests burning or land turning into suburbs, changes how much carbon a state stores or releases, and I wanted to learn how that is measured from public data. It runs on the EPA's state inventory for 5 states, with a simulated daily series built on top.\n\nThe daily target, CO2 tons, is calculated as land area times a fixed emission factor. The first model was given that day's area and the product itself as features. It was not forecasting anything; it was redoing the multiplication.\n\nSo I rebuilt the features from what is known a week before the day being predicted: values from 7 and 14 days back, a rolling 7-day mean, and the calendar. Scored on the final 28 days, Linear Regression reached 0.9981 accuracy, Random Forest 0.9983, and copying the same day last week 0.9984.\n\nWith honest inputs, the models add nothing here, because daily land cover barely moves outside shocks. A test in CI now fails the build if the same-day area ever returns to the feature list.\n\nWhen a model scores perfectly, what is the first thing you check?\n\n#MachineLearning #DataEngineering",
+      "story_id": "multi-state-land-use-emissions-analysis-2"
+    }
   }
 ]
