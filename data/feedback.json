@@ -539,5 +539,10 @@
     "date": "2026-11-15",
     "story_id": "automated-daily-data-insights-2",
     "comment": "Rejected; a corrected version is queued by hand for Wed 11/18. (1) Factual error: the text says the -1.2% day (Z 2.08) was treated as a normal fluctuation, but the detector flags anything past 2 standard deviations and that day is in the report's anomaly log. (2) Two mentions of 'Z-score' were swapped for a bare 'it' ('with it at 2.08', 'the return, it and a link'), caused by the repetition rule; the measure is now exempt like group names. (3) The image only repeated the two numbers from the text; replaced with the 60-day SPY returns against the rolling 2-standard-deviation band, both flagged days marked."
+  },
+  {
+    "date": "2026-11-16",
+    "story_id": "job-search-crm-ai-application-tailoring--1",
+    "comment": "Rejected. 1) Stale and misleading: the cost figures are the 2026-09-15 log ($2.72 for 32 applications); the later automatic score-and-tailor rollout cost about $165, so 'costs stay low' is not true today. Do not use this cost story until the write-up is updated. 2) Repetition: '82 real LLM calls' is stated twice and 'total ... totaled $2.72 total' says total three times. 3) Order: it opens with numbers before saying what was tested and why (the reviewer flagged this). 4) The image only repeats the four numbers in the text; the media must add something the text does not say. Write from another project."
   }
 ]
