@@ -37,8 +37,29 @@ def image_copy(item: dict) -> str | None:
     return dst
 
 
-# Approved posts kept ready ahead of their post day (one week of Mon/Wed/Fri). Drafting pauses once this many are waiting.
-QUEUE_AHEAD = 3
+RUN_LOG = "run_log.md"
+
+
+def drafted_on(day, log_path: str | None = None) -> bool:
+    """Whether a draft was already offered for approval on this Phoenix day. The run log stamps rows in UTC; Phoenix is UTC-7 all
+    year. A new draft is offered once a day, however many approved posts are queued (the owner reviews one a day)."""
+    from datetime import datetime, timedelta
+
+    try:
+        with open(log_path or RUN_LOG, encoding="utf-8") as f:
+            lines = f.readlines()
+    except OSError:
+        return False
+    for line in lines:
+        if "**DRAFTED**" not in line:
+            continue
+        try:
+            stamp = datetime.strptime(line.split("|")[1].strip(), "%Y-%m-%d %H:%M:%S")
+        except (IndexError, ValueError):
+            continue
+        if (stamp - timedelta(hours=7)).date() == day:
+            return True
+    return False
 
 
 def unposted(history: list[dict], path: str | None = None) -> list[dict]:
@@ -54,7 +75,7 @@ def add_to_queue(item: dict, path: str | None = None) -> None:
         json.dump(queue, f, indent=2, ensure_ascii=False)
 
 
-def open_post_days(today, history: list[dict], horizon: int = 28) -> list:
+def open_post_days(today, history: list[dict], horizon: int = 400) -> list:
     """Post days from today on, leaving out today if something was already posted today."""
     from datetime import timedelta
 

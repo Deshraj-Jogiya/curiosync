@@ -361,8 +361,9 @@ async def publish_due(access_token: str, raw_sub: str, settings) -> str:
 
 async def run_draft(user_id: int, settings, token_ok: bool = True, access_token: str = "", raw_sub: str = ""):
     """Daily step: post today's approved post if one is due, then draft a post for the next open post day and offer it for approval.
-    Drafting pauses while a draft waits for approval or QUEUE_AHEAD approved posts are already waiting."""
-    from app.services.approved_queue import QUEUE_AHEAD, slot_for_next_draft, unposted
+    One new draft a day for the owner to review, whatever is already queued; it takes the first post day after the queued ones.
+    Drafting waits while a draft waits for approval; a redraft after a rejection is always allowed."""
+    from app.services.approved_queue import drafted_on, slot_for_next_draft, unposted
     from app.services.post_plan import load_history
     from app.services.summarizer_service import post_format_for
     from app.utils.timezone import today_phoenix
@@ -437,8 +438,8 @@ async def run_draft(user_id: int, settings, token_ok: bool = True, access_token:
     result = {"status": "skipped"}
     if waiting_approval:
         steps["draft"] = "a draft is already waiting for approval"
-    elif len(ready) >= QUEUE_AHEAD:
-        steps["draft"] = f"{len(ready)} approved posts already waiting"
+    elif not redraft and drafted_on(today_phoenix()):
+        steps["draft"] = f"today's draft was already offered ({len(ready)} approved posts queued)"
     else:
         day = slot_for_next_draft(today_phoenix(), history)
         fmt = post_format_for(day)

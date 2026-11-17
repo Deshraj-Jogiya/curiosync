@@ -179,18 +179,35 @@ async def test_post_day_posts_the_approved_post_then_drafts_for_the_next_open_da
 @patch("github_cron.run_daily_pipeline")
 @patch("app.services.linkedin_service.publish_post")
 @patch("sys.exit")
-async def test_no_new_draft_while_one_waits_for_approval_or_the_queue_is_full(mock_exit, mock_publish, mock_pipeline, mock_til,
-                                                                               tmp_path, monkeypatch):
+async def test_no_new_draft_while_one_waits_for_approval_or_after_todays_draft(mock_exit, mock_publish, mock_pipeline, mock_til,
+                                                                                tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     _day(monkeypatch, date(2026, 10, 27))  # Tuesday: nothing to post
     _queue(tmp_path, monkeypatch, [])
     with patch.dict(os.environ, dict(ENV, WAITING_APPROVALS="1")):
         await main("draft")
-    _queue(tmp_path, monkeypatch, [{"id": i, "format": "lesson", "subject": i, "text": i} for i in "abc"])
+    # 18:00 UTC is 11:00 in Phoenix the same day: today's draft was already offered.
+    (tmp_path / "run_log.md").write_text("| 2026-10-27 18:00:00 | **DRAFTED** | draft: lesson |" + chr(10), encoding="utf-8")
     with patch.dict(os.environ, ENV):
         await main("draft")
     mock_pipeline.assert_not_called()
     mock_publish.assert_not_called()
+
+
+@pytest.mark.asyncio
+@patch("github_cron.generate_and_save_til")
+@patch("github_cron.run_daily_pipeline")
+@patch("app.services.linkedin_service.publish_post")
+@patch("sys.exit")
+async def test_a_full_queue_still_gets_a_new_draft_each_day(mock_exit, mock_publish, mock_pipeline, mock_til, tmp_path, monkeypatch):
+    # Nov 16: the queue held 16 approved posts and the old pause offered no draft at all.
+    mock_pipeline.return_value = {"status": "skipped", "steps": {}}
+    monkeypatch.chdir(tmp_path)
+    _day(monkeypatch, date(2026, 10, 27))
+    _queue(tmp_path, monkeypatch, [{"id": f"q{i}", "format": "lesson", "subject": "s", "text": f"t{i}"} for i in range(16)])
+    with patch.dict(os.environ, ENV):
+        await main("draft")
+    mock_pipeline.assert_called_once()
 
 
 @pytest.mark.asyncio

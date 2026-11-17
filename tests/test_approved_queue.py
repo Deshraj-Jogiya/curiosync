@@ -50,3 +50,26 @@ def test_repo_queue_is_valid_and_its_images_exist(monkeypatch):
         assert not check_compliance(item["text"], [])["blocking"]
     ids = [i["id"] for i in load_queue()]
     assert len(ids) == len(set(ids))
+
+
+def test_a_draft_is_offered_once_a_phoenix_day(tmp_path):
+    from app.services.approved_queue import drafted_on
+
+    log = tmp_path / "run_log.md"
+    # 02:45 UTC on the 16th is 19:45 on the 15th in Phoenix.
+    log.write_text("| 2026-11-16 02:45:43 | **DRAFTED** | draft: lesson |\n| 2026-11-16 22:56:17 | **POSTED** | publish |\n",
+                   encoding="utf-8")
+    assert drafted_on(date(2026, 11, 15), str(log))
+    assert not drafted_on(date(2026, 11, 16), str(log))
+    assert not drafted_on(date(2026, 11, 16), str(tmp_path / "missing.md"))
+
+
+def test_a_long_queue_still_leaves_a_slot_for_the_next_draft(tmp_path):
+    import json
+
+    from app.services.approved_queue import slot_for_next_draft
+
+    queue = tmp_path / "q.json"
+    queue.write_text(json.dumps([{"id": f"q{i}", "text": f"post {i}"} for i in range(17)]), encoding="utf-8")
+    day = slot_for_next_draft(date(2026, 11, 16), [], str(queue))
+    assert day == date(2026, 12, 25)  # 17 posts fill Mon 11/16 .. Wed 12/23; the next Mon/Wed/Fri is Fri 12/25
