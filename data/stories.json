@@ -1250,7 +1250,18 @@
     "sources": [
       "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "series": {
+      "type": "before_after",
+      "title": "Rows scanned before and after partitioning",
+      "points": [
+        {
+          "label": "All rows",
+          "before": "60,000 rows",
+          "after": "3,015 rows"
+        }
+      ]
+    }
   },
   {
     "id": "member-messages-qa-system-semantic-searc-3x",

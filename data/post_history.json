@@ -204,5 +204,26 @@
     "text": "Higher dosage only matters if patients live longer. At day 365, 53.20% survived on the high dose, against 15.82% in the control group.\n\nClinical Trials Patient Outcomes Analysis is a personal portfolio project that runs survival statistics on 250 simulated trial patients, split into three groups: control, a low dosage and a high one. I built it because of COVID: in India's second wave, fake news and fear made things much worse, because people lacked basic clarity on how an illness works.\n\nThe first question was plain: does more of the treatment actually help? To find out, I fitted Kaplan-Meier survival curves over the full year. The catch is that many patients were still alive when the trial ended. Kaplan-Meier counts them as survivors up to day 365 instead of as deaths, and the median is read off the curve. In the high-dose group more than half were still alive, so its median is never reached.\n\nThe three separated in order. The median was 144 days for control and 288 on the lower dosage, and mortality fell in turn from 69.47% to 60.0% to 42.5%. Pairwise log-rank tests found every pair different at p < 0.05, most clearly control against the high dose (p = 1.08e-06).\n\nThat answers only half of the question, though. The same group also had the highest rate of adverse events, so the gain in survival comes with a safety cost, measured next with a chi-square test.\n\nWhen a trial ends before half of a treatment's patients have died, what do you report in place of its median: survival at a fixed day, or a restricted mean?\n\n#DataScience #MachineLearning",
     "story_id": "clinical-trials-patient-outcomes-analysi-1",
     "approved_id": "chat-2026-11-16-clinical"
+  },
+  {
+    "date": "2026-11-18",
+    "format": "lesson",
+    "subject": "Automated Daily Data Insights",
+    "hook_type": "decision_cost",
+    "opener_words": [
+      "i",
+      "chose",
+      "a",
+      "github",
+      "actions",
+      "cron",
+      "schedule",
+      "instead",
+      "of",
+      "a"
+    ],
+    "text": "I chose a GitHub Actions cron schedule instead of a paid server, eliminating any hosting cost.\n\nAutomated Daily Data Insights is a personal portfolio pipeline that pulls market prices each trading day, flags unusual moves with a rolling Z‑score, and publishes a report. I built it because my earlier pipelines only ran on my laptop and I wanted a job that runs by itself on real data without any server expense.\n\nThe question was whether a rolling Z‑score could reliably separate an ordinary move from a true outlier. Each daily return is compared with its 20‑day mean and flagged if it exceeds two standard deviations. On 2026‑06‑05 the return was -2.58 % with a Z‑score of 3.17, while on 2026‑05‑15 the return was -1.2 % with a score of 2.08.\n\nBoth days crossed the line, but not by the same margin: the -2.58 % day sat more than 3 standard deviations out, while the -1.2 % day only just cleared 2. When the latest trading day is an anomaly, the job automatically emails an alert with the close, the return, the score and a link to the report.\n\nNow the pipeline runs every market day at zero hosting cost and reliably notifies me of spikes.\n\nIf you rely on free CI/CD schedules for data jobs, what strategies do you use to cope with API rate limits or occasional downtime without breaking the workflow?\n\n#DataEngineering #MachineLearning",
+    "story_id": "automated-daily-data-insights-2",
+    "approved_id": "chat-2026-11-18-automated-daily-data-insights-2"
   }
 ]

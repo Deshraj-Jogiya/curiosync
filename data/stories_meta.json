@@ -1,7 +1,7 @@
 {
   "Job Market Lakehouse": {
-    "sha": "272d83ef77eaaf5f1fe8adcf9c49d4f76c142570",
-    "read_on": "2026-10-26",
+    "sha": "503ef5c646be03546590df86aaca88d2efccc2a6",
+    "read_on": "2026-11-18",
     "stories": 1
   },
   "Tax Anomaly Audit Compliance Engine": {
@@ -30,8 +30,8 @@
     "stories": 1
   },
   "Job Search CRM & AI Application Tailoring Center": {
-    "sha": "d71dec580f094f7c1dfa09b9cb1b3254183453e4",
-    "read_on": "2026-10-27",
+    "sha": "38711eb84482316631ab21db9e3f665206871769",
+    "read_on": "2026-11-18",
     "stories": 1
   },
   "FinTech Credit Risk & Fraud Command Center": {
@@ -45,8 +45,8 @@
     "stories": 2
   },
   "Job Search dbt Warehouse": {
-    "sha": "d0713bcca716b726482acbe53bc3ca59c957e7fd",
-    "read_on": "2026-10-26",
+    "sha": "f4fdfb28eef482cee46218d4ad66d8121e58d05b",
+    "read_on": "2026-11-18",
     "stories": 0
   },
   "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
