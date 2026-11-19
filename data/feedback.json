@@ -559,5 +559,21 @@
     "date": "2026-11-16",
     "story_id": "job-search-crm-ai-application-tailoring--2",
     "comment": "The post tells nothing but my decision of choosing sample-size numbers; no test, no result. Totally bad post. A post needs something that was tried or measured and what it showed."
+  },
+  {
+    "date": "2026-11-18",
+    "story_id": "job-search-crm-ai-application-tailoring--3",
+    "comment": "A font-size config setting shows no skill employers hire for. Every post must showcase skills the target roles require (Python, SQL, ML, statistics, ETL, cloud), named where the work is described."
+  },
+  {
+    "date": "2026-11-18",
+    "story_id": "clinical-trials-patient-outcomes-analysi-3",
+    "comment": "",
+    "rules": [
+      "length 1813 characters, must be 800-1700",
+      "repetition: 'report' is used 5 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: \"Based on this result, I decided to refresh the ent...\" uses 'report' twice in one sentence",
+      "unsupported by the facts: The post states that refreshing the full analysis 'involves ETL, statistics, and Tableau extracts', omitting the 'dashboard' step which FACTS indicate is one of the four refresh steps that constitute the full report refresh."
+    ]
   }
 ]

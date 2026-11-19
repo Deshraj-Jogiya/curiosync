@@ -35,14 +35,14 @@
     "stories": 1
   },
   "FinTech Credit Risk & Fraud Command Center": {
-    "sha": "bd63ca8386a219e616a865b5daf292f3d57eaa67",
-    "read_on": "2026-10-27",
-    "stories": 3
+    "sha": "78f3e95acc8a250b88d43c7ee60170841eda61a3",
+    "read_on": "2026-11-19",
+    "stories": 4
   },
   "AI Model Observability & Fairness Audits": {
-    "sha": "cef096ff92dacaa216c95e866bddcbaa7ae10096",
-    "read_on": "2026-10-27",
-    "stories": 2
+    "sha": "e47addd10a13e8d49d8592245c45bdcf8aa7dad1",
+    "read_on": "2026-11-19",
+    "stories": 3
   },
   "Job Search dbt Warehouse": {
     "sha": "f4fdfb28eef482cee46218d4ad66d8121e58d05b",
@@ -50,8 +50,8 @@
     "stories": 0
   },
   "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
-    "sha": "4604a41e2a1ecdde0b3b230ebb78957933059f6f",
-    "read_on": "2026-10-27",
+    "sha": "fec5d8c5b5dab5186c5658e2696c64d49f7e012e",
+    "read_on": "2026-11-19",
     "stories": 1
   },
   "Multi-State Land Use Emissions Analysis": {

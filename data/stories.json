@@ -1954,5 +1954,114 @@
       "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/README.md"
     ],
     "simulated": false
+  },
+  {
+    "id": "fintech-credit-risk-fraud-command-center-3x",
+    "subject": "FinTech Credit Risk & Fraud Command Center",
+    "question": "How sensitive is each rule to its setting?",
+    "test": "Rules rerun at four alternative settings, measuring alerts and fraud caught",
+    "results": [
+      {
+        "label": "Velocity alerts (fraud)",
+        "value": "1,110 (1,110)"
+      },
+      {
+        "label": "Spike alerts (fraud)",
+        "value": "4,069 (40)"
+      },
+      {
+        "label": "Any rule alerts (fraud)",
+        "value": "10,057 (2,591)"
+      },
+      {
+        "label": "Velocity alerts (fraud)",
+        "value": "1,113 (1,110)"
+      },
+      {
+        "label": "Spike alerts (fraud)",
+        "value": "43,173 (201)"
+      },
+      {
+        "label": "Any rule alerts (fraud)",
+        "value": "48,616 (2,591)"
+      },
+      {
+        "label": "Velocity alerts (fraud)",
+        "value": "1,113 (1,110)"
+      },
+      {
+        "label": "Spike alerts (fraud)",
+        "value": "107 (5)"
+      },
+      {
+        "label": "Any rule alerts (fraud)",
+        "value": "6,159 (2,578)"
+      },
+      {
+        "label": "Velocity alerts (fraud)",
+        "value": "714 (709)"
+      },
+      {
+        "label": "Spike alerts (fraud)",
+        "value": "4,069 (40)"
+      },
+      {
+        "label": "Any rule alerts (fraud)",
+        "value": "9,661 (2,190)"
+      }
+    ],
+    "decision": "Keep velocity at 5 in 10 minutes; tune the spike multiple only together with a review budget, since it trades a few caught cases for thousands of alerts.",
+    "chart_title": "Rule Sensitivity Across Settings",
+    "detail": "Settings written to models/lab_rule_settings.json.",
+    "skills": [
+      "Python",
+      "Fraud Rules"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": false
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-3xx",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "Does the four-fifths rule notice when the model starts to favour one group?",
+    "test": "Comparing the disparate-impact ratio and the new approval-gap check on simulated data with drift starting day 31.",
+    "results": [
+      {
+        "label": "Disparate-impact ratio, lowest day",
+        "value": "0.963"
+      },
+      {
+        "label": "Four-fifths alerts",
+        "value": "0"
+      },
+      {
+        "label": "Approval-gap z-score, highest before the drift (days 1-30)",
+        "value": "0.88"
+      },
+      {
+        "label": "Approval-gap alerts",
+        "value": "4 days (days 52-55)"
+      },
+      {
+        "label": "Largest gap shift",
+        "value": "1.65 points wider than baseline (day 55)"
+      }
+    ],
+    "decision": "The approval-gap check stays alongside the four-fifths rule: the ratio answers the legal test, the gap shift answers whether the model is drifting toward one group. It fired 12 days after the first KS drift alert and went quiet again on day 56 as the 7-day gap fell back below 3 standard errors, so it is a second signal for the reviewer, not a replacement for the drift alert.",
+    "chart_title": "Fairness Signal Comparison",
+    "detail": "On simulated data with 250 decisions a day, a smaller shift would need a longer window to separate from noise.",
+    "skills": [
+      "Python",
+      "pandas",
+      "scikit-learn"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
+    ],
+    "simulated": true
   }
 ]
