@@ -298,6 +298,7 @@ async def with_excerpt(story: dict, item: dict) -> dict:
 
 
 RULE_FAIL_REST_DAYS = 3
+DEMAND_BAND = 25  # points of summed posting share; stories within one band are treated as equally demanded
 
 
 def _rejections(story_id: str, feedback: list[dict]) -> int:
@@ -347,10 +348,25 @@ def pick_story(items: list[dict], history: list[dict], stories: list[dict] | Non
     def new_skills(story: dict) -> int:
         return len({k.lower() for k in story.get("skills", [])} - featured)
 
+    from app.services import market_skills
+
+    # Only a story that shows skills employers are hiring for is posted (owner, 2026-11-18): the most demanded first, in bands of
+    # DEMAND_BAND so projects still rotate among stories of similar demand.
+    market = market_skills.load()
+    has_market = bool(market_skills.demanded(market))
+
+    def demand(story: dict) -> float:
+        return market_skills.demand_score(market_skills.story_skills(story, market), featured)
+
+    def shows_demand(story: dict) -> bool:
+        # Two at least: Python alone is in half of all postings and says little about what he can do.
+        return not has_market or len(market_skills.story_skills(story, market)) >= market_skills.MIN_STORY_SKILLS
+
     order = {t: n for n, t in enumerate(by_title)}
-    candidates = [s for s in unused(history, stories, feedback, today) if s["subject"] in by_title]
+    candidates = [s for s in unused(history, stories, feedback, today) if s["subject"] in by_title and shows_demand(s)]
     if candidates:
-        best = min(candidates, key=lambda s: (last_posted(s["subject"]), -new_skills(s), order[s["subject"]]))
+        best = min(candidates, key=lambda s: (-(demand(s) // DEMAND_BAND), last_posted(s["subject"]), -new_skills(s),
+                                              order[s["subject"]]))
         return best, by_title[best["subject"]]
 
     today = today or date.today()
@@ -360,7 +376,7 @@ def pick_story(items: list[dict], history: list[dict], stories: list[dict] | Non
             posted_on[h["story_id"]] = max(posted_on.get(h["story_id"], ""), h["date"])
     cutoff = str(today - timedelta(days=REPEAT_AFTER_DAYS))
     old = [s for s in stories if s["subject"] in by_title and posted_on.get(s["id"], "9999") <= cutoff
-           and _rejections(s["id"], feedback) < 2]
+           and _rejections(s["id"], feedback) < 2 and shows_demand(s)]
     if not old:
         return None
     best = min(old, key=lambda s: posted_on[s["id"]])
@@ -441,7 +457,10 @@ Find EVERY separate story in them (up to {n}) that would make one LinkedIn post:
 files, including findings, evaluations, benchmarks and tables. A story is ONE measured test or comparison: a question
 the author had, how it was tested, the measured results, and the decision taken because of them. Good stories compare two or more
 things with numbers (before and after, option A against option B, a rule against a model, a target against the result).
-Skip anything that is only a feature list or a description of the stack.
+Skip anything that is only a feature list or a description of the stack. Skip tests of a setting, layout or formatting detail that
+shows no skill an employer hires for (a font size, a config floor, a file name).
+Prefer stories that show these skills, which employers are asking for in the roles the author applies to (most demanded first):
+{market}. A story that shows none of them is not used.
 
 Rules:
 - Every number must be copied exactly as it appears in DOCUMENTS. Never compute, round or invent a number.
@@ -573,7 +592,10 @@ async def mine_subject(item: dict, settings, n: int = MAX_STORIES_PER_PROJECT) -
         return []
     found, read_any = [], False
     for piece in doc_chunks(docs)[:MAX_CHUNKS_PER_PROJECT]:
-        prompt = MINE_PROMPT.format(title=item["title"], n=min(n, 6), docs=piece) + "\nReturn only the JSON object, nothing else."
+        from app.services import market_skills
+
+        market = ", ".join(x["term"] for x in market_skills.demanded()) or "(no list)"
+        prompt = MINE_PROMPT.format(title=item["title"], n=min(n, 6), docs=piece, market=market) + "\nReturn only the JSON object, nothing else."
         # One retry at temperature 0 when the reply has no readable JSON; both tries use the mining models, so mining never spends the
         # allowance the writing models need.
         for attempt, temperature in enumerate((0.2, 0.0), 1):

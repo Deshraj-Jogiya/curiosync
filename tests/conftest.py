@@ -208,3 +208,11 @@ def _no_real_story_files(monkeypatch, tmp_path):
     monkeypatch.setattr("app.services.story_bank.STORIES_PATH", str(tmp_path / "stories.json"))
     monkeypatch.setattr("app.services.story_bank.META_PATH", str(tmp_path / "stories_meta.json"))
     monkeypatch.setattr("app.services.story_bank.FEEDBACK_PATH", str(tmp_path / "feedback.json"))
+
+
+@pytest.fixture(autouse=True)
+def _no_market_skills(tmp_path, monkeypatch):
+    """Tests don't read the real data/market_skills.json; tests/test_market_skills.py writes its own."""
+    from app.services import market_skills
+
+    monkeypatch.setattr(market_skills, "PATH", str(tmp_path / "no_market_skills.json"))

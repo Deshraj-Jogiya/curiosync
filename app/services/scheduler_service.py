@@ -135,6 +135,12 @@ async def run_daily_pipeline(
                 steps["stories"] = f"refill failed ({exc})"
             # A post has to say why the project was built, and only the owner's own notes can say that (review of the FinRisk
             # draft, 2026-10-31: "not indicating what is the project and why I needed"). Projects without notes wait for them.
+            from app.services import market_skills
+
+            market = market_skills.load()
+            steps["market_skills"] = (f"{len(market_skills.demanded(market))} demanded skills from {market.get('target_postings', 0)} "
+                                      f"target postings ({market.get('generated_at', 'no date')})"
+                                      + ("; STALE: re-export from Career Pilot (market-skills)" if market_skills.stale(market) else ""))
             picked = pick_story([i for i in items if i.get("notes")], history)
             if picked is None:
                 steps["generate_draft"] = ("no story ready from a project with your notes on why you built it; add a line to "

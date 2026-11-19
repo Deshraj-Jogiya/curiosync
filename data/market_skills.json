@@ -1,0 +1,214 @@
+{
+  "generated_at": "2026-11-19",
+  "window_days": 90,
+  "target_postings": 1113,
+  "target_roles": [
+    "Data / business analysis",
+    "Data engineering",
+    "Data science",
+    "Machine learning / AI engineering",
+    "Software engineering"
+  ],
+  "skills": [
+    {
+      "term": "Python",
+      "share": 53,
+      "evidence": "work"
+    },
+    {
+      "term": "SQL",
+      "share": 36,
+      "evidence": "work"
+    },
+    {
+      "term": "Machine Learning",
+      "share": 33,
+      "evidence": "work"
+    },
+    {
+      "term": "Statistics",
+      "share": 24,
+      "evidence": "work"
+    },
+    {
+      "term": "Data visualization",
+      "share": 23,
+      "evidence": "work"
+    },
+    {
+      "term": "AWS",
+      "share": 22,
+      "evidence": "work"
+    },
+    {
+      "term": "ETL",
+      "share": 20,
+      "evidence": "work"
+    },
+    {
+      "term": "LLM",
+      "share": 16,
+      "evidence": "work"
+    },
+    {
+      "term": "Azure",
+      "share": 15,
+      "evidence": "work"
+    },
+    {
+      "term": "Spark",
+      "share": 15,
+      "evidence": "work"
+    },
+    {
+      "term": "CI/CD",
+      "share": 15,
+      "evidence": "work"
+    },
+    {
+      "term": "A/B testing",
+      "share": 13,
+      "evidence": "listed"
+    },
+    {
+      "term": "Data modeling",
+      "share": 13,
+      "evidence": "none"
+    },
+    {
+      "term": "Power BI",
+      "share": 12,
+      "evidence": "work"
+    },
+    {
+      "term": "PyTorch",
+      "share": 12,
+      "evidence": "work"
+    },
+    {
+      "term": "GCP",
+      "share": 11,
+      "evidence": "listed"
+    },
+    {
+      "term": "Databricks",
+      "share": 10,
+      "evidence": "work"
+    },
+    {
+      "term": "Snowflake",
+      "share": 10,
+      "evidence": "work"
+    },
+    {
+      "term": "R",
+      "share": 10,
+      "evidence": "none"
+    },
+    {
+      "term": "RAG",
+      "share": 9,
+      "evidence": "work"
+    },
+    {
+      "term": "Tableau",
+      "share": 9,
+      "evidence": "work"
+    },
+    {
+      "term": "TensorFlow",
+      "share": 9,
+      "evidence": "work"
+    },
+    {
+      "term": "Git",
+      "share": 8,
+      "evidence": "work"
+    },
+    {
+      "term": "Java",
+      "share": 8,
+      "evidence": "work"
+    },
+    {
+      "term": "dbt",
+      "share": 7,
+      "evidence": "work"
+    },
+    {
+      "term": "Airflow",
+      "share": 7,
+      "evidence": "work"
+    },
+    {
+      "term": "Kubernetes",
+      "share": 7,
+      "evidence": "work"
+    },
+    {
+      "term": "Docker",
+      "share": 7,
+      "evidence": "work"
+    },
+    {
+      "term": "BigQuery",
+      "share": 6,
+      "evidence": "listed"
+    },
+    {
+      "term": "Excel",
+      "share": 6,
+      "evidence": "listed"
+    },
+    {
+      "term": "Agile",
+      "share": 5,
+      "evidence": "listed"
+    },
+    {
+      "term": "NLP",
+      "share": 5,
+      "evidence": "work"
+    },
+    {
+      "term": "C++",
+      "share": 5,
+      "evidence": "none"
+    },
+    {
+      "term": "LangChain",
+      "share": 5,
+      "evidence": "work"
+    },
+    {
+      "term": "S3",
+      "share": 5,
+      "evidence": "work"
+    },
+    {
+      "term": "Redshift",
+      "share": 4,
+      "evidence": "none"
+    },
+    {
+      "term": "Terraform",
+      "share": 4,
+      "evidence": "work"
+    },
+    {
+      "term": "scikit-learn",
+      "share": 4,
+      "evidence": "work"
+    },
+    {
+      "term": "Scala",
+      "share": 4,
+      "evidence": "work"
+    },
+    {
+      "term": "PySpark",
+      "share": 4,
+      "evidence": "work"
+    }
+  ]
+}

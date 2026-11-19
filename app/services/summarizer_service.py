@@ -14,6 +14,7 @@ from app.config import Settings
 from app.services.compliance_service import humanize_draft
 from app.services.llm_service import call_llm_with_fallback
 from app.services.post_plan import HOOK_TYPES, matching_news, news_allowed, pick_hook, pick_subject
+from app.services import market_skills
 from app.services.post_rules import (MAX_CHARS, measure_names, MIN_CHARS, check_draft, comma_thousands, drop_sentences_with_numbers,
                                      tidy_hashtags, unsupported_numbers)
 from app.services.profile_source import format_item, load_profile, profile_context
@@ -192,6 +193,13 @@ STORY:
 {story}
 """
 
+SKILL_RULES = """
+SKILLS TO SHOWCASE: {skills}. These are skills employers require in the roles the owner wants, and STORY shows him using them. A
+recruiter reading the post must see them in use: name each one where the post says what he did with it ("I compared the two
+detectors in Python with a KS test", never "I compared the two detectors"), and name the most demanded one in the first two
+sentences, before LinkedIn's "see more" cut. Name only skills STORY or FEATURED show; never add one. The hashtag line is {tags}.
+"""
+
 FEEDBACK_RULES = """
 OWNER'S REVIEW RULES (learned from every draft he rejected; follow every one):
 {feedback}
@@ -231,6 +239,9 @@ def build_prompt(fmt: str, profile: dict, item: dict, hook_type: str, news: dict
         from app.services.story_bank import story_text
 
         prompt += STORY_RULES.format(story=story_text(story))
+        if item.get("showcase_skills"):
+            prompt += SKILL_RULES.format(skills=", ".join(item["showcase_skills"]),
+                                         tags=" ".join(market_skills.hashtag(t) for t in item["showcase_skills"][:2]))
         if story.get("repeat_of"):
             prompt += (f"\nThis test was already posted on {story['repeat_of']}. Write it from a different angle: lead with a different "
                        "result or with the decision, and do not reuse the earlier opening.\n")
@@ -468,6 +479,13 @@ async def generate_post(fmt: str, profile: dict, settings: Settings, day: date, 
         # The measure a story reports for several rows (a Z-score for each flagged day) has to be named each time; capping it made the
         # writer swap "Z-score" for a bare "it" ("the close, the return, it and a link", run 43793838439).
         item = {**item, "measure_names": measure_names(story)}
+    if story:
+        from app.services import market_skills as _ms
+
+        # The demanded skills this story shows; the writer must name them and check_draft holds it to that (owner, 2026-11-18).
+        shown = [x["term"] for x in _ms.story_skills(story)]
+        if shown:
+            item = {**item, "showcase_skills": shown}
     if story and story.get("simulated"):
         # The write-up says the data is simulated even when the profile entry does not (Clinical Trials: "de-identified" in the
         # profile, "all 250 patient records are simulated" in FINDINGS); the post must say so, and leaving it out is a truth problem.

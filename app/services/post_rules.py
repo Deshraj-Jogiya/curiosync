@@ -223,6 +223,8 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
         if term in lower and term not in src_lower:
             problems.append(f"'{term}' describes a backstory the facts do not contain")
 
+    problems += skill_problems(text, item)
+
     opener = first_words(text)
     for past in history[-30:]:
         past_open = past.get("opener_words") or first_words(past.get("text", ""))
@@ -235,6 +237,34 @@ def check_draft(draft: str, item: dict, source_text: str, history: list[dict]) -
             problems.append(f"too similar ({sim:.2f}) to the {past.get('date', 'earlier')} post")
             break
 
+    return problems
+
+
+FEED_PREVIEW_CHARS = 210  # what LinkedIn shows of a post before "see more"
+
+
+def skill_problems(text: str, item: dict) -> list[str]:
+    """A post must show the demanded skills its story shows, by name, the most demanded inside the feed preview, and tag one of them
+    (owner, 2026-11-18: posts without the skills employers want do not grow reach)."""
+    from app.services import market_skills
+
+    wanted = item.get("showcase_skills") or []
+    if not wanted:
+        return []
+    body = re.sub(r"(?m)^\s*(#\w+\s*)+$", "", text)
+    named = [x["term"] for x in market_skills.skills_in(body) if x["term"] in wanted]
+    problems = []
+    need = min(2, len(wanted))
+    if len(named) < need:
+        missing = [t for t in wanted if t not in named]
+        problems.append(f"names {len(named)} of the skills to showcase; name at least {need} where the work is described "
+                        f"(missing: {', '.join(missing)})")
+    if not market_skills.skills_in(body[:FEED_PREVIEW_CHARS]):
+        problems.append(f"no showcased skill in the first {FEED_PREVIEW_CHARS} characters (what shows before 'see more'); name "
+                        f"{wanted[0]} early")
+    tags = {t.lower() for t in re.findall(r"(?<!\w)#\w+", text)}
+    if not tags & {market_skills.hashtag(t).lower() for t in wanted}:
+        problems.append(f"the hashtags should name a showcased skill ({' '.join(market_skills.hashtag(t) for t in wanted[:2])})")
     return problems
 
 
