@@ -257,14 +257,14 @@ def skill_problems(text: str, item: dict) -> list[str]:
     need = min(2, len(wanted))
     if len(named) < need:
         missing = [t for t in wanted if t not in named]
-        problems.append(f"names {len(named)} of the skills to showcase; name at least {need} where the work is described "
+        problems.append(f"skills: names {len(named)} of the skills to showcase; name at least {need} where the work is described "
                         f"(missing: {', '.join(missing)})")
     if not market_skills.skills_in(body[:FEED_PREVIEW_CHARS]):
-        problems.append(f"no showcased skill in the first {FEED_PREVIEW_CHARS} characters (what shows before 'see more'); name "
+        problems.append(f"skills: no showcased skill in the first {FEED_PREVIEW_CHARS} characters (what shows before 'see more'); name "
                         f"{wanted[0]} early")
     tags = {t.lower() for t in re.findall(r"(?<!\w)#\w+", text)}
     if not tags & {market_skills.hashtag(t).lower() for t in wanted}:
-        problems.append(f"the hashtags should name a showcased skill ({' '.join(market_skills.hashtag(t) for t in wanted[:2])})")
+        problems.append(f"skills: the hashtags should name a showcased skill ({' '.join(market_skills.hashtag(t) for t in wanted[:2])})")
     return problems
 
 

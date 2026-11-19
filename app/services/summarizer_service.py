@@ -28,7 +28,7 @@ DRAFTS_PER_RUN = 3
 MAX_REWRITES = 3
 
 
-HARD_PROBLEMS = ("unsupported by the facts", "the project used simulated or synthetic data", "fact check could not run", "fact check returned no readable answer", "no draft returned")
+HARD_PROBLEMS = ("skills:", "unsupported by the facts", "the project used simulated or synthetic data", "fact check could not run", "fact check returned no readable answer", "no draft returned")
 
 
 def is_hard(problem: str) -> bool:
