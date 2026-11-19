@@ -1,7 +1,7 @@
 {
   "generated_at": "2026-11-19",
   "window_days": 90,
-  "target_postings": 1113,
+  "target_postings": 1212,
   "target_roles": [
     "Data / business analysis",
     "Data engineering",
@@ -12,17 +12,17 @@
   "skills": [
     {
       "term": "Python",
-      "share": 53,
+      "share": 54,
       "evidence": "work"
     },
     {
       "term": "SQL",
-      "share": 36,
+      "share": 37,
       "evidence": "work"
     },
     {
       "term": "Machine Learning",
-      "share": 33,
+      "share": 34,
       "evidence": "work"
     },
     {
@@ -31,37 +31,37 @@
       "evidence": "work"
     },
     {
-      "term": "Data visualization",
+      "term": "AWS",
       "share": 23,
       "evidence": "work"
     },
     {
-      "term": "AWS",
+      "term": "Data visualization",
       "share": 22,
       "evidence": "work"
     },
     {
       "term": "ETL",
-      "share": 20,
+      "share": 19,
       "evidence": "work"
     },
     {
       "term": "LLM",
-      "share": 16,
+      "share": 17,
       "evidence": "work"
     },
     {
       "term": "Azure",
+      "share": 16,
+      "evidence": "work"
+    },
+    {
+      "term": "CI/CD",
       "share": 15,
       "evidence": "work"
     },
     {
       "term": "Spark",
-      "share": 15,
-      "evidence": "work"
-    },
-    {
-      "term": "CI/CD",
       "share": 15,
       "evidence": "work"
     },
@@ -101,14 +101,14 @@
       "evidence": "work"
     },
     {
+      "term": "RAG",
+      "share": 10,
+      "evidence": "work"
+    },
+    {
       "term": "R",
       "share": 10,
       "evidence": "none"
-    },
-    {
-      "term": "RAG",
-      "share": 9,
-      "evidence": "work"
     },
     {
       "term": "Tableau",
@@ -117,7 +117,7 @@
     },
     {
       "term": "TensorFlow",
-      "share": 9,
+      "share": 8,
       "evidence": "work"
     },
     {
@@ -131,16 +131,6 @@
       "evidence": "work"
     },
     {
-      "term": "dbt",
-      "share": 7,
-      "evidence": "work"
-    },
-    {
-      "term": "Airflow",
-      "share": 7,
-      "evidence": "work"
-    },
-    {
       "term": "Kubernetes",
       "share": 7,
       "evidence": "work"
@@ -151,12 +141,27 @@
       "evidence": "work"
     },
     {
-      "term": "BigQuery",
+      "term": "dbt",
+      "share": 7,
+      "evidence": "work"
+    },
+    {
+      "term": "Airflow",
+      "share": 7,
+      "evidence": "work"
+    },
+    {
+      "term": "Excel",
       "share": 6,
       "evidence": "listed"
     },
     {
-      "term": "Excel",
+      "term": "NLP",
+      "share": 6,
+      "evidence": "work"
+    },
+    {
+      "term": "BigQuery",
       "share": 6,
       "evidence": "listed"
     },
@@ -166,7 +171,12 @@
       "evidence": "listed"
     },
     {
-      "term": "NLP",
+      "term": "S3",
+      "share": 5,
+      "evidence": "work"
+    },
+    {
+      "term": "LangChain",
       "share": 5,
       "evidence": "work"
     },
@@ -176,22 +186,17 @@
       "evidence": "none"
     },
     {
-      "term": "LangChain",
-      "share": 5,
-      "evidence": "work"
-    },
-    {
-      "term": "S3",
+      "term": "Terraform",
       "share": 5,
       "evidence": "work"
     },
     {
       "term": "Redshift",
-      "share": 4,
+      "share": 5,
       "evidence": "none"
     },
     {
-      "term": "Terraform",
+      "term": "Scala",
       "share": 4,
       "evidence": "work"
     },
@@ -201,14 +206,9 @@
       "evidence": "work"
     },
     {
-      "term": "Scala",
+      "term": "Kafka",
       "share": 4,
-      "evidence": "work"
-    },
-    {
-      "term": "PySpark",
-      "share": 4,
-      "evidence": "work"
+      "evidence": "listed"
     }
   ]
 }
