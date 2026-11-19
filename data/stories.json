@@ -976,32 +976,40 @@
     "id": "ai-model-observability-fairness-audits-3x",
     "subject": "AI Model Observability & Fairness Audits",
     "question": "Do KS test and PSI agree on drift detection?",
-    "test": "Daily audit records PSI and KS p-values; PSI stays under 0.05 on stable days and climbs past 0.25 exactly where the KS p-value collapses.",
+    "test": "Daily audit records the KS test p-value and PSI on feature 1 over 60 simulated days, with drift starting on day 31; PSI stays under 0.05 on stable days.",
     "results": [
       {
-        "label": "Stable PSI threshold",
-        "value": "0.05"
+        "label": "Stable-day PSI",
+        "value": "under 0.05"
       },
       {
-        "label": "PSI drift threshold",
+        "label": "KS alert threshold",
+        "value": "p < 0.01"
+      },
+      {
+        "label": "PSI major-shift threshold",
         "value": "0.25"
       },
       {
-        "label": "KS p-value collapse point",
-        "value": "<0.01"
-      },
-      {
-        "label": "KS alert day",
+        "label": "First KS alert",
         "value": "day 40"
       },
       {
-        "label": "PSI alert day",
-        "value": "day 40"
+        "label": "First PSI alert",
+        "value": "day 54"
+      },
+      {
+        "label": "Days with a KS alert",
+        "value": "21"
+      },
+      {
+        "label": "Days with a PSI alert",
+        "value": "4"
       }
     ],
-    "decision": "Both signals agree that drift begins on day 40.",
-    "chart_title": "KS vs PSI Drift Agreement",
-    "detail": "PSI climbs past 0.25 exactly where the KS p-value collapses.",
+    "decision": "The KS test is the earlier drift signal, raising its first alert 14 days before PSI crossed 0.25; PSI is kept as a severity score for how large the shift is.",
+    "chart_title": "First drift alert: KS test against PSI",
+    "detail": "KS gives a significant or not call; PSI gives one continuous severity score, so both are computed.",
     "skills": [
       "Python",
       "SciPy",
@@ -2063,5 +2071,55 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
     ],
     "simulated": true
+  },
+  {
+    "id": "ai-model-observability-fairness-audits-5",
+    "subject": "AI Model Observability & Fairness Audits",
+    "question": "Does the four-fifths rule notice when the model starts to favour one group?",
+    "test": "On 60 days of simulated loan decisions, the disparate-impact ratio was compared with a new check in Python and pandas: the 7-day male-minus-female approval gap minus the same gap over 5 baseline days, divided by its standard error, alerting when the z-score is above 3.",
+    "results": [
+      {
+        "label": "Lowest disparate-impact ratio",
+        "value": "0.963"
+      },
+      {
+        "label": "Four-fifths alerts",
+        "value": "0"
+      },
+      {
+        "label": "Highest z-score before drift",
+        "value": "0.88"
+      },
+      {
+        "label": "Approval-gap alert days",
+        "value": "4"
+      },
+      {
+        "label": "Largest gap shift",
+        "value": "1.65 points"
+      },
+      {
+        "label": "Women approved, 7 days to day 55",
+        "value": "97.4%"
+      },
+      {
+        "label": "Men approved, 7 days to day 55",
+        "value": "99.1%"
+      }
+    ],
+    "decision": "The approval-gap check stays alongside the four-fifths rule: the ratio answers the legal test, the gap shift shows the model drifting toward one group.",
+    "chart_title": "Four-fifths ratio against approval-gap z-score",
+    "detail": "Both groups were approved 99.8% of the time over the baseline days; the gap check fired on days 52 to 55.",
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
+    ],
+    "simulated": true,
+    "skills": [
+      "Python",
+      "pandas",
+      "z-score",
+      "standard error",
+      "four-fifths rule"
+    ]
   }
 ]
