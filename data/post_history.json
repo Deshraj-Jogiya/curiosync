@@ -225,5 +225,26 @@
     "text": "I chose a GitHub Actions cron schedule instead of a paid server, eliminating any hosting cost.\n\nAutomated Daily Data Insights is a personal portfolio pipeline that pulls market prices each trading day, flags unusual moves with a rolling Z‑score, and publishes a report. I built it because my earlier pipelines only ran on my laptop and I wanted a job that runs by itself on real data without any server expense.\n\nThe question was whether a rolling Z‑score could reliably separate an ordinary move from a true outlier. Each daily return is compared with its 20‑day mean and flagged if it exceeds two standard deviations. On 2026‑06‑05 the return was -2.58 % with a Z‑score of 3.17, while on 2026‑05‑15 the return was -1.2 % with a score of 2.08.\n\nBoth days crossed the line, but not by the same margin: the -2.58 % day sat more than 3 standard deviations out, while the -1.2 % day only just cleared 2. When the latest trading day is an anomaly, the job automatically emails an alert with the close, the return, the score and a link to the report.\n\nNow the pipeline runs every market day at zero hosting cost and reliably notifies me of spikes.\n\nIf you rely on free CI/CD schedules for data jobs, what strategies do you use to cope with API rate limits or occasional downtime without breaking the workflow?\n\n#DataEngineering #MachineLearning",
     "story_id": "automated-daily-data-insights-2",
     "approved_id": "chat-2026-11-18-automated-daily-data-insights-2"
+  },
+  {
+    "date": "2026-11-20",
+    "format": "decision",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "hook_type": "measured_result",
+    "opener_words": [
+      "my",
+      "machine",
+      "learning",
+      "model",
+      "found",
+      "18",
+      "planted",
+      "ledger",
+      "errors",
+      "a"
+    ],
+    "text": "My machine learning model found 18 planted ledger errors. A plain tax-rate check found 45, all real.\n\nTax Anomaly Audit Compliance Engine is a personal portfolio project that hunts for suspicious entries in a simulated general ledger of 1,200 lines. I built it because as a new student in the US I had to file my taxes on my own, and learning how to do that is where this project came from. A Python ETL step loads the ledger into a SQL database (SQLite) before anything is scored.\n\nIt has two ways to catch a bad line. The model rates each one by how far its first digits stray from Benford's Law, the pattern real amounts tend to follow, and by how unusual a scikit-learn Isolation Forest finds it, then flags a risk score of 65 or more. The tax check only asks whether the tax charged matches the rate for its category. So I planted anomalies and scored each layer on its own.\n\nThe tax check flagged 45 lines and caught 95.74% of the planted errors. The model flagged 19 and was right on most of them, but found only 38.3%, and the check had already caught every one.\n\nSo the rule's flags now go first in the review order, and Benford's Law and the Isolation Forest rank the rest. A reviewer starts with flags that are certain, then works down a list sorted by risk.\n\nWhen a plain business rule beats your anomaly model, do you keep it to rank what is left or drop it?\n\n#MachineLearning #Python",
+    "story_id": "tax-anomaly-audit-compliance-engine-1",
+    "approved_id": "chat-2026-11-20-tax-anomaly-audit-compliance-engine-1"
   }
 ]
