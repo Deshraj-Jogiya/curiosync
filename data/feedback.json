@@ -594,5 +594,10 @@
       "unsupported by the facts: The test file is named test_pipeline.py (FACTS state it is tests/test_make_report.py).",
       "reading flow: The transition from needing to preserve data integrity to timing the four steps is logically disconnected, as timing measures performance rather than data integrity."
     ]
+  },
+  {
+    "date": "2026-11-21",
+    "story_id": "tax-anomaly-audit-compliance-engine-1x",
+    "comment": "Text approved as written; rejected only for the media. The bar chart showed precision 0.9474 and recall 0.383, numbers the text already states, so it added nothing. Media must show what the text cannot: here, one dot per planted anomaly (18 caught by both, 27 by the rule only, 2 missed, 0 by the model alone). The approved text with that image is queued for 1/1 (chat-2027-01-01-tax-anomaly-audit-compliance-engine-1x)."
   }
 ]
