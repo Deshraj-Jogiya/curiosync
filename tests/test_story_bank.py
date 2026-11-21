@@ -294,3 +294,15 @@ def test_pick_story_skips_stories_without_their_own_media():
     picked = pick_story(items, [], stories, feedback=[], media_ok=lambda s, i: bool(s.get("series")))
     assert picked and picked[0]["id"] == "p-2"
     assert pick_story(items, [], stories[:1], feedback=[], media_ok=lambda s, i: False) is None
+
+
+def test_same_question_counts_as_told_even_with_other_numbers():
+    """A re-read stored the 11/20 tax test again with other numbers (19 flagged vs precision 0.9474); it must not be drafted twice."""
+    from app.services.story_bank import unused
+
+    q = "Which detection layer finds the injected anomalies: the model or the tax-rate rule?"
+    posted = {"id": "t-1", "subject": "T", "question": q, "results": [{"label": "precision", "value": "0.9474"}]}
+    again = {"id": "t-1x", "subject": "T", "question": q, "results": [{"label": "flagged", "value": "19"}]}
+    other = {"id": "t-2", "subject": "T", "question": "How many entries must be opened?", "results": [{"label": "n", "value": "1,108"}]}
+    left = unused([{"story_id": "t-1"}], [posted, again, other], feedback=[])
+    assert [s["id"] for s in left] == ["t-2"]

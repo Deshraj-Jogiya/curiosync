@@ -321,8 +321,10 @@ def unused(history: list[dict], stories: list[dict] | None = None, feedback: lis
     feedback = load_feedback() if feedback is None else feedback
     today = today or date.today()
     taken = {h.get("story_id") for h in history}
-    return [s for s in stories if s["id"] not in taken and _rejections(s["id"], feedback) < 2
-            and not _resting(s["id"], feedback, today)]
+    # A story told already under another id (a re-read stored it again) counts as taken too.
+    told = [s for s in stories if s["id"] in taken]
+    return [s for s in stories if s["id"] not in taken and not any(_same_test(s, t) for t in told if t["subject"] == s["subject"])
+            and _rejections(s["id"], feedback) < 2 and not _resting(s["id"], feedback, today)]
 
 
 def _skills_recently_featured(history: list[dict], stories: list[dict]) -> set[str]:
@@ -552,8 +554,16 @@ def verify_series(series, docs: str) -> list[str]:
     return [f"series numbers not in the documents: {bad}"] if bad else []
 
 
+def _question_key(story: dict) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", str(story.get("question") or "").lower()).strip()
+
+
 def _same_test(a: dict, b: dict) -> bool:
-    """Two stories with mostly the same result numbers are the same test told twice."""
+    """Two stories asking the same question, or with mostly the same result numbers, are the same test told twice. The question
+    matters on its own: a re-read can store the same test's results in other units (precision 0.9474 vs 19 flagged), and the
+    1/1 tax draft repeated the 11/20 post that way (2026-11-21)."""
+    if _question_key(a) and _question_key(a) == _question_key(b):
+        return True
     na = {v for r in a["results"] for v in numbers_in(str(r["value"]))}
     nb = {v for r in b["results"] for v in numbers_in(str(r["value"]))}
     return bool(na and nb) and len(na & nb) / min(len(na), len(nb)) >= 0.6

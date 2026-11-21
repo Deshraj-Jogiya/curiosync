@@ -816,34 +816,5 @@
       "text": "My fairness check passed on all 60 days while the model was approving women less often than men.\n\nAI Model Observability & Fairness Audits is a personal portfolio project that watches an approval system after it goes live, using simulated decisions. I built it to understand how the whole system fits together, not just one piece.\n\nThe standard test is the four-fifths rule: if one group is approved at less than 80% of the other group's rate, it raises a flag. My simulated system approves almost everyone, and that hides a slide. In the week ending day 55, women were approved 97.4% of the time and men 99.1%. Divide one by the other and you get 0.98, nowhere near 0.8.\n\nSo I added a second check. Each day it compares the difference between the two approval rates over the last 7 days with the same gap in the first 5 days, and flags it only when the widening is too large to be chance: more than 3 standard errors.\n\nI started the drift on day 31. The ratio never went lower than 0.96. The gap measure flagged days 52 to 55, when the difference had grown 1.65 points past its starting level, and went quiet again on day 56.\n\nBoth now run together. The ratio still answers the legal question. The second one tells a reviewer that the system is leaning toward one group while the legal line is still far away. With 250 decisions a day it took three weeks to see a shift this small; a smaller one would need a longer window.\n\nIf your approval rates sit near 100%, what do you watch besides the four-fifths ratio to catch one group slipping?\n\n#MachineLearning #ResponsibleAI",
       "story_id": "ai-model-observability-fairness-audits-3xx"
     }
-  },
-  {
-    "id": "chat-2027-01-01-tax-anomaly-audit-compliance-engine-1x",
-    "format": "decision",
-    "subject": "Tax Anomaly Audit Compliance Engine",
-    "text": "My machine learning model found 18 anomalies, but a simple tax-rate rule found 45, all of them true positives.\n\nThe Tax Anomaly Audit Compliance Engine is a general-ledger audit pipeline I built in Python and SQL to ingest and validate financial transaction logs on simulated data. As a student in the US, learning to file my own taxes showed me how subtle entry mistakes can be.\n\nI wanted to understand which detection layer would be most effective at finding injected anomalies: my machine learning model, which used statistics and machine learning, or a deterministic tax-rate rule.\n\nTo answer this, I scored each layer on its own against a separate table of known injected anomalies.\n\nThe model layer, which combined Benford's Law and an Isolation Forest, flagged 19 entries. Of these, 18 were true positives, giving it 0.9474 precision and 0.383 recall.\n\nThe tax-rate rule layer flagged 45 entries. All 45 of these were true positives, achieving 1.0 precision and 0.9574 recall.\n\nCrucially, every anomaly the model found had already been caught by the tax-rate rule. Based on this, I decided the rule's flags should go first in the review order, with the model and Benford's Law then ranking the remaining entries.\n\nThe combined approach, using both the rule and the model, achieved 45 true positives with 0.9783 precision and 0.9574 recall on simulated data.\n\nWhen building anomaly detection systems, how do you decide the priority between deterministic business rules and machine learning model outputs?\n\n#Python #MachineLearning",
-    "image": "assets/approved/chat-2027-01-01-tax-anomaly-audit-compliance-engine-1x.png",
-    "alt_text": "Dot grid of the 47 anomalies planted in a simulated ledger, one dot each: 18 caught by both the tax-rate rule and the model, 27 caught by the rule only, 2 missed by both, none caught by the model alone. The model also flagged 1 entry that was not an anomaly.",
-    "post_day": "2027-01-01",
-    "history_entry": {
-      "date": "2027-01-01",
-      "format": "decision",
-      "subject": "Tax Anomaly Audit Compliance Engine",
-      "hook_type": "surprise",
-      "opener_words": [
-        "my",
-        "machine",
-        "learning",
-        "model",
-        "found",
-        "18",
-        "anomalies",
-        "but",
-        "a",
-        "simple"
-      ],
-      "text": "My machine learning model found 18 anomalies, but a simple tax-rate rule found 45, all of them true positives.\n\nThe Tax Anomaly Audit Compliance Engine is a general-ledger audit pipeline I built in Python and SQL to ingest and validate financial transaction logs on simulated data. As a student in the US, learning to file my own taxes showed me how subtle entry mistakes can be.\n\nI wanted to understand which detection layer would be most effective at finding injected anomalies: my machine learning model, which used statistics and machine learning, or a deterministic tax-rate rule.\n\nTo answer this, I scored each layer on its own against a separate table of known injected anomalies.\n\nThe model layer, which combined Benford's Law and an Isolation Forest, flagged 19 entries. Of these, 18 were true positives, giving it 0.9474 precision and 0.383 recall.\n\nThe tax-rate rule layer flagged 45 entries. All 45 of these were true positives, achieving 1.0 precision and 0.9574 recall.\n\nCrucially, every anomaly the model found had already been caught by the tax-rate rule. Based on this, I decided the rule's flags should go first in the review order, with the model and Benford's Law then ranking the remaining entries.\n\nThe combined approach, using both the rule and the model, achieved 45 true positives with 0.9783 precision and 0.9574 recall on simulated data.\n\nWhen building anomaly detection systems, how do you decide the priority between deterministic business rules and machine learning model outputs?\n\n#Python #MachineLearning",
-      "story_id": "tax-anomaly-audit-compliance-engine-1x"
-    }
   }
 ]
