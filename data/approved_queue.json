@@ -787,5 +787,34 @@
       "text": "My Python drift monitor runs two statistical tests every day. On the same simulated drift, one raised the alarm 14 days before the other.\n\nAI Model Observability & Fairness Audits watches a deployed machine learning classifier, on simulated inference records. Every morning it compares a feature with its 5-day baseline in two ways: a Kolmogorov-Smirnov test from SciPy, which returns a p-value, and a Population Stability Index, a single severity score.\n\nI wanted to know whether the two agree on when a shift starts. The drift was built in from day 31, so the answer could be checked against the truth.\n\nThe KS test crossed p < 0.01 first, on day 40. PSI stayed under 0.05 on stable days and only passed its major-shift line of 0.25 on day 54. Across the 60-day run, KS fired 21 times and PSI 4.\n\nSo the two do different jobs. KS is the early warning that the inputs have moved; PSI says how large the move is. Both stay in the daily audit, and each alert row records which rule fired.\n\nWhen two drift metrics disagree on the start date, which one do you let page someone?\n\n#MachineLearning #Python",
       "story_id": "ai-model-observability-fairness-audits-3x"
     }
+  },
+  {
+    "id": "chat-2026-12-30-ai-model-observability-fairness-audits-3xx",
+    "format": "lesson",
+    "subject": "AI Model Observability & Fairness Audits",
+    "text": "My fairness check passed on all 60 days while the model was approving women less often than men.\n\nAI Model Observability & Fairness Audits is a personal portfolio project that watches an approval system after it goes live, using simulated decisions. I built it to understand how the whole system fits together, not just one piece.\n\nThe standard test is the four-fifths rule: if one group is approved at less than 80% of the other group's rate, it raises a flag. My simulated system approves almost everyone, and that hides a slide. In the week ending day 55, women were approved 97.4% of the time and men 99.1%. Divide one by the other and you get 0.98, nowhere near 0.8.\n\nSo I added a second check. Each day it compares the difference between the two approval rates over the last 7 days with the same gap in the first 5 days, and flags it only when the widening is too large to be chance: more than 3 standard errors.\n\nI started the drift on day 31. The ratio never went lower than 0.96. The gap measure flagged days 52 to 55, when the difference had grown 1.65 points past its starting level, and went quiet again on day 56.\n\nBoth now run together. The ratio still answers the legal question. The second one tells a reviewer that the system is leaning toward one group while the legal line is still far away. With 250 decisions a day it took three weeks to see a shift this small; a smaller one would need a longer window.\n\nIf your approval rates sit near 100%, what do you watch besides the four-fifths ratio to catch one group slipping?\n\n#MachineLearning #ResponsibleAI",
+    "image": "assets/approved/chat-2026-12-30-ai-model-observability-fairness-audits-3xx.png",
+    "alt_text": "Two line charts over the same 60 simulated days, drift starting day 31. Top: women's approval rate divided by men's stays between 0.96 and 1.01, far above the four-fifths flag line at 0.8, which it never reaches. Bottom: the 7-day approval gap compared with the first 5 days, in standard errors, rises after day 31 and crosses the flag line at 3 on days 52 to 55.",
+    "post_day": "2026-12-30",
+    "history_entry": {
+      "date": "2026-12-30",
+      "format": "lesson",
+      "subject": "AI Model Observability & Fairness Audits",
+      "hook_type": "measured_result",
+      "opener_words": [
+        "my",
+        "fairness",
+        "check",
+        "passed",
+        "on",
+        "all",
+        "60",
+        "days",
+        "while",
+        "the"
+      ],
+      "text": "My fairness check passed on all 60 days while the model was approving women less often than men.\n\nAI Model Observability & Fairness Audits is a personal portfolio project that watches an approval system after it goes live, using simulated decisions. I built it to understand how the whole system fits together, not just one piece.\n\nThe standard test is the four-fifths rule: if one group is approved at less than 80% of the other group's rate, it raises a flag. My simulated system approves almost everyone, and that hides a slide. In the week ending day 55, women were approved 97.4% of the time and men 99.1%. Divide one by the other and you get 0.98, nowhere near 0.8.\n\nSo I added a second check. Each day it compares the difference between the two approval rates over the last 7 days with the same gap in the first 5 days, and flags it only when the widening is too large to be chance: more than 3 standard errors.\n\nI started the drift on day 31. The ratio never went lower than 0.96. The gap measure flagged days 52 to 55, when the difference had grown 1.65 points past its starting level, and went quiet again on day 56.\n\nBoth now run together. The ratio still answers the legal question. The second one tells a reviewer that the system is leaning toward one group while the legal line is still far away. With 250 decisions a day it took three weeks to see a shift this small; a smaller one would need a longer window.\n\nIf your approval rates sit near 100%, what do you watch besides the four-fifths ratio to catch one group slipping?\n\n#MachineLearning #ResponsibleAI",
+      "story_id": "ai-model-observability-fairness-audits-3xx"
+    }
   }
 ]
