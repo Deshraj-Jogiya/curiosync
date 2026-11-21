@@ -202,7 +202,7 @@ def render_curves(story: dict, item: dict) -> tuple[str, str] | None:
     """The story's curves from the project's own exported data (story_bank.source_curves), one line per group; a survival-style
     curve that only falls is drawn as steps, as a Kaplan-Meier curve is. The group the decision names is in the accent."""
     c = story.get("curves")
-    if not c or not 2 <= len(c["groups"]) <= 5:
+    if not c or not 1 <= len(c["groups"]) <= 5:
         return None
     item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
     accent = _accent(item["title"])

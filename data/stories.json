@@ -34,7 +34,8 @@
       "provider-agnostic LLM layer",
       "FastAPI dashboard",
       "SQLAlchemy"
-    ]
+    ],
+    "media_checked": "2026-11-21"
   },
   {
     "id": "fintech-credit-risk-fraud-command-center-1",
@@ -95,7 +96,41 @@
       "Random Forest",
       "XGBoost",
       "MLflow"
-    ]
+    ],
+    "groups": {
+      "group": "model",
+      "columns": [
+        "accuracy",
+        "roc auc",
+        "decline precision",
+        "decline recall",
+        "declined share"
+      ],
+      "file": "models/metrics.csv",
+      "rows": [
+        {
+          "name": "Random Forest",
+          "values": {
+            "accuracy": "0.8777",
+            "roc auc": "0.9216",
+            "decline precision": "0.9341",
+            "decline recall": "0.3427",
+            "declined share": "0.0859"
+          }
+        },
+        {
+          "name": "XGBoost",
+          "values": {
+            "accuracy": "0.8801",
+            "roc auc": "0.9179",
+            "decline precision": "0.9132",
+            "decline recall": "0.4456",
+            "declined share": "0.1143"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "fintech-credit-risk-fraud-command-center-2",
@@ -174,7 +209,55 @@
     "skills": [
       "Fraud Rules",
       "Python"
-    ]
+    ],
+    "groups": {
+      "group": "Rule",
+      "columns": [
+        "Alerts",
+        "True fraud caught",
+        "Precision",
+        "Recall (all fraud)"
+      ],
+      "rows": [
+        {
+          "name": "Velocity",
+          "values": {
+            "Alerts": "1,110",
+            "True fraud caught": "1,110",
+            "Precision": "1.0",
+            "Recall (all fraud)": "0.4284"
+          }
+        },
+        {
+          "name": "Foreign location",
+          "values": {
+            "Alerts": "4,942",
+            "True fraud caught": "1,464",
+            "Precision": "0.2962",
+            "Recall (all fraud)": "0.565"
+          }
+        },
+        {
+          "name": "Amount spike",
+          "values": {
+            "Alerts": "4,069",
+            "True fraud caught": "40",
+            "Precision": "0.0098",
+            "Recall (all fraud)": "0.0154"
+          }
+        },
+        {
+          "name": "Any rule",
+          "values": {
+            "Alerts": "10,057",
+            "True fraud caught": "2,591",
+            "Precision": "0.2576",
+            "Recall (all fraud)": "1.0"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "fintech-credit-risk-fraud-command-center-3",
@@ -206,7 +289,8 @@
     "skills": [
       "FastAPI",
       "Python"
-    ]
+    ],
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-1",
@@ -263,7 +347,8 @@
           "after": "0.83"
         }
       ]
-    }
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-2",
@@ -320,7 +405,8 @@
           "after": "25"
         }
       ]
-    }
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-3",
@@ -352,7 +438,8 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md",
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "tax-anomaly-audit-compliance-engine-1",
@@ -421,7 +508,46 @@
           "y": "0.9783"
         }
       ]
-    }
+    },
+    "groups": {
+      "group": "Layer",
+      "columns": [
+        "Flagged",
+        "True positives",
+        "Precision",
+        "Recall"
+      ],
+      "rows": [
+        {
+          "name": "Model (Benford + Isolation Forest)",
+          "values": {
+            "Flagged": "19",
+            "True positives": "18",
+            "Precision": "0.9474",
+            "Recall": "0.383"
+          }
+        },
+        {
+          "name": "Tax-rate rule",
+          "values": {
+            "Flagged": "45",
+            "True positives": "45",
+            "Precision": "1.0",
+            "Recall": "0.9574"
+          }
+        },
+        {
+          "name": "Combined",
+          "values": {
+            "Flagged": "46",
+            "True positives": "45",
+            "Precision": "0.9783",
+            "Recall": "0.9574"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "tax-anomaly-audit-compliance-engine-2",
@@ -463,7 +589,8 @@
           "after": "43"
         }
       ]
-    }
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "tax-anomaly-audit-compliance-engine-3",
@@ -513,7 +640,8 @@
           "after": "0.057 s"
         }
       ]
-    }
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "real-time-iot-telematics-predictive-main-1",
@@ -560,7 +688,43 @@
       "https://github.com/Deshraj-Jogiya/IoT-Telematics-Predictive-Maintenance/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/IoT-Telematics-Predictive-Maintenance/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "kind",
+      "columns": [
+        "planted readings",
+        "caught",
+        "recall"
+      ],
+      "file": "models/anomaly_detection_metrics.csv",
+      "rows": [
+        {
+          "name": "any",
+          "values": {
+            "planted readings": "214",
+            "caught": "210",
+            "recall": "0.9813"
+          }
+        },
+        {
+          "name": "temperature",
+          "values": {
+            "planted readings": "108",
+            "caught": "105",
+            "recall": "0.9722"
+          }
+        },
+        {
+          "name": "vibration",
+          "values": {
+            "planted readings": "106",
+            "caught": "105",
+            "recall": "0.9906"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "extending-stem-across-asl-1",
@@ -594,7 +758,8 @@
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "extending-stem-across-asl-2",
@@ -631,7 +796,8 @@
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "extending-stem-across-asl-3",
@@ -673,7 +839,46 @@
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Stage (median)",
+      "columns": [
+        "Time"
+      ],
+      "rows": [
+        {
+          "name": "Decode frames",
+          "values": {
+            "Time": "76.2 ms"
+          }
+        },
+        {
+          "name": "Hand features",
+          "values": {
+            "Time": "997.0 ms"
+          }
+        },
+        {
+          "name": "Model",
+          "values": {
+            "Time": "8.9 ms"
+          }
+        },
+        {
+          "name": "Total",
+          "values": {
+            "Time": "1081.2 ms"
+          }
+        },
+        {
+          "name": "Whole request",
+          "values": {
+            "Time": "1090.5 ms"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "extending-stem-across-asl-4",
@@ -713,7 +918,46 @@
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Extending-STEM-across-ASL/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Sign",
+      "columns": [
+        "Held-out accuracy"
+      ],
+      "rows": [
+        {
+          "name": "network",
+          "values": {
+            "Held-out accuracy": "0.0"
+          }
+        },
+        {
+          "name": "chemistry",
+          "values": {
+            "Held-out accuracy": "0.0"
+          }
+        },
+        {
+          "name": "internet",
+          "values": {
+            "Held-out accuracy": "0.5"
+          }
+        },
+        {
+          "name": "paper",
+          "values": {
+            "Held-out accuracy": "0.5"
+          }
+        },
+        {
+          "name": "school",
+          "values": {
+            "Held-out accuracy": "0.5"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "member-messages-qa-system-semantic-searc-1",
@@ -751,7 +995,8 @@
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "member-messages-qa-system-semantic-searc-2",
@@ -785,7 +1030,8 @@
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "member-messages-qa-system-semantic-searc-3",
@@ -819,7 +1065,8 @@
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "sentence-transformers-multi-task-learnin-1",
@@ -886,7 +1133,8 @@
           "series": "Loss"
         }
       ]
-    }
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "job-search-crm-ai-application-tailoring--2",
@@ -933,7 +1181,8 @@
       "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/SETUP.md",
       "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/WEIGHTING.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "job-search-crm-ai-application-tailoring--3",
@@ -970,7 +1219,8 @@
       "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/SETUP.md",
       "https://github.com/Deshraj-Jogiya/Job-Search-CRM-Automation/blob/HEAD/WEIGHTING.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-3x",
@@ -1019,7 +1269,8 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-4",
@@ -1060,7 +1311,8 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "member-messages-qa-system-semantic-searc-2x",
@@ -1114,7 +1366,31 @@
           "after": "96%"
         }
       ]
-    }
+    },
+    "groups": {
+      "group": "Run",
+      "columns": [
+        "Answers right",
+        "Share"
+      ],
+      "rows": [
+        {
+          "name": "Before the fix",
+          "values": {
+            "Answers right": "22 of 26",
+            "Share": "85%"
+          }
+        },
+        {
+          "name": "After the fix",
+          "values": {
+            "Answers right": "25 of 26",
+            "Share": "96%"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-4x",
@@ -1146,7 +1422,8 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "member-messages-qa-system-semantic-searc-4",
@@ -1192,7 +1469,52 @@
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Top Users",
+      "columns": [
+        "Messages"
+      ],
+      "rows": [
+        {
+          "name": "Sophia Al-Farsi",
+          "values": {
+            "Messages": "16"
+          }
+        },
+        {
+          "name": "Fatima El-Tahir",
+          "values": {
+            "Messages": "15"
+          }
+        },
+        {
+          "name": "Hans Müller",
+          "values": {
+            "Messages": "11"
+          }
+        },
+        {
+          "name": "Layla Kawaguchi",
+          "values": {
+            "Messages": "10"
+          }
+        },
+        {
+          "name": "Lily O'Sullivan",
+          "values": {
+            "Messages": "10"
+          }
+        },
+        {
+          "name": "Vikram Desai",
+          "values": {
+            "Messages": "10"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "member-messages-qa-system-semantic-searc-6",
@@ -1226,7 +1548,8 @@
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "job-market-lakehouse-1",
@@ -1269,7 +1592,8 @@
           "after": "3,015 rows"
         }
       ]
-    }
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "member-messages-qa-system-semantic-searc-3x",
@@ -1303,7 +1627,8 @@
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/alternate_readme.md",
       "https://github.com/Deshraj-Jogiya/NLP-based-Q-A-system/blob/HEAD/data_insight_README.MD"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "talentvenue-eventintel-enterprise-data-p-1",
@@ -1346,7 +1671,8 @@
       "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/TalentVenue_EventIntel/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "multi-state-land-use-emissions-analysis-1",
@@ -1380,7 +1706,34 @@
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "Model",
+      "columns": [
+        "Accuracy (1 − WAPE)"
+      ],
+      "rows": [
+        {
+          "name": "Linear Regression",
+          "values": {
+            "Accuracy (1 − WAPE)": "0.9418"
+          }
+        },
+        {
+          "name": "Random Forest",
+          "values": {
+            "Accuracy (1 − WAPE)": "0.9329"
+          }
+        },
+        {
+          "name": "Last year's value",
+          "values": {
+            "Accuracy (1 − WAPE)": "0.947"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "multi-state-land-use-emissions-analysis-2",
@@ -1413,7 +1766,34 @@
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "Model",
+      "columns": [
+        "Forecast accuracy"
+      ],
+      "rows": [
+        {
+          "name": "Linear Regression",
+          "values": {
+            "Forecast accuracy": "0.9981"
+          }
+        },
+        {
+          "name": "Random Forest",
+          "values": {
+            "Forecast accuracy": "0.9983"
+          }
+        },
+        {
+          "name": "Same day last week",
+          "values": {
+            "Forecast accuracy": "0.9984"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "multi-state-land-use-emissions-analysis-3",
@@ -1458,7 +1838,34 @@
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "Records",
+      "columns": [
+        "Per series (ms)",
+        "Vectorised (ms)",
+        "Time saved"
+      ],
+      "rows": [
+        {
+          "name": "5,350",
+          "values": {
+            "Per series (ms)": "19.6",
+            "Vectorised (ms)": "9.5",
+            "Time saved": "0.5165"
+          }
+        },
+        {
+          "name": "273,750",
+          "values": {
+            "Per series (ms)": "406.1",
+            "Vectorised (ms)": "307.6",
+            "Time saved": "0.2424"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "multi-state-land-use-emissions-analysis-4",
@@ -1491,7 +1898,8 @@
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "multi-state-land-use-emissions-analysis-5",
@@ -1531,7 +1939,58 @@
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "State",
+      "columns": [
+        "EPA 2022 (Tg CO2e)",
+        "Pipeline (Tg CO2e/yr)",
+        "Difference"
+      ],
+      "rows": [
+        {
+          "name": "Texas",
+          "values": {
+            "EPA 2022 (Tg CO2e)": "-41.704",
+            "Pipeline (Tg CO2e/yr)": "-41.636",
+            "Difference": "-0.16%"
+          }
+        },
+        {
+          "name": "California",
+          "values": {
+            "EPA 2022 (Tg CO2e)": "-32.724",
+            "Pipeline (Tg CO2e/yr)": "-32.666",
+            "Difference": "-0.18%"
+          }
+        },
+        {
+          "name": "Washington",
+          "values": {
+            "EPA 2022 (Tg CO2e)": "-18.556",
+            "Pipeline (Tg CO2e/yr)": "-18.524",
+            "Difference": "-0.17%"
+          }
+        },
+        {
+          "name": "Alabama",
+          "values": {
+            "EPA 2022 (Tg CO2e)": "-55.07",
+            "Pipeline (Tg CO2e/yr)": "-54.996",
+            "Difference": "-0.13%"
+          }
+        },
+        {
+          "name": "Florida",
+          "values": {
+            "EPA 2022 (Tg CO2e)": "-1.648",
+            "Pipeline (Tg CO2e/yr)": "-1.712",
+            "Difference": "3.9%"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "multi-state-land-use-emissions-analysis-6",
@@ -1568,7 +2027,8 @@
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Multi-State-Land-Use-Emissions-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "sales-analytics-rfm-customer-segmentatio-1",
@@ -1602,7 +2062,55 @@
       "https://github.com/Deshraj-Jogiya/Sales-Customer-Segmentation-Pipeline/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Sales-Customer-Segmentation-Pipeline/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Segment",
+      "columns": [
+        "Customers",
+        "Mean recency (days)",
+        "Mean frequency",
+        "Mean monetary"
+      ],
+      "rows": [
+        {
+          "name": "VIP Champions",
+          "values": {
+            "Customers": "400",
+            "Mean recency (days)": "3.985",
+            "Mean frequency": "212.245",
+            "Mean monetary": "71,759.55"
+          }
+        },
+        {
+          "name": "Loyal Customers",
+          "values": {
+            "Customers": "937",
+            "Mean recency (days)": "20.727855",
+            "Mean frequency": "13.913554",
+            "Mean monetary": "4,813.462647"
+          }
+        },
+        {
+          "name": "New Customers",
+          "values": {
+            "Customers": "504",
+            "Mean recency (days)": "77.767857",
+            "Mean frequency": "12.918651",
+            "Mean monetary": "4,260.455357"
+          }
+        },
+        {
+          "name": "At Risk / Hibernating",
+          "values": {
+            "Customers": "159",
+            "Mean recency (days)": "175.075472",
+            "Mean frequency": "11.207547",
+            "Mean monetary": "3,550.386792"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "clinical-trials-patient-outcomes-analysi-1",
@@ -1643,7 +2151,724 @@
       "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Arm",
+      "columns": [
+        "Survival at day 365",
+        "Median survival, Kaplan-Meier (days)",
+        "Mortality"
+      ],
+      "rows": [
+        {
+          "name": "Control",
+          "values": {
+            "Survival at day 365": "0.1582",
+            "Median survival, Kaplan-Meier (days)": "144",
+            "Mortality": "69.47%"
+          }
+        },
+        {
+          "name": "Low-dosage",
+          "values": {
+            "Survival at day 365": "0.3327",
+            "Median survival, Kaplan-Meier (days)": "288",
+            "Mortality": "60.0%"
+          }
+        },
+        {
+          "name": "High-dosage",
+          "values": {
+            "Survival at day 365": "0.5320",
+            "Median survival, Kaplan-Meier (days)": "not reached",
+            "Mortality": "42.5%"
+          }
+        }
+      ]
+    },
+    "curves": {
+      "file": "exports/km_curves.csv",
+      "group": "group_name",
+      "x_label": "day",
+      "y_label": "survival_probability",
+      "groups": {
+        "Control": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            6.0,
+            1.0
+          ],
+          [
+            7.0,
+            0.9681
+          ],
+          [
+            10.0,
+            0.9468
+          ],
+          [
+            11.0,
+            0.9362
+          ],
+          [
+            12.0,
+            0.9255
+          ],
+          [
+            14.0,
+            0.9043
+          ],
+          [
+            16.0,
+            0.8936
+          ],
+          [
+            17.0,
+            0.8936
+          ],
+          [
+            19.0,
+            0.8829
+          ],
+          [
+            25.0,
+            0.8721
+          ],
+          [
+            26.0,
+            0.8613
+          ],
+          [
+            29.0,
+            0.8613
+          ],
+          [
+            30.0,
+            0.8613
+          ],
+          [
+            33.0,
+            0.8613
+          ],
+          [
+            34.0,
+            0.85
+          ],
+          [
+            38.0,
+            0.85
+          ],
+          [
+            39.0,
+            0.85
+          ],
+          [
+            44.0,
+            0.8383
+          ],
+          [
+            45.0,
+            0.8267
+          ],
+          [
+            46.0,
+            0.8151
+          ],
+          [
+            50.0,
+            0.8151
+          ],
+          [
+            51.0,
+            0.8032
+          ],
+          [
+            54.0,
+            0.7914
+          ],
+          [
+            58.0,
+            0.7796
+          ],
+          [
+            59.0,
+            0.7678
+          ],
+          [
+            60.0,
+            0.7442
+          ],
+          [
+            62.0,
+            0.7324
+          ],
+          [
+            63.0,
+            0.7206
+          ],
+          [
+            66.0,
+            0.7087
+          ],
+          [
+            69.0,
+            0.7087
+          ],
+          [
+            71.0,
+            0.6967
+          ],
+          [
+            77.0,
+            0.6847
+          ],
+          [
+            87.0,
+            0.6727
+          ],
+          [
+            96.0,
+            0.6727
+          ],
+          [
+            97.0,
+            0.6605
+          ],
+          [
+            99.0,
+            0.6482
+          ],
+          [
+            101.0,
+            0.636
+          ],
+          [
+            104.0,
+            0.636
+          ],
+          [
+            105.0,
+            0.6235
+          ],
+          [
+            107.0,
+            0.6111
+          ],
+          [
+            112.0,
+            0.5986
+          ],
+          [
+            118.0,
+            0.5861
+          ],
+          [
+            128.0,
+            0.5737
+          ],
+          [
+            129.0,
+            0.5737
+          ],
+          [
+            130.0,
+            0.5609
+          ],
+          [
+            134.0,
+            0.5479
+          ],
+          [
+            138.0,
+            0.5348
+          ],
+          [
+            140.0,
+            0.5218
+          ],
+          [
+            144.0,
+            0.4957
+          ],
+          [
+            150.0,
+            0.4957
+          ],
+          [
+            151.0,
+            0.4823
+          ],
+          [
+            154.0,
+            0.4689
+          ],
+          [
+            157.0,
+            0.4555
+          ],
+          [
+            167.0,
+            0.4421
+          ],
+          [
+            170.0,
+            0.4287
+          ],
+          [
+            177.0,
+            0.4153
+          ],
+          [
+            178.0,
+            0.4019
+          ],
+          [
+            182.0,
+            0.4019
+          ],
+          [
+            195.0,
+            0.388
+          ],
+          [
+            197.0,
+            0.3742
+          ],
+          [
+            201.0,
+            0.3603
+          ],
+          [
+            208.0,
+            0.3465
+          ],
+          [
+            209.0,
+            0.3465
+          ],
+          [
+            222.0,
+            0.3465
+          ],
+          [
+            243.0,
+            0.3314
+          ],
+          [
+            249.0,
+            0.3163
+          ],
+          [
+            251.0,
+            0.3163
+          ],
+          [
+            252.0,
+            0.3005
+          ],
+          [
+            253.0,
+            0.2847
+          ],
+          [
+            254.0,
+            0.2689
+          ],
+          [
+            260.0,
+            0.2531
+          ],
+          [
+            267.0,
+            0.2373
+          ],
+          [
+            276.0,
+            0.2214
+          ],
+          [
+            280.0,
+            0.2056
+          ],
+          [
+            310.0,
+            0.1898
+          ],
+          [
+            318.0,
+            0.174
+          ],
+          [
+            329.0,
+            0.1582
+          ],
+          [
+            365.0,
+            0.1582
+          ]
+        ],
+        "High-dosage": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            4.0,
+            0.9875
+          ],
+          [
+            10.0,
+            0.975
+          ],
+          [
+            14.0,
+            0.9625
+          ],
+          [
+            17.0,
+            0.95
+          ],
+          [
+            18.0,
+            0.9375
+          ],
+          [
+            23.0,
+            0.925
+          ],
+          [
+            34.0,
+            0.9123
+          ],
+          [
+            36.0,
+            0.9123
+          ],
+          [
+            39.0,
+            0.9123
+          ],
+          [
+            43.0,
+            0.8993
+          ],
+          [
+            48.0,
+            0.8993
+          ],
+          [
+            49.0,
+            0.8993
+          ],
+          [
+            54.0,
+            0.8859
+          ],
+          [
+            63.0,
+            0.8859
+          ],
+          [
+            78.0,
+            0.8722
+          ],
+          [
+            81.0,
+            0.8586
+          ],
+          [
+            94.0,
+            0.8586
+          ],
+          [
+            97.0,
+            0.8448
+          ],
+          [
+            102.0,
+            0.8309
+          ],
+          [
+            112.0,
+            0.8171
+          ],
+          [
+            129.0,
+            0.8032
+          ],
+          [
+            130.0,
+            0.8032
+          ],
+          [
+            141.0,
+            0.7891
+          ],
+          [
+            153.0,
+            0.775
+          ],
+          [
+            161.0,
+            0.7609
+          ],
+          [
+            162.0,
+            0.7328
+          ],
+          [
+            181.0,
+            0.7187
+          ],
+          [
+            182.0,
+            0.7046
+          ],
+          [
+            200.0,
+            0.7046
+          ],
+          [
+            202.0,
+            0.6902
+          ],
+          [
+            209.0,
+            0.6614
+          ],
+          [
+            212.0,
+            0.6471
+          ],
+          [
+            214.0,
+            0.6327
+          ],
+          [
+            233.0,
+            0.6183
+          ],
+          [
+            236.0,
+            0.6039
+          ],
+          [
+            268.0,
+            0.5752
+          ],
+          [
+            323.0,
+            0.5608
+          ],
+          [
+            328.0,
+            0.5464
+          ],
+          [
+            337.0,
+            0.532
+          ],
+          [
+            365.0,
+            0.532
+          ]
+        ],
+        "Low-dosage": [
+          [
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.9867
+          ],
+          [
+            5.0,
+            0.9733
+          ],
+          [
+            23.0,
+            0.9467
+          ],
+          [
+            28.0,
+            0.9333
+          ],
+          [
+            30.0,
+            0.9067
+          ],
+          [
+            35.0,
+            0.8667
+          ],
+          [
+            36.0,
+            0.8667
+          ],
+          [
+            37.0,
+            0.8396
+          ],
+          [
+            38.0,
+            0.8396
+          ],
+          [
+            41.0,
+            0.8258
+          ],
+          [
+            42.0,
+            0.8121
+          ],
+          [
+            50.0,
+            0.8121
+          ],
+          [
+            52.0,
+            0.7836
+          ],
+          [
+            59.0,
+            0.7836
+          ],
+          [
+            60.0,
+            0.7836
+          ],
+          [
+            80.0,
+            0.7688
+          ],
+          [
+            92.0,
+            0.754
+          ],
+          [
+            96.0,
+            0.7392
+          ],
+          [
+            102.0,
+            0.7244
+          ],
+          [
+            106.0,
+            0.7096
+          ],
+          [
+            120.0,
+            0.6945
+          ],
+          [
+            121.0,
+            0.6794
+          ],
+          [
+            123.0,
+            0.6643
+          ],
+          [
+            124.0,
+            0.6492
+          ],
+          [
+            137.0,
+            0.6492
+          ],
+          [
+            140.0,
+            0.6338
+          ],
+          [
+            160.0,
+            0.6338
+          ],
+          [
+            164.0,
+            0.6179
+          ],
+          [
+            171.0,
+            0.6021
+          ],
+          [
+            175.0,
+            0.5863
+          ],
+          [
+            221.0,
+            0.5704
+          ],
+          [
+            222.0,
+            0.5546
+          ],
+          [
+            235.0,
+            0.5387
+          ],
+          [
+            251.0,
+            0.5229
+          ],
+          [
+            263.0,
+            0.507
+          ],
+          [
+            288.0,
+            0.4912
+          ],
+          [
+            303.0,
+            0.4595
+          ],
+          [
+            310.0,
+            0.4437
+          ],
+          [
+            316.0,
+            0.4278
+          ],
+          [
+            318.0,
+            0.412
+          ],
+          [
+            319.0,
+            0.3961
+          ],
+          [
+            320.0,
+            0.3803
+          ],
+          [
+            325.0,
+            0.3644
+          ],
+          [
+            331.0,
+            0.3486
+          ],
+          [
+            364.0,
+            0.3327
+          ],
+          [
+            365.0,
+            0.3327
+          ]
+        ]
+      }
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "clinical-trials-patient-outcomes-analysi-2",
@@ -1680,7 +2905,34 @@
       "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Arm",
+      "columns": [
+        "Adverse event rate"
+      ],
+      "rows": [
+        {
+          "name": "Control",
+          "values": {
+            "Adverse event rate": "8.42%"
+          }
+        },
+        {
+          "name": "Low-dosage",
+          "values": {
+            "Adverse event rate": "10.67%"
+          }
+        },
+        {
+          "name": "High-dosage",
+          "values": {
+            "Adverse event rate": "23.75%"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "clinical-trials-patient-outcomes-analysi-3",
@@ -1715,7 +2967,8 @@
       "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Clinical-Trials-Outcomes-Analysis/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "multi-state-land-use-emissions-analysis-3x",
@@ -1776,7 +3029,34 @@
           "after": "307.6 ms"
         }
       ]
-    }
+    },
+    "groups": {
+      "group": "Records",
+      "columns": [
+        "Per series (ms)",
+        "Vectorised (ms)",
+        "Time saved"
+      ],
+      "rows": [
+        {
+          "name": "5,350",
+          "values": {
+            "Per series (ms)": "19.6",
+            "Vectorised (ms)": "9.5",
+            "Time saved": "0.5165"
+          }
+        },
+        {
+          "name": "273,750",
+          "values": {
+            "Per series (ms)": "406.1",
+            "Vectorised (ms)": "307.6",
+            "Time saved": "0.2424"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-ml-data-science-simulation-1",
@@ -1833,7 +3113,42 @@
       "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "Model",
+      "columns": [
+        "R²",
+        "RMSE (units)",
+        "Forecast accuracy"
+      ],
+      "rows": [
+        {
+          "name": "Random Forest",
+          "values": {
+            "R²": "0.9591",
+            "RMSE (units)": "19.28",
+            "Forecast accuracy": "0.9005"
+          }
+        },
+        {
+          "name": "Linear Regression",
+          "values": {
+            "R²": "0.9066",
+            "RMSE (units)": "29.13",
+            "Forecast accuracy": "0.8591"
+          }
+        },
+        {
+          "name": "Same weekday last week",
+          "values": {
+            "R²": "0.7847",
+            "RMSE (units)": "44.22",
+            "Forecast accuracy": "0.7837"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-ml-data-science-simulation-2",
@@ -1887,7 +3202,37 @@
       "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/AI-ML-Data-Science-Simulation/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "Reorder policy",
+      "columns": [
+        "Stock-out days",
+        "Units short",
+        "Fill rate",
+        "Unsold units per branch-category week"
+      ],
+      "rows": [
+        {
+          "name": "Last week's sales",
+          "values": {
+            "Stock-out days": "51",
+            "Units short": "7038.2",
+            "Fill rate": "92.1%",
+            "Unsold units per branch-category week": "105.4"
+          }
+        },
+        {
+          "name": "Random Forest forecast",
+          "values": {
+            "Stock-out days": "20",
+            "Units short": "419.1",
+            "Fill rate": "99.5%",
+            "Unsold units per branch-category week": "57.5"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "automated-daily-data-insights-1",
@@ -1922,7 +3267,8 @@
       "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "automated-daily-data-insights-2",
@@ -1961,7 +3307,31 @@
       "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/automated-data-insights/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Date",
+      "columns": [
+        "Daily return",
+        "Z-score"
+      ],
+      "rows": [
+        {
+          "name": "2026-06-05",
+          "values": {
+            "Daily return": "-2.58%",
+            "Z-score": "3.17"
+          }
+        },
+        {
+          "name": "2026-05-15",
+          "values": {
+            "Daily return": "-1.2%",
+            "Z-score": "2.08"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "fintech-credit-risk-fraud-command-center-3x",
@@ -2029,7 +3399,55 @@
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/FinRisk-Analytics-Pipeline/blob/HEAD/README.md"
     ],
-    "simulated": false
+    "simulated": false,
+    "groups": {
+      "group": "Velocity (charges / minutes)",
+      "columns": [
+        "Spike multiple",
+        "Velocity alerts (fraud)",
+        "Spike alerts (fraud)",
+        "Any rule alerts (fraud)"
+      ],
+      "rows": [
+        {
+          "name": "5 / 10 (project)",
+          "values": {
+            "Spike multiple": "7",
+            "Velocity alerts (fraud)": "1,110 (1,110)",
+            "Spike alerts (fraud)": "4,069 (40)",
+            "Any rule alerts (fraud)": "10,057 (2,591)"
+          }
+        },
+        {
+          "name": "3 / 5",
+          "values": {
+            "Spike multiple": "3",
+            "Velocity alerts (fraud)": "1,113 (1,110)",
+            "Spike alerts (fraud)": "43,173 (201)",
+            "Any rule alerts (fraud)": "48,616 (2,591)"
+          }
+        },
+        {
+          "name": "4 / 30",
+          "values": {
+            "Spike multiple": "15",
+            "Velocity alerts (fraud)": "1,113 (1,110)",
+            "Spike alerts (fraud)": "107 (5)",
+            "Any rule alerts (fraud)": "6,159 (2,578)"
+          }
+        },
+        {
+          "name": "8 / 60",
+          "values": {
+            "Spike multiple": "7",
+            "Velocity alerts (fraud)": "714 (709)",
+            "Spike alerts (fraud)": "4,069 (40)",
+            "Any rule alerts (fraud)": "9,661 (2,190)"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-3xx",
@@ -2070,7 +3488,8 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "media_checked": "2026-11-21"
   },
   {
     "id": "ai-model-observability-fairness-audits-5",
@@ -2120,7 +3539,8 @@
       "z-score",
       "standard error",
       "four-fifths rule"
-    ]
+    ],
+    "media_checked": "2026-11-21"
   },
   {
     "id": "tax-anomaly-audit-compliance-engine-1x",
@@ -2157,7 +3577,46 @@
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "Layer",
+      "columns": [
+        "Flagged",
+        "True positives",
+        "Precision",
+        "Recall"
+      ],
+      "rows": [
+        {
+          "name": "Model (Benford + Isolation Forest)",
+          "values": {
+            "Flagged": "19",
+            "True positives": "18",
+            "Precision": "0.9474",
+            "Recall": "0.383"
+          }
+        },
+        {
+          "name": "Tax-rate rule",
+          "values": {
+            "Flagged": "45",
+            "True positives": "45",
+            "Precision": "1.0",
+            "Recall": "0.9574"
+          }
+        },
+        {
+          "name": "Combined",
+          "values": {
+            "Flagged": "46",
+            "True positives": "45",
+            "Precision": "0.9783",
+            "Recall": "0.9574"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   },
   {
     "id": "tax-anomaly-audit-compliance-engine-2x",
@@ -2193,6 +3652,63 @@
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
       "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
     ],
-    "simulated": true
+    "simulated": true,
+    "groups": {
+      "group": "Amounts",
+      "columns": [
+        "Count",
+        "Chi-square",
+        "p-value",
+        "MAD"
+      ],
+      "rows": [
+        {
+          "name": "Whole ledger",
+          "values": {
+            "Count": "1,200",
+            "Chi-square": "22.64",
+            "p-value": "0.0039",
+            "MAD": "0.0091"
+          }
+        },
+        {
+          "name": "Injected anomalies only",
+          "values": {
+            "Count": "47",
+            "Chi-square": "346.38",
+            "p-value": "5.4e-70",
+            "MAD": "0.1792"
+          }
+        },
+        {
+          "name": "Engineering",
+          "values": {
+            "Count": "150",
+            "Chi-square": "2.39",
+            "p-value": "0.967",
+            "MAD": "0.0101"
+          }
+        },
+        {
+          "name": "R&D",
+          "values": {
+            "Count": "197",
+            "Chi-square": "4.73",
+            "p-value": "0.786",
+            "MAD": "0.0146"
+          }
+        },
+        {
+          "name": "Sales",
+          "values": {
+            "Count": "174",
+            "Chi-square": "16.70",
+            "p-value": "0.0334",
+            "MAD": "0.0261"
+          }
+        }
+      ]
+    },
+    "media_checked": "2026-11-21"
   }
 ]

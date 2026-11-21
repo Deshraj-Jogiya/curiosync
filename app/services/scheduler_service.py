@@ -143,6 +143,13 @@ async def run_daily_pipeline(
                                       + ("; STALE: re-export from Career Pilot (market-skills)" if market_skills.stale(market) else ""))
             from app.services.post_document import has_own_media
 
+            try:
+                from app.services import runway_alarm
+                from app.services.story_bank import load_stories, media_runway
+
+                steps["story_runway"] = await runway_alarm.check(media_runway(items, history, load_stories(), has_own_media))
+            except Exception as exc:
+                steps["story_runway"] = f"not counted ({exc})"
             picked = pick_story([i for i in items if i.get("notes")], history, media_ok=has_own_media)
             if picked is None:
                 steps["generate_draft"] = ("no story ready: a story needs your notes on why the project was built "

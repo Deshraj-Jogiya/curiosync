@@ -259,24 +259,116 @@ def curves_from_csv(text: str, path: str) -> dict | None:
     return {"file": path, "group": g, "x_label": x, "y_label": y, "groups": groups}
 
 
-async def source_curves(story: dict, item: dict) -> dict | None:
-    """The curves behind a story, read from the CSV files its write-up names as the source (Clinical Trials: exports/km_curves.csv
-    holds the Kaplan-Meier curve of every arm). Real data from the repository, so the image shows the analysis itself."""
+MIN_SERIES_SWING = 0.15
+_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}")
+_FILE_EXTENSIONS = {"csv", "py", "md", "json", "geojson", "parquet", "sql", "txt", "yml", "yaml", "ipynb", "html", "js", "ts"}
+_TABLE_COLUMN = re.compile(r"`([a-z][a-z0-9_]*)\.([a-z][a-z0-9_]*)`")
+
+
+def _story_words(story: dict) -> set[str]:
+    """Words of the story itself (not its whole section), to tell which column of a source file the story is about."""
+    parts = [story.get(k, "") for k in ("question", "test", "detail", "decision", "chart_title")]
+    parts += [f"{r.get('label', '')} {r.get('value', '')}" for r in story.get("results", [])]
+    return _words(" ".join(str(p) for p in parts))
+
+
+def series_from_csv(text: str, path: str, story: dict, column: str | None = None) -> dict | None:
+    """One measured series in a project's exported CSV, as curves with a single line: an ordered x column (a date, day, week or
+    epoch) and the numeric column the story is about (named in its source line, or every word of the column's name appears in the
+    story). Dates become days from the first row. None when no column is clearly the story's; nothing is guessed."""
+    import csv
+    import io
+
+    rows = list(csv.DictReader(io.StringIO(text)))
+    if not 5 <= len(rows) <= MAX_CURVE_ROWS:
+        return None
+    cols = list(rows[0].keys())
+    dates = [c for c in cols if all(_DATE.match(str(r[c] or "")) for r in rows)]
+    numeric = [c for c in cols if all(_num(r[c]) is not None for r in rows)]
+    xs = dates or [c for c in numeric if _X_NAME.search(c)]
+    if not xs:
+        return None
+    x = xs[0]
+    words = _story_words(story)
+    if column:
+        ys = [c for c in numeric if c == column and c != x]
+    else:
+        ys = [c for c in numeric if c != x and all(w in words for w in re.split(r"[_\s]+", c.lower()) if w)]
+    if len(ys) != 1:
+        return None
+    y = ys[0]
+    if x in dates:
+        from datetime import date as _d
+        first = _d.fromisoformat(rows[0][x][:10])
+        pts = [[(_d.fromisoformat(r[x][:10]) - first).days, _num(r[y])] for r in rows]
+        x_label = f"days from {rows[0][x][:10]}"
+    else:
+        pts = [[_num(r[x]), _num(r[y])] for r in rows]
+        x_label = x
+    pts.sort()
+    ys = [p[1] for p in pts]
+    # A single line that barely moves shows nothing a reader can see (Land Use's manual prep hours sat at 10 +/- 0.6 every week).
+    if max(abs(v) for v in ys) == 0 or (max(ys) - min(ys)) / max(abs(v) for v in ys) < MIN_SERIES_SWING:
+        return None
+    return {"file": path, "group": None, "x_label": x_label, "y_label": y, "groups": {y.replace("_", " "): pts}}
+
+
+def groups_from_csv(text: str, path: str) -> dict | None:
+    """A comparison table in a project's exported CSV (one row per model, layer or arm: Tax Anomaly's detection_layers.csv), in the
+    shape group_table returns. Values are copied from the file as written."""
+    import csv
+    import io
+
+    rows = list(csv.DictReader(io.StringIO(text)))
+    if not 2 <= len(rows) <= 8:
+        return None
+    cols = list(rows[0].keys())
+    numeric = [c for c in cols if sum(_num(r[c]) is not None for r in rows) >= 2]
+    names = [c for c in cols if c not in numeric and len({r[c] for r in rows}) == len(rows)]
+    if len(names) != 1 or not numeric:
+        return None
+    label = {c: c.replace("_", " ") for c in numeric}  # roc_auc is shown as "roc auc"
+    return {"group": names[0], "columns": [label[c] for c in numeric], "file": path,
+            "rows": [{"name": r[names[0]], "values": {label[c]: r[c] for c in numeric if r[c] not in (None, "")}} for r in rows]}
+
+
+async def _raw(repo: str, path: str) -> str | None:
+    url = f"https://raw.githubusercontent.com/{repo}/HEAD/{path.lstrip('./')}"
+    try:
+        async with httpx.AsyncClient(timeout=20) as client:
+            resp = await client.get(url)
+    except httpx.HTTPError:
+        return None
+    return resp.text if resp.status_code == 200 else None
+
+
+async def source_data(story: dict, item: dict) -> tuple[dict | None, dict | None]:
+    """(curves, groups) behind a story, read from the files its write-up names as the source: group curves (Clinical Trials:
+    exports/km_curves.csv), a measured series (Land Use: exports/prep_hours.csv), or a comparison table (Tax Anomaly:
+    exports/detection_layers.csv). A `table.column` reference is looked up as data/<table>.csv or exports/<table>.csv. Real data
+    from the repository, so the image shows the analysis itself."""
     repo = _repo(item.get("github_url", ""))
     if not repo:
-        return None
-    for path in _SOURCE_CSV.findall(story.get("excerpt", ""))[:3]:
-        url = f"https://raw.githubusercontent.com/{repo}/HEAD/{path.lstrip('./')}"
-        try:
-            async with httpx.AsyncClient(timeout=20) as client:
-                resp = await client.get(url)
-        except httpx.HTTPError:
+        return None, None
+    excerpt = story.get("excerpt", "")
+    wanted = [(p, None) for p in _SOURCE_CSV.findall(excerpt)[:3]]
+    refs = [(t, c) for t, c in _TABLE_COLUMN.findall(excerpt) if c not in _FILE_EXTENSIONS]
+    for table, col in refs[:3]:
+        wanted += [(f"{folder}/{table}.csv", col) for folder in ("data", "exports")]
+    curves = groups = None
+    for path, col in wanted:
+        text = await _raw(repo, path)
+        if not text:
             continue
-        if resp.status_code == 200:
-            found = curves_from_csv(resp.text, path)
-            if found:
-                return found
-    return None
+        curves = curves or curves_from_csv(text, path) or series_from_csv(text, path, story, col)
+        groups = groups or (None if col else groups_from_csv(text, path))
+        if curves:
+            break
+    return curves, groups
+
+
+async def source_curves(story: dict, item: dict) -> dict | None:
+    return (await source_data(story, item))[0]
 
 
 async def with_excerpt(story: dict, item: dict) -> dict:
@@ -290,11 +382,52 @@ async def with_excerpt(story: dict, item: dict) -> dict:
     excerpt = section_for(docs, story.get("question", "")) or section_with_numbers(docs, story)
     out = enrich({**story, "excerpt": excerpt} if excerpt else story)
     try:
-        curves = await source_curves(out, item)
+        curves, groups = await source_data(out, item)
     except Exception as exc:  # the image falls back to the story's own numbers
         logger.warning("Could not read the source data for %s: %s", item.get("title"), exc)
-        curves = None
+        curves = groups = None
+    if groups and not out.get("groups"):
+        out["groups"] = groups
     return {**out, "curves": curves} if curves else out
+
+
+MEDIA_CHECKS_PER_RUN = 15
+MEDIA_RECHECK_DAYS = 45
+
+
+async def cache_media(stories: list[dict], items: list[dict], today: date | None = None,
+                      limit: int = MEDIA_CHECKS_PER_RUN) -> int:
+    """Saves on each bank story the chart data its write-up and source files hold (its group table and curves), so picking a story
+    can see which ones have media of their own without reading every repository on the day. Stories never checked come first;
+    a check older than MEDIA_RECHECK_DAYS is redone, since the project may have exported new data. Returns how many were checked."""
+    today = today or date.today()
+    by_title = {i["title"]: i for i in items}
+
+    def due(st):
+        when = st.get("media_checked")
+        return not when or (today - date.fromisoformat(when)).days >= MEDIA_RECHECK_DAYS
+
+    todo = sorted((st for st in stories if st["subject"] in by_title and due(st)), key=lambda st: bool(st.get("media_checked")))
+    done = 0
+    for st in todo[:limit]:
+        try:
+            full = await with_excerpt(st, by_title[st["subject"]])
+        except Exception as exc:
+            logger.warning("Media check for %s failed: %s", st["id"], exc)
+            continue
+        for key in ("groups", "curves"):
+            if full.get(key):
+                st[key] = full[key]
+        st["media_checked"] = str(today)
+        done += 1
+    return done
+
+
+def media_runway(items: list[dict], history: list[dict], stories: list[dict], media_ok) -> int:
+    """How many stories could still be drafted: unposted, about a project with the owner's notes, and drawable as more than their
+    own numbers."""
+    noted = {i["title"]: i for i in items if i.get("notes")}
+    return sum(1 for st in unused(history, stories) if st["subject"] in noted and media_ok(st, noted[st["subject"]]))
 
 
 RULE_FAIL_REST_DAYS = 3
@@ -709,6 +842,7 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
             added += 1
         meta[item["title"]] = {"sha": shas.get(item["title"]) or await head_sha(item["github_url"]), "read_on": str(date.today()),
                                "stories": len(new)}
+    checked = await cache_media(stories, items)
     _save(path, stories)
     _save(meta_path, meta)
-    return f"{left} stories ready, {added} new from {', '.join(i['title'] for i in todo) or 'no changed project'}"
+    return f"{checked} checked for chart data; {left} stories ready, {added} new from {', '.join(i['title'] for i in todo) or 'no changed project'}"

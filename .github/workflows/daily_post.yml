@@ -99,6 +99,7 @@ jobs:
     permissions:
       contents: write
       actions: read  # to count drafts already waiting for approval; without it the count silently read 0
+      issues: write  # to open the "Story bank running low" issue, which GitHub emails to the owner
     outputs:
       has_draft: ${{ steps.run.outputs.has_draft }}
       has_preview: ${{ steps.run.outputs.has_preview }}
