@@ -282,3 +282,15 @@ def test_story_text_carries_the_excerpt():
 
     s = {"question": "q", "test": "t", "results": [], "decision": "d", "excerpt": "A weekly reorder was simulated."}
     assert "weekly reorder" in story_text(s)
+
+
+def test_pick_story_skips_stories_without_their_own_media():
+    """A story whose only image would repeat its numbers is not drafted (owner, 2026-11-21)."""
+    from app.services.story_bank import pick_story
+
+    items = [{"title": "P", "notes": ["why"]}]
+    stories = [{"id": "p-1", "subject": "P", "results": [{"label": "a", "value": "1"}], "skills": []},
+               {"id": "p-2", "subject": "P", "results": [{"label": "b", "value": "2"}], "skills": [], "series": {"type": "line"}}]
+    picked = pick_story(items, [], stories, feedback=[], media_ok=lambda s, i: bool(s.get("series")))
+    assert picked and picked[0]["id"] == "p-2"
+    assert pick_story(items, [], stories[:1], feedback=[], media_ok=lambda s, i: False) is None

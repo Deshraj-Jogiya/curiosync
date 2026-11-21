@@ -141,10 +141,13 @@ async def run_daily_pipeline(
             steps["market_skills"] = (f"{len(market_skills.demanded(market))} demanded skills from {market.get('target_postings', 0)} "
                                       f"target postings ({market.get('generated_at', 'no date')})"
                                       + ("; STALE: re-export from Career Pilot (market-skills)" if market_skills.stale(market) else ""))
-            picked = pick_story([i for i in items if i.get("notes")], history)
+            from app.services.post_document import has_own_media
+
+            picked = pick_story([i for i in items if i.get("notes")], history, media_ok=has_own_media)
             if picked is None:
-                steps["generate_draft"] = ("no story ready from a project with your notes on why you built it; add a line to "
-                                           "data/subject_notes.json for the projects you want posted; nothing drafted")
+                steps["generate_draft"] = ("no story ready: a story needs your notes on why the project was built "
+                                           "(data/subject_notes.json) and chart data of its own (a series, curves, groups or steps), "
+                                           "not just its result numbers; nothing drafted")
                 await record_scheduler_run(session, run_type, "skipped", "No story ready", steps)
                 if own_session:
                     await session.commit()
@@ -223,11 +226,18 @@ async def run_daily_pipeline(
         except Exception as img_err:
             logger.error("Failed to build the post image: %s", img_err)
         steps["visual"] = visual_kind
-        # An image that only repeats the post's numbers used to fail the draft here; it is now a note on the review page (the page
-        # already says to reject it so a different image is drawn), so a sound post is not lost over its picture (2026-11-15).
+        # Stories are picked only when they can be drawn as more than their own numbers (has_own_media). If the image still ends up
+        # repeating the post, the draft is not sent: he rejected that media three times (2026-10-31, 11-20, 11-21).
         style_notes = list(post.get("style_notes") or [])
         if story and "repeats the post" in visual_kind:
-            style_notes.append("media: the only image for this story repeats numbers the post already states")
+            problems = ["media: the only image for this story repeats numbers the post already states"]
+            steps["generate_draft"] = f"rejected: {problems}"
+            await record_scheduler_run(session, run_type, "skipped", "Draft media only repeats the post", steps)
+            if own_session:
+                await session.commit()
+            return {"status": "skipped", "reason": f"No draft passed the post rules: {problems}", "steps": steps,
+                    "rejected_draft": draft_text, "problems": problems, "format": fmt, "subject": subject,
+                    "story_id": story["id"]}
         if style_notes:
             steps["style_notes"] = style_notes
             compliance = {**compliance, "issues": list(compliance.get("issues") or []) + [f"style: {n}" for n in style_notes]}

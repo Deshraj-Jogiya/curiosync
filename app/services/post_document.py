@@ -203,6 +203,27 @@ def _table_image(story: dict, item: dict):
     return path, alt + (" Simulated data." if story.get("simulated") else "")
 
 
+def has_own_media(story: dict, item: dict) -> bool:
+    """True when the story can be drawn as something other than its own result numbers (a series, curves, a group comparison, the
+    steps of a process). A story that can only be shown as the numbers the post states is not drafted until it gets chart data
+    (owner, 2026-11-20 and 2026-11-21: the media kept "just repeating the numbers from text")."""
+    import os as _os
+
+    for draw in (lambda: render_curves(story, item), lambda: render_series(story, item),
+                 lambda: render_group_chart(story, item), lambda: render_stage_flow(story, item)):
+        try:
+            made = draw()
+        except Exception:
+            made = None
+        if made:
+            try:
+                _os.remove(made[0])
+            except OSError:
+                pass
+            return True
+    return False
+
+
 def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str] | None:
     """The single image for a story: each form that fits the data is drawn in turn (its series chart, steps of one process, a table
     of options against metrics, the results the post states) and the first that fills at least MIN_FILL of the card is used. When

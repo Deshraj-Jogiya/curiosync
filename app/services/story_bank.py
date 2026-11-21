@@ -332,7 +332,8 @@ def _skills_recently_featured(history: list[dict], stories: list[dict]) -> set[s
 
 
 def pick_story(items: list[dict], history: list[dict], stories: list[dict] | None = None,
-               feedback: list[dict] | None = None, today: date | None = None) -> tuple[dict, dict] | None:
+               feedback: list[dict] | None = None, today: date | None = None,
+               media_ok=None) -> tuple[dict, dict] | None:
     """The unused story whose project was posted about least recently; among a project's stories, the one showing the most skills not
     featured in the last posts; ties go to the profile's own order (most recent work first). With nothing unused, the story posted
     longest ago (at least REPEAT_AFTER_DAYS) comes back, marked as a repeat so it is written in a different format."""
@@ -363,7 +364,12 @@ def pick_story(items: list[dict], history: list[dict], stories: list[dict] | Non
         return not has_market or len(market_skills.story_skills(story, market)) >= market_skills.MIN_STORY_SKILLS
 
     order = {t: n for n, t in enumerate(by_title)}
-    candidates = [s for s in unused(history, stories, feedback, today) if s["subject"] in by_title and shows_demand(s)]
+    def drawable(story: dict) -> bool:
+        # media_ok(story, item) says whether the story has a chart of its own; None skips the check (tests, previews).
+        return media_ok is None or media_ok(story, by_title[story["subject"]])
+
+    candidates = [s for s in unused(history, stories, feedback, today)
+                  if s["subject"] in by_title and shows_demand(s) and drawable(s)]
     if candidates:
         best = min(candidates, key=lambda s: (-(demand(s) // DEMAND_BAND), last_posted(s["subject"]), -new_skills(s),
                                               order[s["subject"]]))
@@ -376,7 +382,7 @@ def pick_story(items: list[dict], history: list[dict], stories: list[dict] | Non
             posted_on[h["story_id"]] = max(posted_on.get(h["story_id"], ""), h["date"])
     cutoff = str(today - timedelta(days=REPEAT_AFTER_DAYS))
     old = [s for s in stories if s["subject"] in by_title and posted_on.get(s["id"], "9999") <= cutoff
-           and _rejections(s["id"], feedback) < 2 and shows_demand(s)]
+           and _rejections(s["id"], feedback) < 2 and shows_demand(s) and drawable(s)]
     if not old:
         return None
     best = min(old, key=lambda s: posted_on[s["id"]])
