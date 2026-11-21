@@ -5,8 +5,8 @@
     "stories": 1
   },
   "Tax Anomaly Audit Compliance Engine": {
-    "sha": "e3da9b1efce8b6c000ce86f44dd5a13160914bb3",
-    "read_on": "2026-10-26",
+    "sha": "3d5d5c919b511ceb23122c936acde9fb0a3744af",
+    "read_on": "2026-11-21",
     "stories": 3
   },
   "Real-Time IoT Telematics & Predictive Maintenance": {
@@ -30,8 +30,8 @@
     "stories": 1
   },
   "Job Search CRM & AI Application Tailoring Center": {
-    "sha": "38711eb84482316631ab21db9e3f665206871769",
-    "read_on": "2026-11-18",
+    "sha": "87d4e9590e01ec88330598dcff8afe5261f3e158",
+    "read_on": "2026-11-21",
     "stories": 1
   },
   "FinTech Credit Risk & Fraud Command Center": {
@@ -40,8 +40,8 @@
     "stories": 4
   },
   "AI Model Observability & Fairness Audits": {
-    "sha": "e47addd10a13e8d49d8592245c45bdcf8aa7dad1",
-    "read_on": "2026-11-19",
+    "sha": "e2f27832252c08055bef3f58e9bc8dc2307a1ad8",
+    "read_on": "2026-11-21",
     "stories": 3
   },
   "Job Search dbt Warehouse": {

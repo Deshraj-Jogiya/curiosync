@@ -2121,5 +2121,78 @@
       "standard error",
       "four-fifths rule"
     ]
+  },
+  {
+    "id": "tax-anomaly-audit-compliance-engine-1x",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "question": "Which detection layer finds the injected anomalies: the model or the tax-rate rule?",
+    "test": "Each layer was scored on its own against the injected anomalies.",
+    "results": [
+      {
+        "label": "Flagged",
+        "value": "19"
+      },
+      {
+        "label": "True positives",
+        "value": "18"
+      },
+      {
+        "label": "Precision",
+        "value": "0.9474"
+      },
+      {
+        "label": "Recall",
+        "value": "0.383"
+      }
+    ],
+    "decision": "The rule's flags go first in the review order, and the model and Benford's Law rank the rest. The rule alone finds 45 of the 47 injected anomalies with no false flags; every anomaly the model found, the rule had already found.",
+    "chart_title": "Detection Layer Performance",
+    "detail": "Combined layer achieved 45 true positives with 97.8% precision and 95.7% recall.",
+    "skills": [
+      "Python",
+      "Isolation Forest",
+      "Benford's Law"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": true
+  },
+  {
+    "id": "tax-anomaly-audit-compliance-engine-2x",
+    "subject": "Tax Anomaly Audit Compliance Engine",
+    "question": "Does the ledger follow Benford's Law, and which test can be trusted at what size?",
+    "test": "First digits of the amounts were tested against Benford's Law with a chi-square goodness-of-fit test (8 degrees of freedom) and the mean absolute deviation (MAD) read against Nigrini's first-digit ranges, on the whole ledger, each department and the injected anomalies alone.",
+    "results": [
+      {
+        "label": "Chi-square",
+        "value": "22.64"
+      },
+      {
+        "label": "p-value",
+        "value": "0.0039"
+      },
+      {
+        "label": "MAD",
+        "value": "0.0091"
+      },
+      {
+        "label": "Nigrini's range",
+        "value": "acceptable conformity"
+      }
+    ],
+    "decision": "Below about 1,000 amounts the chi-square p-value is the guide and MAD is shown for reference only. The pipeline keeps per-entry Benford deviation as a 30% share of the risk score, not a flag of its own.",
+    "chart_title": "Benford Test Results by Ledger Size",
+    "detail": "Injected anomalies alone produced a chi-square of 346.38 and a MAD of 0.1792, indicating nonconformity.",
+    "skills": [
+      "Python",
+      "Benford's Law"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/Tax-Anomaly-Audit-Pipeline/blob/HEAD/README.md"
+    ],
+    "simulated": true
   }
 ]
