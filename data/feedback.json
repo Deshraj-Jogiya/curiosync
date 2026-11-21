@@ -580,5 +580,19 @@
     "date": "2026-11-18",
     "story_id": "ai-model-observability-fairness-audits-3x",
     "comment": "Says KS and PSI both alerted on day 40; the findings give day 40 and day 54. It also names only Statistics; Python and Machine Learning, which the work used, are missing."
+  },
+  {
+    "date": "2026-11-21",
+    "story_id": "ai-model-observability-fairness-audits-3xx",
+    "comment": "Rejected: the text stacks numbers without saying what they mean (0.963 and 0 alerts never say the rule fires below 0.8; the z-score is never explained; two sentences carry 4-5 numbers each), so a reader cannot follow the point. The image puts a ratio, an alert count and a z-score on one 0-1 bar axis, which is meaningless, and repeats numbers the text already gives. Media must show the story itself: the daily series against its flag line. A rewritten version with a 60-day chart of both checks is queued for 12/30 (chat-2026-12-30-...-3xx)."
+  },
+  {
+    "date": "2026-11-21",
+    "story_id": "clinical-trials-patient-outcomes-analysi-3",
+    "comment": "",
+    "rules": [
+      "unsupported by the facts: The test file is named test_pipeline.py (FACTS state it is tests/test_make_report.py).",
+      "reading flow: The transition from needing to preserve data integrity to timing the four steps is logically disconnected, as timing measures performance rather than data integrity."
+    ]
   }
 ]
