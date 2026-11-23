@@ -97,4 +97,17 @@ async def test_publishing_records_post_id_time_media_and_trigger(tmp_path, monke
     entry = load_history()[-1]
     assert entry["post_id"] == "urn:li:share:9" and entry["media"] == "text" and entry["trigger"] == "publish_now"
     assert entry["posted_at"].endswith("+00:00")
+    assert entry["factors"]["media"] == "text" and entry["factors"]["angle"] == "lesson" and entry["factors"]["slot"] in ("morning", "afternoon")
     alert.assert_awaited_once()
+
+
+def test_factors_flag_a_level_that_runs_on_its_own_weekday_and_a_dominant_one():
+    from app.services.post_factors import balance, tag
+
+    assert tag({"media": "image", "format": "lesson", "hook_type": "claim", "posted_at": "2026-11-23T16:30:00+00:00"}) ==         {"media": "image", "angle": "lesson", "hook": "claim", "slot": "morning"}
+    posts = [{"date": d, "format": f, "media": "image", "hook_type": "measured_result"} for d, f in
+             (("2026-11-02", "project_spotlight"), ("2026-11-04", "lesson"), ("2026-11-06", "decision"), ("2026-11-09", "project_spotlight"),
+              ("2026-11-11", "lesson"))]
+    notes = balance(posts)
+    assert any(n.startswith("angle: each level runs on its own weekday") for n in notes)
+    assert any(n.startswith("media: 5 of 5") for n in notes) and any(n.startswith("hook: 5 of 5") for n in notes)

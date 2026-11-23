@@ -366,6 +366,9 @@ async def publish_due(access_token: str, raw_sub: str, settings) -> str:
     entry["posted_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     entry["media"] = "document" if document else ("image" if image or item.get("image") else "text")
     entry["trigger"] = os.getenv("CURIOSYNC_TRIGGER") or os.getenv("GITHUB_EVENT_NAME") or "local"
+    from app.services.post_factors import tag
+
+    entry["factors"] = tag(entry)
     append_history(entry)
     try:
         from app.services.post_alert import post_is_live

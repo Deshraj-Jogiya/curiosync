@@ -57,6 +57,10 @@ def main(argv=None) -> int:
         return 0
     for r in pm.relative_reach(rows, history):
         print(f"{r['date']}  {str(r['seven_day'] or '-'):>5}  x{r['ratio'] or '-':<5} {r['media'] or '-':<9} {r['subject']}")
+    from app.services.post_factors import balance
+
+    for note in balance(history):
+        print("not comparable yet:", note)
     return 0
 
 

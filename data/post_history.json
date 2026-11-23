@@ -20,7 +20,13 @@
     "posted_by": "owner, by hand (approved round-2 post 1, with 8-page document)",
     "url": "https://www.linkedin.com/feed/update/urn:li:activity:7519497560483385344/",
     "media": "document",
-    "trigger": "hand"
+    "trigger": "hand",
+    "factors": {
+      "media": "document",
+      "angle": "decision",
+      "hook": "measured_result",
+      "slot": null
+    }
   },
   {
     "format": "project_spotlight",
@@ -41,7 +47,13 @@
       "still"
     ],
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "project_spotlight",
+      "hook": null,
+      "slot": null
+    }
   },
   {
     "format": "lesson",
@@ -62,7 +74,13 @@
       "108"
     ],
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "lesson",
+      "hook": null,
+      "slot": null
+    }
   },
   {
     "date": "2026-10-30",
@@ -85,7 +103,13 @@
     "story_id": "member-messages-qa-system-semantic-searc-1",
     "approved_id": "draft-40464599596",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "decision",
+      "hook": "decision_cost",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-02",
@@ -108,7 +132,13 @@
     "story_id": "multi-state-land-use-emissions-analysis-1",
     "approved_id": "draft-40578570120",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "project_spotlight",
+      "hook": "claim",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-04",
@@ -131,7 +161,13 @@
     "story_id": "job-market-lakehouse-1",
     "approved_id": "draft-40832967316",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "lesson",
+      "hook": "measured_result",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-06",
@@ -154,7 +190,13 @@
     "story_id": "ai-model-observability-fairness-audits-1",
     "approved_id": "owner-2026-11-06-observability",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "decision",
+      "hook": "decision_cost",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-09",
@@ -177,7 +219,13 @@
     "story_id": "sales-analytics-rfm-customer-segmentatio-1",
     "approved_id": "draft-42285186123",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "project_spotlight",
+      "hook": "surprise",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-11",
@@ -200,7 +248,13 @@
     "story_id": "fintech-credit-risk-fraud-command-center-1",
     "approved_id": "draft-42509770829",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "lesson",
+      "hook": "claim",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-16",
@@ -223,7 +277,13 @@
     "story_id": "clinical-trials-patient-outcomes-analysi-1",
     "approved_id": "chat-2026-11-16-clinical",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "project_spotlight",
+      "hook": "measured_result",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-18",
@@ -246,7 +306,13 @@
     "story_id": "automated-daily-data-insights-2",
     "approved_id": "chat-2026-11-18-automated-daily-data-insights-2",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "lesson",
+      "hook": "decision_cost",
+      "slot": null
+    }
   },
   {
     "date": "2026-11-20",
@@ -269,6 +335,12 @@
     "story_id": "tax-anomaly-audit-compliance-engine-1",
     "approved_id": "chat-2026-11-20-tax-anomaly-audit-compliance-engine-1",
     "media": "image",
-    "trigger": "schedule"
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "decision",
+      "hook": "measured_result",
+      "slot": null
+    }
   }
 ]
