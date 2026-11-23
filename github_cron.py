@@ -355,7 +355,18 @@ async def publish_due(access_token: str, raw_sub: str, settings) -> str:
     entry = _queued_history(item)
     entry["date"] = str(today)
     entry.setdefault("opener_words", first_words(item["text"]))
+    # What the metrics import and the learner need (2026-11-22: nothing recorded which post went out when, or as what).
+    entry["post_id"] = result.get("post_id") or None
+    entry["posted_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    entry["media"] = "document" if document else ("image" if image or item.get("image") else "text")
+    entry["trigger"] = os.getenv("CURIOSYNC_TRIGGER") or os.getenv("GITHUB_EVENT_NAME") or "local"
     append_history(entry)
+    try:
+        from app.services.post_alert import post_is_live
+
+        logger.info("Post-is-live: %s", await post_is_live(entry))
+    except Exception as exc:  # the post is out; a missed alert must not fail the run
+        logger.warning("Could not send the post-is-live alert: %s", exc)
     return f"posted {item['id']}"
 
 
@@ -571,6 +582,20 @@ async def main(mode: str = "draft"):
             ids = sorted(m.get("id", "") for m in resp.json().get("data", [])) if resp.status_code == 200 else [f"HTTP {resp.status_code}"]
             logger.info("Groq models available to this key: %s", ", ".join(ids))
         sys.exit(0 if doc and image else 1)
+        return
+
+    if mode == "publishnow":
+        # Posts today's approved post now, without drafting: started at the owner's chosen time (his PC's scheduled task or the
+        # Actions tab), since GitHub starts the daily schedule hours late. The daily run still posts later if this never ran.
+        if not token_ok:
+            write_run_log({"status": "failed", "steps": {"publish": "LinkedIn token expired or revoked; renew LINKEDIN_ACCESS_TOKEN"}})
+            sys.exit(1)
+            return
+        steps = {"publish": await publish_due(access_token, raw_sub, settings)}
+        failed = steps["publish"].startswith("failed")
+        write_run_log({"status": "failed" if failed else ("posted" if steps["publish"].startswith("posted") else "skipped"),
+                       "steps": steps})
+        sys.exit(1 if failed else 0)
         return
 
     if mode in ("approve", "publish"):

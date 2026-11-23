@@ -1,5 +1,6 @@
 """LinkedIn publishing service."""
 
+import asyncio
 import os
 from datetime import date
 
@@ -14,7 +15,10 @@ from app.utils.logging import logger
 
 # The Posts API reads "commentary" as Little Text Format, where these characters are markup; unescaped, the post is cut off at the first
 # one. Hashtags written as plain "#tag" are kept as they are, which is how LinkedIn's own clients send them.
-_LITTLE_TEXT_RESERVED = "\\|{}@[]()<>*_~"
+DOCUMENT_RETRIES = 6
+DOCUMENT_RETRY_SECONDS = 10
+
+_LITTLE_TEXT_RESERVED ="\\|{}@[]()<>*_~"
 
 
 def escape_little_text(text: str) -> str:
@@ -100,6 +104,14 @@ async def publish_post(
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             resp = await client.post(settings.linkedin_posts_url, json=body, headers=headers)
+            # A document is processed for a while after upload, and a post naming it before it is ready is refused; a token with only
+            # w_member_social cannot read the document's status, so the post is tried again for up to about a minute.
+            tries = 0
+            while document_path and media and resp.status_code in (400, 422) and tries < DOCUMENT_RETRIES:
+                tries += 1
+                logger.info("Document not ready yet (%d), trying the post again (%d/%d)", resp.status_code, tries, DOCUMENT_RETRIES)
+                await asyncio.sleep(DOCUMENT_RETRY_SECONDS)
+                resp = await client.post(settings.linkedin_posts_url, json=body, headers=headers)
 
         if resp.status_code == 201:
             post_id = resp.headers.get("x-restli-id", "")

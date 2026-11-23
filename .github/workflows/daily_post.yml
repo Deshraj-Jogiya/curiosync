@@ -26,6 +26,10 @@ on:
         description: "Only check that LinkedIn accepts a document and an image upload (no post is created)"
         type: boolean
         default: false
+      publish_now:
+        description: "Only post today's approved post now (no draft); used at the owner's chosen posting time"
+        type: boolean
+        default: false
       reject_comment:
         description: "The comment left when rejecting the last draft"
         type: string
@@ -53,7 +57,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
         EVENT: ${{ github.event_name }}
       run: |
-        if [ "${{ inputs.check_upload || false }}" = "true" ]; then echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+        if [ "${{ inputs.check_upload || false }}" = "true" ] || [ "${{ inputs.publish_now || false }}" = "true" ]; then echo "go=false" >> "$GITHUB_OUTPUT"; exit 0; fi
         if [ "$EVENT" != "schedule" ]; then echo "go=true" >> "$GITHUB_OUTPUT"; exit 0; fi
         today=$(date -u +%F)
         # Earlier scheduled runs today that did not fail or get cancelled (a run waiting for approval counts as done).
@@ -90,12 +94,57 @@ jobs:
         GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       run: python -m github_cron uploadcheck
 
+  publish_now:
+    # Posts today's approved post at the owner's chosen time. GitHub starts the daily schedule hours late (13:17 UTC runs started
+    # 20:00-23:00 UTC in November 2026), so the post time is set by this trigger; the daily run posts later only if this never ran.
+    if: ${{ inputs.publish_now == true }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: linkedin-post
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      issues: write  # the "Post is live" alert
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        cache-dependency-path: requirements.txt
+    - run: pip install -r requirements.txt
+    - name: Post today's approved post
+      env:
+        SECRET_KEY: "github-actions-dummy-secret-key-placeholder"
+        LINKEDIN_CLIENT_ID: "github-actions-dummy-client-id-placeholder"
+        LINKEDIN_CLIENT_SECRET: "github-actions-dummy-client-secret-placeholder"
+        FERNET_KEY: ${{ secrets.FERNET_KEY }}
+        DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+        LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+        LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
+        GITHUB_TOKEN: ${{ github.token }}
+        CURIOSYNC_TRIGGER: publish_now
+      run: python -m github_cron publishnow
+    - name: Commit the post history
+      if: always()
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add run_log.md data/post_history.json || true
+        git commit -m "Record today's post [skip ci]" || true
+        for i in 1 2 3; do git pull --rebase && git push && break; sleep 5; done
+
   draft:
     needs: once_a_day
     if: ${{ needs.once_a_day.outputs.go == 'true' }}
     # Drafts the day's post (Mon/Wed/Fri) and writes the TIL note. It never posts: LinkedIn's API terms do not allow unattended automated
     # posting, so the publish job below waits for the owner's approval of each draft.
     runs-on: ubuntu-latest
+    concurrency:
+      group: linkedin-post  # never posts at the same time as publish_now, so one post per day
+      cancel-in-progress: false
     permissions:
       contents: write
       actions: read  # to count drafts already waiting for approval; without it the count silently read 0
@@ -310,6 +359,7 @@ jobs:
     environment: linkedin-publish
     permissions:
       contents: write
+      issues: write  # the "Post is live" alert when an approval posts at once
 
     steps:
     - name: Checkout CurioSync
@@ -345,6 +395,7 @@ jobs:
         OPENAI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
         LINKEDIN_SUB_URN: ${{ secrets.LINKEDIN_SUB_URN }}
+        GITHUB_TOKEN: ${{ github.token }}
       run: python -m github_cron approve
 
     - name: Commit the queue and run log

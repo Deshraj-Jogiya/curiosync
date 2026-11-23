@@ -18,7 +18,9 @@
     ],
     "text": "Can plain rules replace an AI score? On 8 real resumes they agreed 6 times out of 8, so I kept both and made each show its evidence.\n\nThe scores come from Career Pilot, the job-search platform I built and use every day. I built it because the tools I tried over two years of searching were unfinished or failed. Its weakest part was the match score: one AI number out of 100 that never said which skills matched and which were missing.\n\nSo I wrote a rule-based score next to it, also out of 100: 60 points for skills, 20 for the role type, 20 for years of experience. For every skill a posting asks for, it shows where that skill appears in the resume: in a job, in a project, or only in the skills list.\n\nThe rule that matters most is a limit. A frontend developer posting that also lists Python, SQL, dbt and AWS shares 4 of its 8 skills with a data engineering resume, enough to score 50. Because the role type doesn't match, the score is held at 40, and the AI score gets the same limit.\n\nThen the test, on 8 resumes I had tailored. The two scores were 16.9 points apart on average and agreed on whether a resume needed another rewrite 5 times out of 8. One fix, counting \"Tableau or Power BI\" as one requirement instead of two, brought that to 12 points and 6 out of 8. Not enough to drop the AI.\n\nSo every posting now shows both scores, each skill with the resume line behind it, and a job of the wrong type can't score above 40 under either one.\n\nIf you've had rules and a model scoring the same thing, how did you decide when the rules were good enough to replace it?\n\n#DataEngineering #MachineLearning",
     "posted_by": "owner, by hand (approved round-2 post 1, with 8-page document)",
-    "url": "https://www.linkedin.com/feed/update/urn:li:activity:7519497560483385344/"
+    "url": "https://www.linkedin.com/feed/update/urn:li:activity:7519497560483385344/",
+    "media": "document",
+    "trigger": "hand"
   },
   {
     "format": "project_spotlight",
@@ -37,7 +39,9 @@
       "my",
       "portfolio",
       "still"
-    ]
+    ],
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "format": "lesson",
@@ -56,7 +60,9 @@
       "opens",
       "1",
       "108"
-    ]
+    ],
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-10-30",
@@ -77,7 +83,9 @@
     ],
     "text": "I chose embeddings-based semantic search for member questions, ruling out fine-tuned LLMs, knowledge graphs, and rule-based matching.\n\nTo answer natural-language questions about member data, I built an interactive /ask API that ranks unstructured messages by cosine similarity over SentenceTransformer embeddings, combined with spaCy named entity recognition and fuzzy first-name matching.\n\nRetrieving unstructured text can easily pull a message that matches the subject but contains the wrong event details, so the system needed to prove how accurate it was at finding the correct member, message, and answer for a given question.\n\nSo I ran eval_qa.py to score 26 hand-written, paraphrased questions against a labelled evaluation set.\n\nThe answer was that member identification accuracy reached 100%, while message retrieval accuracy and answer extraction accuracy both reached 96%. The one miss asks for Lorenzo's Thursday booking, where the top-ranked message is his Saturday dinner at The Fat Duck. That result led to a clear threshold: CI fails if answer accuracy drops below 90%.\n\nThis system now answers natural-language questions about members directly from unstructured message text.\n\nWhen your semantic search retriever pulls a message for the wrong day of the week, do you fix that in pre-filtering or during answer extraction?\n\n#DataEngineering #MachineLearning",
     "story_id": "member-messages-qa-system-semantic-searc-1",
-    "approved_id": "draft-40464599596"
+    "approved_id": "draft-40464599596",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-02",
@@ -98,7 +106,9 @@
     ],
     "text": "Forecasting emissions by copying last year beats two standard models on real state data.\n\nWhen forests burn or farmland turns into suburbs, a state stores or releases a different amount of carbon. I wanted to learn how that is measured from public records, so Multi-State Land Use Emissions Analysis processes daily land-cover data for five U.S. states. The daily files are simulated, but the emission factors and historical inventory come from the EPA.\n\nChange like this is often slow, so predicting next year as a copy of this one is a strong competitor. To see if learning from history helps more than repetition, I compared Linear Regression and Random Forest against that naive baseline.\n\nThe test used the EPA's 25 annual series. I trained on data up to 2017 and scored predictions for 2018 through 2022. Linear Regression reached an accuracy of 0.9418 and Random Forest 0.9329. Copying the previous value reached 0.947.\n\nNeither one beat it, so the report now shows the copy-last-year number next to every score.\n\nIf you forecast a slow-moving series, do you report a copy-last-year baseline next to every model score?\n\n#DataEngineering #MachineLearning",
     "story_id": "multi-state-land-use-emissions-analysis-1",
-    "approved_id": "draft-40578570120"
+    "approved_id": "draft-40578570120",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-04",
@@ -119,7 +129,9 @@
     ],
     "text": "A June 2025 query on my job market lakehouse read 3,015 of its 60,000 rows. Hive never opened the other 19 months.\n\nI built the lakehouse to learn how a whole data system fits together, from raw files to checked output. With AI changing how work gets done, I think an engineer has to stay broad and keep adapting.\n\nThe pipeline runs on simulated job postings from 400 companies. PySpark transforms them, 11 Great Expectations checks gate the output, Airflow runs the steps, and a HiveQL table keeps the raw postings in Parquet, split by month.\n\nSplitting a table that way only saves work if the engine skips the folders a filter rules out, so I tested it. I wrote one month's files straight to storage, registered them with MSCK REPAIR TABLE as the 21st partition, then filtered on June 2025 and read the query plan. The plan pruned to a single partition, and the query returned only June's postings.\n\nSo the split pays off where it counts: a one-month question costs 3,015 rows of reading instead of all 60,000, and the plan itself shows it.\n\nIf you split a table by month, how do you confirm the engine actually skips the other partitions?\n\n#DataEngineering #HiveQL",
     "story_id": "job-market-lakehouse-1",
-    "approved_id": "draft-40832967316"
+    "approved_id": "draft-40832967316",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-06",
@@ -140,7 +152,9 @@
     ],
     "text": "A drift alert is only worth something if you act on it. Acting on mine ended the run at 83% accuracy instead of 66%.\n\nAI Model Observability & Fairness Audits is a portfolio project that watches a deployed classifier's inputs and decisions every day: drift tests on the features, bias checks by gender and age group, and a table of flagged problems a reviewer reads instead of every metric. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, an engineer has to keep adapting.\n\nIt runs on simulated data: 60 days of predictions, with drift injected partway through. A Kolmogorov-Smirnov test raised the first alert on day 40, without waiting for any outcome labels. That left a decision to make: keep the deployed model, or retrain it.\n\nSo I replayed the rest of the run both ways. The catch is that outcomes arrive late, so the retrained version could only learn from the most recent week of labels, each one 7 days old.\n\nLeft alone, the model slid from 99.88% accuracy to 66%. Retrained every day on those delayed labels, it finished at 83%, and its total accuracy shortfall over the period was 32.6% smaller.\n\nThe alert now triggers that daily retrain, so recovery starts the day the data shifts, not when someone notices accuracy falling.\n\nIf you monitor a model whose labels arrive late, do you retrain on a fixed schedule or only when a drift alert fires?\n\n#MachineLearning #DataEngineering",
     "story_id": "ai-model-observability-fairness-audits-1",
-    "approved_id": "owner-2026-11-06-observability"
+    "approved_id": "owner-2026-11-06-observability",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-09",
@@ -161,7 +175,9 @@
     ],
     "text": "Three of four customer clusters differed mainly in recency, while only one stood far apart on frequency and spend.\n\nSales Analytics & RFM Customer Segmentation Pipeline is a personal portfolio project that models transaction data in a star-schema database for business intelligence reporting. Total sales tell how much a business sells, but not who buys. I built this project to learn how to find real customer groups in transaction data instead of guessing them.\n\nBefore sending segment labels downstream to reports, I needed to check if recency, frequency, and monetary value features actually split accounts into clear categories.\n\nSo I clustered scaled RFM features for 2,000 synthetic accounts using K-Means with four groups. The four clusters explained 93.9% of the variance in the scaled features, while a two-dimensional PCA view kept 99.6% of that variance. One group of 400 VIP Champions stood far apart on spend and purchase count, whereas the remaining three categories shared similar activity levels and differed mostly in recency.\n\nBecause the features separated buyers so clearly, segment names are written back to the customer dimension in the star schema for the Power BI dashboard.\n\nMarketing teams can now use a persona slicer in the Power BI report to isolate the 400 VIP Champions for targeted retention campaigns.\n\nWhen segmenting customer data for business intelligence, do you write cluster labels directly into dimension tables or generate them dynamically?\n\n#DataEngineering #MachineLearning",
     "story_id": "sales-analytics-rfm-customer-segmentatio-1",
-    "approved_id": "draft-42285186123"
+    "approved_id": "draft-42285186123",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-11",
@@ -182,7 +198,9 @@
     ],
     "text": "Evaluating credit risk works best when high precision comes before catching every single defaulted loan.\n\nFinTech Credit Risk & Fraud Command Center is a personal portfolio project on credit risk and fraud detection. I built it because my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people.\n\nBefore deploying a classifier, I needed to determine whether Random Forest or XGBoost should decline risky loan applications. Rejecting qualified applicants creates friction, so scoring every application at 0.80 or more likely to default required a clear comparison between models.\n\nSo I trained both models on the same features and scored them on a held-out 20% of the synthetic loans, logging both runs in MLflow. Random Forest reached a ROC AUC of 0.9216 compared to 0.9179 for XGBoost, while delivering 0.9341 decline precision against 0.9132. XGBoost caught more default cases with a decline recall of 0.4456 versus 0.3427, but turned away 0.1143 of all applications while Random Forest declined 0.0859.\n\nThe answer made the choice clear. Random Forest went to production because it had the higher ROC AUC and the greater precision when declining an application.\n\nWhen you tune probability thresholds for risk models, do you prioritize precision to protect valid applicants or recall to catch defaults?\n\n#MachineLearning #DataEngineering",
     "story_id": "fintech-credit-risk-fraud-command-center-1",
-    "approved_id": "draft-42509770829"
+    "approved_id": "draft-42509770829",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-16",
@@ -203,7 +221,9 @@
     ],
     "text": "Higher dosage only matters if patients live longer. At day 365, 53.20% survived on the high dose, against 15.82% in the control group.\n\nClinical Trials Patient Outcomes Analysis is a personal portfolio project that runs survival statistics on 250 simulated trial patients, split into three groups: control, a low dosage and a high one. I built it because of COVID: in India's second wave, fake news and fear made things much worse, because people lacked basic clarity on how an illness works.\n\nThe first question was plain: does more of the treatment actually help? To find out, I fitted Kaplan-Meier survival curves over the full year. The catch is that many patients were still alive when the trial ended. Kaplan-Meier counts them as survivors up to day 365 instead of as deaths, and the median is read off the curve. In the high-dose group more than half were still alive, so its median is never reached.\n\nThe three separated in order. The median was 144 days for control and 288 on the lower dosage, and mortality fell in turn from 69.47% to 60.0% to 42.5%. Pairwise log-rank tests found every pair different at p < 0.05, most clearly control against the high dose (p = 1.08e-06).\n\nThat answers only half of the question, though. The same group also had the highest rate of adverse events, so the gain in survival comes with a safety cost, measured next with a chi-square test.\n\nWhen a trial ends before half of a treatment's patients have died, what do you report in place of its median: survival at a fixed day, or a restricted mean?\n\n#DataScience #MachineLearning",
     "story_id": "clinical-trials-patient-outcomes-analysi-1",
-    "approved_id": "chat-2026-11-16-clinical"
+    "approved_id": "chat-2026-11-16-clinical",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-18",
@@ -224,7 +244,9 @@
     ],
     "text": "I chose a GitHub Actions cron schedule instead of a paid server, eliminating any hosting cost.\n\nAutomated Daily Data Insights is a personal portfolio pipeline that pulls market prices each trading day, flags unusual moves with a rolling Z‑score, and publishes a report. I built it because my earlier pipelines only ran on my laptop and I wanted a job that runs by itself on real data without any server expense.\n\nThe question was whether a rolling Z‑score could reliably separate an ordinary move from a true outlier. Each daily return is compared with its 20‑day mean and flagged if it exceeds two standard deviations. On 2026‑06‑05 the return was -2.58 % with a Z‑score of 3.17, while on 2026‑05‑15 the return was -1.2 % with a score of 2.08.\n\nBoth days crossed the line, but not by the same margin: the -2.58 % day sat more than 3 standard deviations out, while the -1.2 % day only just cleared 2. When the latest trading day is an anomaly, the job automatically emails an alert with the close, the return, the score and a link to the report.\n\nNow the pipeline runs every market day at zero hosting cost and reliably notifies me of spikes.\n\nIf you rely on free CI/CD schedules for data jobs, what strategies do you use to cope with API rate limits or occasional downtime without breaking the workflow?\n\n#DataEngineering #MachineLearning",
     "story_id": "automated-daily-data-insights-2",
-    "approved_id": "chat-2026-11-18-automated-daily-data-insights-2"
+    "approved_id": "chat-2026-11-18-automated-daily-data-insights-2",
+    "media": "image",
+    "trigger": "schedule"
   },
   {
     "date": "2026-11-20",
@@ -245,6 +267,8 @@
     ],
     "text": "My machine learning model found 18 planted ledger errors. A plain tax-rate check found 45, all real.\n\nTax Anomaly Audit Compliance Engine is a personal portfolio project that hunts for suspicious entries in a simulated general ledger of 1,200 lines. I built it because as a new student in the US I had to file my taxes on my own, and learning how to do that is where this project came from. A Python ETL step loads the ledger into a SQL database (SQLite) before anything is scored.\n\nIt has two ways to catch a bad line. The model rates each one by how far its first digits stray from Benford's Law, the pattern real amounts tend to follow, and by how unusual a scikit-learn Isolation Forest finds it, then flags a risk score of 65 or more. The tax check only asks whether the tax charged matches the rate for its category. So I planted anomalies and scored each layer on its own.\n\nThe tax check flagged 45 lines and caught 95.74% of the planted errors. The model flagged 19 and was right on most of them, but found only 38.3%, and the check had already caught every one.\n\nSo the rule's flags now go first in the review order, and Benford's Law and the Isolation Forest rank the rest. A reviewer starts with flags that are certain, then works down a list sorted by risk.\n\nWhen a plain business rule beats your anomaly model, do you keep it to rank what is left or drop it?\n\n#MachineLearning #Python",
     "story_id": "tax-anomaly-audit-compliance-engine-1",
-    "approved_id": "chat-2026-11-20-tax-anomaly-audit-compliance-engine-1"
+    "approved_id": "chat-2026-11-20-tax-anomaly-audit-compliance-engine-1",
+    "media": "image",
+    "trigger": "schedule"
   }
 ]
