@@ -21,7 +21,7 @@ def describe(alt: str | None, post_text: str, story: dict | None = None) -> str:
     alt = (alt or "").strip()
     parts = []
     claim = _first_sentence(post_text)
-    if claim and claim.lower()[:40] not in alt.lower():
+    if claim and claim.rstrip(".!?").lower()[:40] not in alt.lower():
         parts.append(claim)
     if alt:
         parts.append(alt if alt[-1:] in ".!?" else alt + ".")
