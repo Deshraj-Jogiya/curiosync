@@ -599,5 +599,24 @@
     "date": "2026-11-21",
     "story_id": "tax-anomaly-audit-compliance-engine-1x",
     "comment": "Text approved as written; rejected only for the media. The bar chart showed precision 0.9474 and recall 0.383, numbers the text already states, so it added nothing. Media must show what the text cannot: here, one dot per planted anomaly (18 caught by both, 27 by the rule only, 2 missed, 0 by the model alone). The approved text with that image is queued for 1/1 (chat-2027-01-01-tax-anomaly-audit-compliance-engine-1x)."
+  },
+  {
+    "date": "2026-11-22",
+    "story_id": "multi-state-land-use-emissions-analysis-2x",
+    "comment": "Duplicate: retells the 11/02 Land Use post (copying last year's value beats Linear Regression and Random Forest) with walk-forward numbers. Story multi-state-land-use-emissions-analysis-2x now counts as told."
+  },
+  {
+    "date": "2026-11-22",
+    "story_id": "tax-anomaly-audit-compliance-engine-2x",
+    "comment": "",
+    "rules": [
+      "repetition: 'mean' is used 6 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: 'deviation' is used 6 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: 'chi-square' is used 5 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: 'absolute' is used 5 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: 'p-value' is used 5 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "uses we/our/us on a solo project; write 'I'",
+      "unsupported by the facts: Claiming that Sales represents a case where p-values showed fit while MAD flagged nonconformity (for Sales, the p-value of 0.0334 indicates nonconformity; the FACTS state that this divergence occurred in Finance, HR, Marketing, and Operations)."
+    ]
   }
 ]
