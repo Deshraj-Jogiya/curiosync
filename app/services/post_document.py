@@ -11,6 +11,7 @@ import tempfile
 from PIL import Image
 
 from app.services.post_charts import render_curves, render_series, render_stage_flow
+from app.services.post_rules import numbers_in
 from app.services.post_visual import render_group_chart
 from app.services.post_visual import (ACCENTS, BG, H, MARGIN, MUTED, TEXT, W, _accent, _canvas, _font, _footer, _header, fit_text,
                                       render_story_chart)
@@ -192,6 +193,13 @@ def repeats_post(alt_text: str, post_text: str) -> bool:
     return bool(shown) and shown <= numbers_in(post_text)
 
 
+def _document_table_fits(story: dict) -> bool:
+    """A table page in a document holds two options at most: with three, long values ran into each other (FinTech and Land Use trial
+    pages, 2026-11-22)."""
+    grid = comparison_grid(story["results"])
+    return bool(grid) and len(grid[0]) <= 2
+
+
 def _table_image(story: dict, item: dict):
     page = _results_page(story, item, 0, 0, numbered=False)
     if not page:
@@ -262,16 +270,25 @@ def render_story_document(story: dict, item: dict, post_text: str) -> tuple[str,
     item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
     all_values = " ".join(str(r["value"]) for r in story["results"])
     candidates = [
-        lambda: render_story_chart(story, item, all_values),
-        lambda: render_series(story, item),
-        lambda: _table_image(story, item) if comparison_grid(story["results"]) else None,
-        lambda: render_stage_flow(story, item),
+        ("shape", lambda: render_curves(story, item)),
+        ("numbers", lambda: render_group_chart(story, item)),
+        ("numbers", lambda: render_story_chart(story, item, all_values)),
+        ("shape", lambda: render_series(story, item)),
+        ("numbers", lambda: _table_image(story, item) if _document_table_fits(story) else None),
+        ("numbers", lambda: render_stage_flow(story, item)),
     ]
-    charts = []
-    for draw in candidates:
+    charts, shown = [], set()
+    for kind, draw in candidates:
         made = draw()
-        if made and visual_fill(made[0]) >= MIN_FILL:
-            charts.append(made[0])
+        if not made or visual_fill(made[0]) < MIN_FILL:
+            continue
+        numbers = numbers_in(made[1])
+        # A page earns its place by showing something the earlier pages did not: a line or scatter shows a shape, any other page
+        # must show mostly new numbers. Pages that only restated page 1 made 5 of 7 trial carousels on 2026-11-22.
+        if kind == "numbers" and charts and numbers and len(numbers - shown) * 2 < len(numbers):
+            continue
+        charts.append(made[0])
+        shown |= numbers
     if len(charts) < MIN_CHART_PAGES:
         return None
     pages = [Image.open(c).convert("RGB") for c in charts]

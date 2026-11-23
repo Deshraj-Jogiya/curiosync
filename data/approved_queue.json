@@ -355,8 +355,8 @@
       "text": "Of my three fraud rules in Python, velocity was right on all 1,110 of its alerts; the amount spike on 40 of 4,069.\n\nFinTech Credit Risk & Fraud Command Center is a personal portfolio project on credit risk and fraud detection, run on simulated card transactions. I built it because my father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people.\n\nBefore letting any check act on its own, I needed to know which ones could be trusted. The ETL pipeline stores the transactions in SQL (SQLite), and three pandas checks read only the amount, hour, location and customer: velocity (5 or more charges inside 10 minutes), a spike over 7 times the customer's median, and a purchase from abroad. I scored their alerts against the cases the simulator planted, which the checks never see.\n\nVelocity never raised a false alarm but caught only 42.84% of the planted cases. Foreign location caught more, 56.5%, yet fewer than a third of its alerts were fraud. Spikes were almost all legitimate large purchases, at 0.98% precision.\n\nSo velocity is the rule trusted on its own, spikes stay a review signal rather than a block, and together the three catch every planted fraud case.\n\nHow do you decide when a fraud rule is precise enough to block a payment instead of queueing it for review?\n\n#Python #FinTech",
       "story_id": "fintech-credit-risk-fraud-command-center-2"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/2026-11-25_fintech_doc.pdf",
+    "document_title": "Fraud rule precision and recall"
   },
   {
     "id": "chat-2026-11-27-ai-model-observability-fairness-audits-2",

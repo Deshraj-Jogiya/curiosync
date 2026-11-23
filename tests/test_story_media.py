@@ -82,3 +82,33 @@ def test_media_runway_applies_the_pickers_demand_gate_and_rejections():
     with patch("app.services.market_skills.load", return_value=market), \
             patch("app.services.story_bank.load_feedback", return_value=rejected):
         assert media_runway([ITEM], [], stories, lambda st, it: True) == 1
+
+
+def test_a_document_page_that_only_repeats_earlier_numbers_is_left_out(tmp_path):
+    from app.services import post_document as pd
+
+    def page(alt):
+        f = tmp_path / f"{abs(hash(alt))}.png"
+        f.write_bytes(b"x")
+        return lambda *a, **k: (str(f), alt)
+
+    story = {"results": [{"label": "a", "value": "1"}] * 4, "chart_title": "T"}
+    with patch.object(pd, "render_curves", lambda *a: None), \
+            patch.object(pd, "render_group_chart", page("Alerts 1,110 and 4,942; caught 1,464")), \
+            patch.object(pd, "render_story_chart", page("Alerts 1,110 and 4,942 again")), \
+            patch.object(pd, "render_series", lambda *a: None), \
+            patch.object(pd, "render_stage_flow", lambda *a: None), \
+            patch.object(pd, "comparison_grid", lambda r: None), \
+            patch.object(pd, "visual_fill", lambda p: 1.0):
+        assert pd.render_story_document(story, {"title": "X"}, "") is None
+    with patch.object(pd, "render_curves", lambda *a: None), \
+            patch.object(pd, "render_group_chart", page("Alerts 1,110 and 4,942; caught 1,464")), \
+            patch.object(pd, "render_story_chart", page("Precision 0.2962 and recall 0.565")), \
+            patch.object(pd, "render_series", lambda *a: None), \
+            patch.object(pd, "render_stage_flow", lambda *a: None), \
+            patch.object(pd, "comparison_grid", lambda r: None), \
+            patch.object(pd, "visual_fill", lambda p: 1.0), \
+            patch("PIL.Image.open") as op:
+        op.return_value.convert.return_value.save = lambda *a, **k: None
+        doc = pd.render_story_document(story, {"title": "X"}, "")
+    assert doc and len(doc[1]) == 2
