@@ -29,7 +29,7 @@
   ]
  },
  "Job Search dbt Warehouse": {
-  "context": "Personal portfolio project running against a live Databricks SQL warehouse",
+  "context": "Personal portfolio project on Databricks SQL and DuckDB",
   "notes": [
    "I built it to learn: to take my skills to the next level and understand how the whole system fits together, not just one piece.",
    "With AI changing how everything gets done, I believe an engineer has to keep adapting and stay broad; if you can't keep up, nothing else is worth much."

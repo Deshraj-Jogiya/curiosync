@@ -1555,22 +1555,22 @@
     "id": "job-market-lakehouse-1",
     "subject": "Job Market Lakehouse",
     "question": "Does Hive partition pruning reduce data read for a month‑filtered query?",
-    "test": "HiveQL query on partitioned Parquet table for June 2025",
+    "test": "A month-filtered count on the 60,000-row Parquet table partitioned by month, with Spark's executed plan read",
     "results": [
       {
-        "label": "Total rows in table",
-        "value": "60,000 rows"
+        "label": "Partitions in the table",
+        "value": "20"
       },
       {
-        "label": "Partitions after repair",
-        "value": "21 partitions"
+        "label": "Partitions the June query reads",
+        "value": "1"
       },
       {
-        "label": "Rows read for June 2025 query",
-        "value": "3,015 rows"
+        "label": "Rows in June 2025",
+        "value": "3,015 of 60,000"
       }
     ],
-    "decision": "Use partitioned Hive table to prune partitions",
+    "decision": "Month stays the partition key: each monthly report reads one partition",
     "chart_title": "Hive Partition Pruning Impact",
     "detail": "The June 2025 query reads only the June partition, reducing I/O",
     "skills": [
@@ -4406,7 +4406,7 @@
       }
     ],
     "decision": "Kept, because the question is \"which postings pay the top five salaries\"; a report needing exactly five rows would use row_number().",
-    "chart_title": "Top 5 salary ranks per industry",
+    "chart_title": "Rows each industry returns for ranks 1 to 5",
     "detail": "Ties at rank 2 and 3 caused extra rows.",
     "skills": [
       "PySpark",
@@ -4414,11 +4414,62 @@
       "dense_rank()"
     ],
     "sources": [
-      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/docs/FINDINGS.md",
-      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/docs/FINDINGS.md"
     ],
     "simulated": true,
-    "media_checked": "2026-11-23"
+    "media_checked": "2026-11-23",
+    "groups": {
+      "group": "industry",
+      "columns": [
+        "rows returned"
+      ],
+      "file": "docs/FINDINGS.md",
+      "rows": [
+        {
+          "name": "Software",
+          "values": {
+            "rows returned": "6"
+          }
+        },
+        {
+          "name": "Retail",
+          "values": {
+            "rows returned": "6"
+          }
+        },
+        {
+          "name": "Finance",
+          "values": {
+            "rows returned": "5"
+          }
+        },
+        {
+          "name": "Healthcare",
+          "values": {
+            "rows returned": "5"
+          }
+        },
+        {
+          "name": "Manufacturing",
+          "values": {
+            "rows returned": "5"
+          }
+        },
+        {
+          "name": "Logistics",
+          "values": {
+            "rows returned": "5"
+          }
+        },
+        {
+          "name": "Energy",
+          "values": {
+            "rows returned": "5"
+          }
+        }
+      ]
+    }
   },
   {
     "id": "job-market-lakehouse-4",
@@ -4457,7 +4508,7 @@
   {
     "id": "job-search-dbt-warehouse-1",
     "subject": "Job Search dbt Warehouse",
-    "question": "How many days were incorrectly flagged as weekend when running the same dbt model on DuckDB versus Databricks SQL?",
+    "question": "Can the same dbt models run on Databricks SQL and DuckDB without silent errors?",
     "test": "Build all 10 models on DuckDB and compare each engine-specific expression with a straight copy of the Databricks SQL on the same 1,095‑day calendar and 17 applications.",
     "results": [
       {
@@ -4473,8 +4524,8 @@
         "value": "312"
       }
     ],
-    "decision": "Implemented portable macros to use the correct SQL functions for each engine, ensuring weekend days match between Databricks and DuckDB.",
-    "chart_title": "Weekend Flag Accuracy by Engine",
+    "decision": "Five macros pick the right SQL for each engine, and the models call the macros",
+    "chart_title": "Days a straight copy of the weekend flag gets wrong",
     "detail": "Five macros in macros/portable.sql were added to select the right form for the target.",
     "skills": [
       "dbt",
@@ -4483,80 +4534,61 @@
       "Databricks SQL"
     ],
     "sources": [
-      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/docs/FINDINGS.md",
-      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/README.md"
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/README.md",
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/docs/FINDINGS.md"
     ],
     "simulated": false,
-    "media_checked": "2026-11-23"
-  },
-  {
-    "id": "job-search-dbt-warehouse-2",
-    "subject": "Job Search dbt Warehouse",
-    "question": "Does the incremental snapshot model insert duplicate rows on a second run?",
-    "test": "Build the snapshot, run it again on its own, then count rows against distinct days.",
-    "results": [
-      {
-        "label": "Rows after two runs",
-        "value": "1,095"
-      },
-      {
-        "label": "Distinct days",
-        "value": "1,095"
-      },
-      {
-        "label": "Duplicate rows",
-        "value": "0"
-      }
-    ],
-    "decision": "Confirmed that the incremental filter and merge/delete+insert logic prevent duplicate days; the second run is part of CI.",
-    "chart_title": "Duplicate Row Check for Incremental Snapshot",
-    "detail": "The snapshot uses merge on date_day on Databricks and delete+insert on DuckDB.",
-    "skills": [
-      "dbt",
-      "SQL",
-      "DuckDB",
-      "Databricks SQL"
-    ],
-    "sources": [
-      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/docs/FINDINGS.md",
-      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/README.md"
-    ],
-    "simulated": false,
-    "media_checked": "2026-11-23"
-  },
-  {
-    "id": "job-search-dbt-warehouse-3",
-    "subject": "Job Search dbt Warehouse",
-    "question": "Do all 22 dbt tests pass on both engines?",
-    "test": "Run dbt test on DuckDB and on Databricks SQL and compare pass counts.",
-    "results": [
-      {
-        "label": "Tests passed on DuckDB",
-        "value": "22 of 22"
-      },
-      {
-        "label": "Tests passed on Databricks",
-        "value": "22 of 22"
-      },
-      {
-        "label": "Schema tests passed",
-        "value": "20 of 20"
-      }
-    ],
-    "decision": "All tests pass on both engines, validating cross‑engine compatibility.",
-    "chart_title": "Test Pass Rate by Engine",
-    "detail": "The tests include 20 schema tests and 2 business‑rule tests.",
-    "skills": [
-      "dbt",
-      "SQL",
-      "DuckDB",
-      "Databricks SQL"
-    ],
-    "sources": [
-      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/docs/FINDINGS.md",
-      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/README.md"
-    ],
-    "simulated": false,
-    "media_checked": "2026-11-23"
+    "media_checked": "2026-11-23",
+    "groups": {
+      "group": "weekday",
+      "columns": [
+        "days wrong"
+      ],
+      "file": "docs/FINDINGS.md",
+      "rows": [
+        {
+          "name": "Monday",
+          "values": {
+            "days wrong": "156"
+          }
+        },
+        {
+          "name": "Tuesday",
+          "values": {
+            "days wrong": "0"
+          }
+        },
+        {
+          "name": "Wednesday",
+          "values": {
+            "days wrong": "0"
+          }
+        },
+        {
+          "name": "Thursday",
+          "values": {
+            "days wrong": "0"
+          }
+        },
+        {
+          "name": "Friday",
+          "values": {
+            "days wrong": "0"
+          }
+        },
+        {
+          "name": "Saturday",
+          "values": {
+            "days wrong": "156"
+          }
+        },
+        {
+          "name": "Sunday",
+          "values": {
+            "days wrong": "156"
+          }
+        }
+      ]
+    }
   }
 ]
