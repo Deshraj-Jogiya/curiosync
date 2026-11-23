@@ -71,3 +71,12 @@ def test_tools_count_as_the_skill_they_are():
     assert "Python" in terms("cleaned with pandas and GeoPandas")
     assert "SQL" in terms("queried in DuckDB")
     assert "Statistics" in terms("a chi-square test")
+
+
+def test_skills_his_pipeline_asks_for_weigh_more():
+    from app.services.market_skills import demand_score, demanded
+
+    data = {"skills": [{"term": "Spark", "share": 3, "pipeline_share": 20, "evidence": "work"},
+                       {"term": "Excel", "share": 3, "pipeline_share": 2, "evidence": "work"}]}
+    assert [s["term"] for s in demanded(data)] == ["Spark"]
+    assert demand_score(demanded(data)) == 23

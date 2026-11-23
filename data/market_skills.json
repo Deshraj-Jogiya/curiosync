@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-11-19",
+  "generated_at": "2026-11-23",
   "window_days": 90,
-  "target_postings": 1212,
+  "target_postings": 1351,
   "target_roles": [
     "Data / business analysis",
     "Data engineering",
@@ -12,203 +12,244 @@
   "skills": [
     {
       "term": "Python",
-      "share": 54,
-      "evidence": "work"
+      "share": 53,
+      "evidence": "work",
+      "pipeline_share": 69
     },
     {
       "term": "SQL",
       "share": 37,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 42
     },
     {
       "term": "Machine Learning",
       "share": 34,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 44
     },
     {
       "term": "Statistics",
       "share": 24,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 36
     },
     {
       "term": "AWS",
       "share": 23,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 28
     },
     {
       "term": "Data visualization",
       "share": 22,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 27
     },
     {
       "term": "ETL",
-      "share": 19,
-      "evidence": "work"
+      "share": 20,
+      "evidence": "work",
+      "pipeline_share": 22
     },
     {
       "term": "LLM",
       "share": 17,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 25
+    },
+    {
+      "term": "Spark",
+      "share": 16,
+      "evidence": "work",
+      "pipeline_share": 20
     },
     {
       "term": "Azure",
-      "share": 16,
-      "evidence": "work"
+      "share": 15,
+      "evidence": "work",
+      "pipeline_share": 13
     },
     {
       "term": "CI/CD",
       "share": 15,
-      "evidence": "work"
-    },
-    {
-      "term": "Spark",
-      "share": 15,
-      "evidence": "work"
-    },
-    {
-      "term": "A/B testing",
-      "share": 13,
-      "evidence": "listed"
+      "evidence": "work",
+      "pipeline_share": 13
     },
     {
       "term": "Data modeling",
       "share": 13,
-      "evidence": "none"
+      "evidence": "none",
+      "pipeline_share": 20
+    },
+    {
+      "term": "A/B testing",
+      "share": 13,
+      "evidence": "listed",
+      "pipeline_share": 17
     },
     {
       "term": "Power BI",
       "share": 12,
-      "evidence": "work"
-    },
-    {
-      "term": "PyTorch",
-      "share": 12,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 8
     },
     {
       "term": "GCP",
       "share": 11,
-      "evidence": "listed"
+      "evidence": "listed",
+      "pipeline_share": 11
+    },
+    {
+      "term": "PyTorch",
+      "share": 11,
+      "evidence": "work",
+      "pipeline_share": 15
     },
     {
       "term": "Databricks",
       "share": 10,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 12
     },
     {
       "term": "Snowflake",
       "share": 10,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 10
     },
     {
       "term": "RAG",
       "share": 10,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 17
     },
     {
       "term": "R",
-      "share": 10,
-      "evidence": "none"
+      "share": 9,
+      "evidence": "none",
+      "pipeline_share": 15
     },
     {
       "term": "Tableau",
       "share": 9,
-      "evidence": "work"
-    },
-    {
-      "term": "TensorFlow",
-      "share": 8,
-      "evidence": "work"
-    },
-    {
-      "term": "Git",
-      "share": 8,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 8
     },
     {
       "term": "Java",
       "share": 8,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 13
     },
     {
-      "term": "Kubernetes",
-      "share": 7,
-      "evidence": "work"
+      "term": "TensorFlow",
+      "share": 8,
+      "evidence": "work",
+      "pipeline_share": 10
     },
     {
-      "term": "Docker",
-      "share": 7,
-      "evidence": "work"
-    },
-    {
-      "term": "dbt",
-      "share": 7,
-      "evidence": "work"
+      "term": "Git",
+      "share": 8,
+      "evidence": "work",
+      "pipeline_share": 9
     },
     {
       "term": "Airflow",
       "share": 7,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 11
+    },
+    {
+      "term": "Kubernetes",
+      "share": 7,
+      "evidence": "work",
+      "pipeline_share": 4
+    },
+    {
+      "term": "dbt",
+      "share": 7,
+      "evidence": "work",
+      "pipeline_share": 5
+    },
+    {
+      "term": "Docker",
+      "share": 7,
+      "evidence": "work",
+      "pipeline_share": 4
     },
     {
       "term": "Excel",
       "share": 6,
-      "evidence": "listed"
+      "evidence": "listed",
+      "pipeline_share": 13
     },
     {
-      "term": "NLP",
+      "term": "Agile",
       "share": 6,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 4
     },
     {
       "term": "BigQuery",
       "share": 6,
-      "evidence": "listed"
+      "evidence": "listed",
+      "pipeline_share": 6
     },
     {
-      "term": "Agile",
-      "share": 5,
-      "evidence": "listed"
+      "term": "NLP",
+      "share": 6,
+      "evidence": "work",
+      "pipeline_share": 8
     },
     {
       "term": "S3",
       "share": 5,
-      "evidence": "work"
-    },
-    {
-      "term": "LangChain",
-      "share": 5,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 11
     },
     {
       "term": "C++",
       "share": 5,
-      "evidence": "none"
+      "evidence": "none",
+      "pipeline_share": 7
     },
     {
-      "term": "Terraform",
+      "term": "LangChain",
       "share": 5,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 6
     },
     {
       "term": "Redshift",
       "share": 5,
-      "evidence": "none"
+      "evidence": "none",
+      "pipeline_share": 11
     },
     {
       "term": "Scala",
+      "share": 5,
+      "evidence": "work",
+      "pipeline_share": 7
+    },
+    {
+      "term": "Terraform",
+      "share": 5,
+      "evidence": "work",
+      "pipeline_share": 4
+    },
+    {
+      "term": "Oracle",
       "share": 4,
-      "evidence": "work"
+      "evidence": "work",
+      "pipeline_share": 8
     },
     {
       "term": "scikit-learn",
       "share": 4,
-      "evidence": "work"
-    },
-    {
-      "term": "Kafka",
-      "share": 4,
-      "evidence": "listed"
+      "evidence": "work",
+      "pipeline_share": 4
     }
-  ]
+  ],
+  "pipeline_postings": 102
 }

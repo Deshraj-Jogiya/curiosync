@@ -69,7 +69,8 @@ def load(path: str | None = None) -> dict:
 def demanded(data: dict | None = None) -> list[dict]:
     """Skills employers require that his work shows, most demanded first."""
     data = load() if data is None else data
-    return [s for s in data.get("skills", []) if s.get("evidence") == "work" and s.get("share", 0) >= MIN_SHARE]
+    return [s for s in data.get("skills", []) if s.get("evidence") == "work"
+            and max(s.get("share", 0), s.get("pipeline_share", 0)) >= MIN_SHARE]
 
 
 def stale(data: dict | None = None, today: date | None = None) -> bool:
@@ -107,9 +108,10 @@ def story_skills(story: dict, data: dict | None = None) -> list[dict]:
 
 
 def demand_score(skills: list[dict], featured: set[str] | frozenset = frozenset()) -> float:
-    """Sum of the posting shares of the skills shown; a skill featured in the last few posts counts a third, so posts rotate across
-    the demanded skills instead of repeating Python every time."""
-    return sum(s["share"] / (3 if s["term"].lower() in featured else 1) for s in skills)
+    """Sum of the posting shares of the skills shown, the market's share plus the share among the postings he is pursuing right now
+    (their recruiters and hiring managers are the readers a post can help with; owner, 2026-11-23); a skill featured in the last few
+    posts counts a third, so posts rotate across the demanded skills instead of repeating Python every time."""
+    return sum((s["share"] + s.get("pipeline_share", 0)) / (3 if s["term"].lower() in featured else 1) for s in skills)
 
 
 def hashtag(term: str) -> str:
