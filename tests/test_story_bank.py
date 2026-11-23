@@ -336,3 +336,21 @@ def test_a_rested_project_waits_and_an_overdue_one_goes_first():
     with patch("app.services.market_skills.load", return_value={"skills": []}):
         story, item = pick_story(items, history, stories, feedback=[])
     assert item["title"] == "C"
+
+
+@pytest.mark.asyncio
+async def test_a_healthy_bank_still_rereads_a_changed_project_with_almost_no_stories(tmp_path):
+    from app.services import story_bank
+
+    path, meta = str(tmp_path / "stories.json"), str(tmp_path / "meta.json")
+    filler = [{**STORY, "id": f"b-{n}", "subject": "Project B", "question": f"Question {n}?"}
+              for n in range(story_bank.HEALTHY_BANK)]
+    thin = {**STORY, "id": "a-1", "subject": "Project A"}
+    json.dump([thin, *filler], open(path, "w", encoding="utf-8"))
+    json.dump({"Project A": {"sha": "old"}, "Project B": {"sha": "old"}}, open(meta, "w", encoding="utf-8"))
+    mine = AsyncMock(return_value=[])
+    with patch("app.services.story_bank.head_sha", AsyncMock(return_value="new")), \
+         patch("app.services.story_bank.mine_subject", mine), \
+         patch("app.services.story_bank.cache_media", AsyncMock(return_value=0)):
+        await refill(ITEMS, [], settings=None, path=path, meta_path=meta)
+    assert [c.args[0]["title"] for c in mine.call_args_list] == ["Project A"]  # B already has many stories, so it waits

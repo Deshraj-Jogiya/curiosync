@@ -39,6 +39,7 @@ RECENT_POSTS_FOR_SKILLS = 10
 # Mining reads whole documents (thousands of tokens each); it pauses while this many stories are waiting, to keep the free daily
 # allowance for writing posts. Changed repositories are still read once the bank drops below it.
 HEALTHY_BANK = 20
+THIN_PROJECT_STORIES = 2  # a project with fewer stories than this is re-read when its repository changes, even with a healthy bank
 
 
 def _load(path: str, default):
@@ -841,11 +842,15 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
         never = never + [i for i in items if i not in never and
                          any(x["subject"] == i["title"] and not x.get("series") for x in stories)]
     todo, shas = never[:MAX_SUBJECTS_PER_REFILL], {}
-    if len(todo) < MAX_SUBJECTS_PER_REFILL and not healthy:
+    if len(todo) < MAX_SUBJECTS_PER_REFILL:
         for i in items:
             if len(todo) >= MAX_SUBJECTS_PER_REFILL:
                 break
             if not i.get("github_url") or i in todo:
+                continue
+            # A healthy bank still re-reads a changed project it holds fewer than THIN_PROJECT_STORIES stories for: new
+            # commits there (a findings page) are the only way that project's skills reach a post.
+            if healthy and sum(x["subject"] == i["title"] for x in stories) >= THIN_PROJECT_STORIES:
                 continue
             sha = await head_sha(i["github_url"])
             if sha and meta.get(i["title"], {}).get("sha") != sha:
