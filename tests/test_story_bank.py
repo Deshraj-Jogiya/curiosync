@@ -306,3 +306,19 @@ def test_same_question_counts_as_told_even_with_other_numbers():
     other = {"id": "t-2", "subject": "T", "question": "How many entries must be opened?", "results": [{"label": "n", "value": "1,108"}]}
     left = unused([{"story_id": "t-1"}], [posted, again, other], feedback=[])
     assert [s["id"] for s in left] == ["t-2"]
+
+
+def test_a_follow_up_run_of_the_same_comparison_counts_as_told():
+    from app.services.story_bank import _same_test
+
+    posted = {"question": "Can a model beat last year's value?", "results": [
+        {"label": "Linear Regression accuracy", "value": "0.9418"}, {"label": "Random Forest accuracy", "value": "0.9329"},
+        {"label": "Last year's value accuracy", "value": "0.947"}]}
+    follow_up = {"question": "Does the advantage hold across starting years?", "results": [
+        {"label": "Last year’s value mean accuracy", "value": "0.9506"}, {"label": "Linear Regression mean accuracy", "value": "0.9463"},
+        {"label": "Random Forest mean accuracy", "value": "0.9421"}, {"label": "3-year average mean accuracy", "value": "0.9417"}]}
+    other_data = {"question": "Do the models add anything on the daily balance?", "results": [
+        {"label": "Linear Regression accuracy", "value": "0.51"}, {"label": "Random Forest accuracy", "value": "0.49"},
+        {"label": "Same day last week accuracy", "value": "0.62"}]}
+    assert _same_test(posted, follow_up)
+    assert not _same_test(posted, other_data)

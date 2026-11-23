@@ -691,11 +691,33 @@ def _question_key(story: dict) -> str:
     return re.sub(r"[^a-z0-9]+", " ", str(story.get("question") or "").lower()).strip()
 
 
+_METRIC_WORDS = re.compile(r"\b(mean|median|accuracy|precision|recall|f1|auc|roc|mae|rmse|mape|r2|r²|score|rate|share|seconds|ms|"
+                           r"latency|count|total)\b")
+
+
+def _compared(story: dict) -> set[str]:
+    """What a story's results compare (the models, arms or options), with the metric words taken off each label: "Linear
+    Regression mean accuracy" and "Linear Regression accuracy" are the same compared thing."""
+    out = set()
+    for r in story.get("results", []):
+        label = str(r.get("label", "")).lower().replace("’", "'").replace("‑", "-")
+        label = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9' -]+", " ", _METRIC_WORDS.sub(" ", label))).strip()
+        if label:
+            out.add(label)
+    return out
+
+
 def _same_test(a: dict, b: dict) -> bool:
     """Two stories asking the same question, or with mostly the same result numbers, are the same test told twice. The question
     matters on its own: a re-read can store the same test's results in other units (precision 0.9474 vs 19 flagged), and the
     1/1 tax draft repeated the 11/20 post that way (2026-11-21)."""
     if _question_key(a) and _question_key(a) == _question_key(b):
+        return True
+    # A follow-up run of the same comparison (the same models against the same baseline, over more years) repeats the post's
+    # claim with new numbers: the 11/22 Land Use draft ("persistence beats the models across 8 origins") retold the 11/02 post.
+    ea, eb = _compared(a), _compared(b)
+    small, big = sorted((ea, eb), key=len)
+    if len(small) >= 3 and small <= big:
         return True
     na = {v for r in a["results"] for v in numbers_in(str(r["value"]))}
     nb = {v for r in b["results"] for v in numbers_in(str(r["value"]))}
