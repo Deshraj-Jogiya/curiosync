@@ -424,10 +424,10 @@ async def cache_media(stories: list[dict], items: list[dict], today: date | None
 
 
 def media_runway(items: list[dict], history: list[dict], stories: list[dict], media_ok) -> int:
-    """How many stories could still be drafted: unposted, about a project with the owner's notes, and drawable as more than their
-    own numbers."""
-    noted = {i["title"]: i for i in items if i.get("notes")}
-    return sum(1 for st in unused(history, stories) if st["subject"] in noted and media_ok(st, noted[st["subject"]]))
+    """How many stories could still be drafted, by the picker's own checks: unposted, not resting after rejections, about a project
+    with the owner's notes, showing demanded skills, and drawable as more than their own numbers. (On 11/22 a looser count said 6
+    while the picker found none: it skipped the demand gate and the rejections.)"""
+    return pick_story([i for i in items if i.get("notes")], history, stories, media_ok=media_ok, count_only=True)
 
 
 RULE_FAIL_REST_DAYS = 3
@@ -468,10 +468,11 @@ def _skills_recently_featured(history: list[dict], stories: list[dict]) -> set[s
 
 def pick_story(items: list[dict], history: list[dict], stories: list[dict] | None = None,
                feedback: list[dict] | None = None, today: date | None = None,
-               media_ok=None) -> tuple[dict, dict] | None:
+               media_ok=None, count_only: bool = False):
     """The unused story whose project was posted about least recently; among a project's stories, the one showing the most skills not
     featured in the last posts; ties go to the profile's own order (most recent work first). With nothing unused, the story posted
-    longest ago (at least REPEAT_AFTER_DAYS) comes back, marked as a repeat so it is written in a different format."""
+    longest ago (at least REPEAT_AFTER_DAYS) comes back, marked as a repeat so it is written in a different format. With count_only,
+    returns how many unused stories pass every check, so the runway alarm counts exactly what the picker would accept."""
     stories = load_stories() if stories is None else stories
     feedback = load_feedback() if feedback is None else feedback
     by_title = {i["title"]: i for i in items}
@@ -505,6 +506,8 @@ def pick_story(items: list[dict], history: list[dict], stories: list[dict] | Non
 
     candidates = [s for s in unused(history, stories, feedback, today)
                   if s["subject"] in by_title and shows_demand(s) and drawable(s)]
+    if count_only:
+        return len(candidates)
     if candidates:
         best = min(candidates, key=lambda s: (-(demand(s) // DEMAND_BAND), last_posted(s["subject"]), -new_skills(s),
                                               order[s["subject"]]))

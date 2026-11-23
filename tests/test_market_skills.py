@@ -29,7 +29,7 @@ def story(id_, subject, question, skills):
 def test_only_skills_his_work_shows_count_and_short_names_match_whole_words():
     assert [s["term"] for s in market_skills.demanded()] == ["Python", "SQL", "Statistics", "RAG"]
     assert market_skills.skills_in("A RAG answer from a SQL query") and \
-        [s["term"] for s in market_skills.skills_in("RAGE against PostgreSQL")] == []
+        [s["term"] for s in market_skills.skills_in("RAGE against SQLx")] == []
     assert [s["term"] for s in market_skills.skills_in("a KS test on the statistical gap")] == ["Statistics"]
 
 
@@ -60,3 +60,10 @@ def test_a_draft_must_name_the_skills_early_and_tag_one():
 def test_a_story_showing_only_one_demanded_skill_is_not_enough():
     only_python = story("a-1", "Project A", "Which users post most?", ["Python"])
     assert pick_story(ITEMS, [], [only_python], []) is None
+
+
+def test_tools_count_as_the_skill_they_are():
+    terms = lambda text: [s["term"] for s in market_skills.skills_in(text)]  # noqa: E731
+    assert "Python" in terms("cleaned with pandas and GeoPandas")
+    assert "SQL" in terms("queried in DuckDB")
+    assert "Statistics" in terms("a chi-square test")

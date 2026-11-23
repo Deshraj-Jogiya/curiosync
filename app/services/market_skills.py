@@ -21,18 +21,31 @@ MIN_STORY_SKILLS = 2  # a story must show at least this many demanded skills to 
 
 # Words a story or post uses for a market skill. Only concrete names: a generic word ("pipeline", "chart", "model") would let any
 # post pass. The market term itself always counts.
+# A story shows a demanded skill when it names the skill or a tool that is that skill (pandas is Python, DuckDB is SQL, a confusion
+# matrix is machine learning): the 11/22 bank had 17 unposted stories and none passed the gate because their skills were written
+# as libraries (GeoPandas, scikit-learn, pandas) while the market list names the skill.
 ALIASES = {
+    "Python": ["python", "pandas", "numpy", "geopandas", "scikit-learn", "sklearn", "pytest", "fastapi", "polars", "matplotlib",
+               "seaborn", "pyspark", "jupyter", "pydantic", "sqlalchemy"],
+    "SQL": ["sql", "duckdb", "postgres", "postgresql", "sqlite", "bigquery", "snowflake", "sql server", "t-sql", "dbt"],
     "Machine Learning": ["machine learning", "scikit-learn", "sklearn", "random forest", "xgboost", "isolation forest", "gradient boost",
-                         "logistic regression", "linear regression", "classifier", "ml model"],
+                         "logistic regression", "linear regression", "classifier", "ml model", "confusion matrix", "cross-validat",
+                         "walk-forward", "backtest", "train/test", "hyperparameter", "feature importance", "neural network",
+                         "deep learning", "model accuracy", "accuracy loss", "model drift", "drift monitor", "recommender", "clustering",
+                         "k-means", "anomaly detection model"],
     "Statistics": ["statistic", "kolmogorov", "ks test", "ks-test", "population stability index", "psi", "z-score", "benford",
-                   "permutation test", "p-value", "standard error", "confidence interval", "hypothesis test", "chi-square"],
-    "Data visualization": ["data visualization", "tableau", "power bi", "matplotlib", "plotly", "dashboard"],
-    "ETL": ["etl", "elt", "ingestion", "data pipeline"],
-    "LLM": ["llm", "large language model", "claude", "gpt", "qwen", "lora", "fine-tun"],
+                   "permutation test", "p-value", "standard error", "confidence interval", "hypothesis test", "chi-square",
+                   "standard deviation", "t-test", "a/b test", "correlation", "kaplan-meier", "log-rank", "survival",
+                   "mean absolute", "median", "percentile", "variance", "rfm"],
+    "Data visualization": ["data visualization", "tableau", "power bi", "matplotlib", "plotly", "dashboard", "seaborn", "arcgis",
+                           "chart", "choropleth", "map layer", "streamlit"],
+    "ETL": ["etl", "elt", "ingestion", "data pipeline", "pipeline", "parquet", "incremental load", "staging table", "data quality check"],
+    "LLM": ["llm", "large language model", "claude", "gpt", "qwen", "lora", "fine-tun", "prompt"],
     "CI/CD": ["ci/cd", "github actions", "continuous integration", "fails the build", "fails ci", "in ci"],
     "PyTorch": ["pytorch"],
     "RAG": ["rag", "retrieval-augmented", "retrieval augmented"],
-    "NLP": ["nlp", "spacy", "named entity", "sentence-transformers", "natural language"],
+    "NLP": ["nlp", "spacy", "named entity", "ner", "sentence-transformers", "sentence transformers", "natural language",
+            "semantic search", "embedding", "question answering", "tokeniz", "text classification"],
     "Spark": ["spark", "pyspark"],
     "PySpark": ["pyspark"],
     "Docker": ["docker", "container"],

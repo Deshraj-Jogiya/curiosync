@@ -71,3 +71,14 @@ async def test_alarm_without_a_token_only_reports(monkeypatch):
 def test_a_flat_single_series_is_not_media():
     flat = "week_start,manual_hours" + chr(10) + chr(10).join(f"2025-04-{d:02d},{10 + d / 100:.2f}" for d in (1, 8, 15, 22, 29))
     assert series_from_csv(flat, "p.csv", {"question": "How many manual hours?"}) is None
+
+
+def test_media_runway_applies_the_pickers_demand_gate_and_rejections():
+    market = {"skills": [{"term": "Python", "share": 50, "evidence": "work"}, {"term": "SQL", "share": 40, "evidence": "work"}]}
+    stories = [{"id": "a", "subject": "Land Use", "question": "Python and SQL check"},
+               {"id": "b", "subject": "Land Use", "question": "Python only"},
+               {"id": "c", "subject": "Land Use", "question": "Python and SQL again, other data"}]
+    rejected = [{"story_id": "c", "verdict": "reject", "date": "2026-11-01"}] * 2
+    with patch("app.services.market_skills.load", return_value=market), \
+            patch("app.services.story_bank.load_feedback", return_value=rejected):
+        assert media_runway([ITEM], [], stories, lambda st, it: True) == 1
