@@ -20,13 +20,13 @@
     "stories": 3
   },
   "Member Messages QA System: Semantic Search & NER-Based Question Answering": {
-    "sha": "daf803c0d3846abd2750302228ab57d9ea541ac0",
-    "read_on": "2026-10-26",
-    "stories": 7
+    "sha": "4e6684bddbb88b36a4a9331c64e6fc1b6c528da7",
+    "read_on": "2026-11-23",
+    "stories": 4
   },
   "Sentence Transformers, Multi-Task Learning & LLM Fine-Tuning": {
-    "sha": "1ab42ad4915a97f9a3a6a365a69cecb12509ddc6",
-    "read_on": "2026-10-26",
+    "sha": "f59418437fc7453da835e77d4a4e34dafcd170db",
+    "read_on": "2026-11-23",
     "stories": 1
   },
   "Job Search CRM & AI Application Tailoring Center": {
@@ -65,8 +65,8 @@
     "stories": 1
   },
   "Clinical Trials Patient Outcomes Analysis": {
-    "sha": "c9659341519a8ca16a98637a11adf36e1081d7bd",
-    "read_on": "2026-10-26",
+    "sha": "275a60de59440818e05f644b94018526dc049d3e",
+    "read_on": "2026-11-23",
     "stories": 3
   },
   "AI-ML Data Science Simulation": {
