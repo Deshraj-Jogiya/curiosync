@@ -1,6 +1,6 @@
 {
   "Job Market Lakehouse": {
-    "sha": "5b0938387d06bfc74bbd030313667f3991dda593",
+    "sha": "da295b702b1ee3520255bc59245638163ef175a7",
     "read_on": "2026-11-23",
     "stories": 4
   },
@@ -45,9 +45,9 @@
     "stories": 3
   },
   "Job Search dbt Warehouse": {
-    "sha": "ef7a252d78c566dede0e43d6973cbd014d744452",
+    "sha": "0d6054412fab60c4aaab2c48b15d9361bfa11e7b",
     "read_on": "2026-11-23",
-    "stories": 3
+    "stories": 1
   },
   "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
     "sha": "fec5d8c5b5dab5186c5658e2696c64d49f7e012e",
