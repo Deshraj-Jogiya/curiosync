@@ -344,8 +344,14 @@ async def publish_due(access_token: str, raw_sub: str, settings) -> str:
         return "nothing approved for today"
     image = image_copy(item)
     document = item.get("document") if item.get("document") and os.path.exists(item["document"]) else None
+    from app.services.alt_text import describe
+    from app.services.story_bank import load_stories
+
+    story_id = (item.get("history_entry") or {}).get("story_id")
+    story = next((s for s in load_stories() if s["id"] == story_id), None) if story_id else None
+    alt = describe(item.get("alt_text"), item["text"], story)
     try:
-        result = await publish_post(access_token, f"urn:li:person:{raw_sub}", item["text"], settings, image, item.get("alt_text"),
+        result = await publish_post(access_token, f"urn:li:person:{raw_sub}", item["text"], settings, image, alt,
                                     document_path=document, document_title=item.get("document_title"))
     finally:
         if image and os.path.exists(image):
