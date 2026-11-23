@@ -322,3 +322,17 @@ def test_a_follow_up_run_of_the_same_comparison_counts_as_told():
         {"label": "Same day last week accuracy", "value": "0.62"}]}
     assert _same_test(posted, follow_up)
     assert not _same_test(posted, other_data)
+
+
+def test_a_rested_project_waits_and_an_overdue_one_goes_first():
+    from app.services.story_bank import pick_story
+
+    items = [{"title": t, "notes": "why"} for t in ("A", "B", "C")]
+    stories = [{"id": f"{t.lower()}-1", "subject": t, "question": f"q {t}", "results": []} for t in ("A", "B", "C")]
+    filler = [{"subject": "Z", "story_id": f"z{n}"} for n in range(20)]
+    # A was posted 2 posts ago (resting); C last appeared 20 posts ago (overdue); B 10 posts ago.
+    history = [{"subject": "C", "story_id": "c-0"}] + filler[:9] + [{"subject": "B", "story_id": "b-0"}] + filler[9:17] + \
+        [{"subject": "A", "story_id": "a-0"}, filler[17]]
+    with patch("app.services.market_skills.load", return_value={"skills": []}):
+        story, item = pick_story(items, history, stories, feedback=[])
+    assert item["title"] == "C"

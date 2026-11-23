@@ -41,7 +41,11 @@ def test_a_story_that_shows_no_demanded_skill_is_never_picked():
 def test_the_more_demanded_story_comes_first_even_when_its_project_posted_more_recently():
     low = story("a-1", "Project A", "Does the RAG answer hold up statistically?", ["Statistics"])
     high = story("b-1", "Project B", "Is the Python job faster than the SQL view?", ["Python", "SQL"])
-    assert pick_story(ITEMS, [{"subject": "Project B"}], [low, high], [])[0]["id"] == "b-1"
+    # Both projects are past their rest (6 posts); B posted more recently, but its story shows more demanded skills.
+    history = [{"subject": "Project A"}, {"subject": "Project B"}] + [{"subject": "Other"}] * 7
+    assert pick_story(ITEMS, history, [low, high], [])[0]["id"] == "b-1"
+    # Right after its own post, B rests and A goes first.
+    assert pick_story(ITEMS, [{"subject": "Project B"}], [low, high], [])[0]["id"] == "a-1"
 
 
 def test_a_draft_must_name_the_skills_early_and_tag_one():

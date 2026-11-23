@@ -430,6 +430,8 @@ def media_runway(items: list[dict], history: list[dict], stories: list[dict], me
     return pick_story([i for i in items if i.get("notes")], history, stories, media_ok=media_ok, count_only=True)
 
 
+PROJECT_REST_POSTS = 6       # about two weeks at three posts a week
+PROJECT_OVERDUE_POSTS = 18   # about six weeks
 RULE_FAIL_REST_DAYS = 3
 DEMAND_BAND = 25  # points of summed posting share; stories within one band are treated as equally demanded
 
@@ -509,7 +511,15 @@ def pick_story(items: list[dict], history: list[dict], stories: list[dict] | Non
     if count_only:
         return len(candidates)
     if candidates:
-        best = min(candidates, key=lambda s: (-(demand(s) // DEMAND_BAND), last_posted(s["subject"]), -new_skills(s),
+        # Coverage before demand (plan step 7): a project in the last PROJECT_REST_POSTS posts rests, and one absent for
+        # PROJECT_OVERDUE_POSTS posts goes first, so demand ranking alone cannot keep circling the same few projects. Counted in
+        # posts, not days, because the history includes the approved queue, which runs weeks ahead.
+        def since(subject: str) -> int:
+            last = last_posted(subject)
+            return len(recent) - last if last >= 0 else 10_000
+
+        best = min(candidates, key=lambda s: (since(s["subject"]) <= PROJECT_REST_POSTS, since(s["subject"]) < PROJECT_OVERDUE_POSTS,
+                                              -(demand(s) // DEMAND_BAND), last_posted(s["subject"]), -new_skills(s),
                                               order[s["subject"]]))
         return best, by_title[best["subject"]]
 
