@@ -6,12 +6,12 @@
   },
   "Tax Anomaly Audit Compliance Engine": {
     "sha": "3d5d5c919b511ceb23122c936acde9fb0a3744af",
-    "read_on": "2026-11-21",
-    "stories": 3
+    "read_on": "2026-11-23",
+    "stories": 4
   },
   "Real-Time IoT Telematics & Predictive Maintenance": {
     "sha": "422ddb391331b8c73b1880590c5a46198a11b836",
-    "read_on": "2026-11-22",
+    "read_on": "2026-11-23",
     "stories": 1
   },
   "Extending STEM across ASL": {
@@ -30,18 +30,18 @@
     "stories": 1
   },
   "Job Search CRM & AI Application Tailoring Center": {
-    "sha": "d030f77669de2278d30901847e83dc6627344b55",
+    "sha": "e6853f148a25feaeee5ba403df966a0d33adb947",
     "read_on": "2026-11-23",
     "stories": 1
   },
   "FinTech Credit Risk & Fraud Command Center": {
     "sha": "78f3e95acc8a250b88d43c7ee60170841eda61a3",
-    "read_on": "2026-11-19",
-    "stories": 4
+    "read_on": "2026-11-23",
+    "stories": 3
   },
   "AI Model Observability & Fairness Audits": {
     "sha": "e2f27832252c08055bef3f58e9bc8dc2307a1ad8",
-    "read_on": "2026-11-21",
+    "read_on": "2026-11-23",
     "stories": 3
   },
   "Job Search dbt Warehouse": {
@@ -51,13 +51,13 @@
   },
   "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
     "sha": "fec5d8c5b5dab5186c5658e2696c64d49f7e012e",
-    "read_on": "2026-11-19",
+    "read_on": "2026-11-23",
     "stories": 1
   },
   "Multi-State Land Use Emissions Analysis": {
     "sha": "efb931d5628a767a0036cba464625f4894d4648f",
-    "read_on": "2026-11-22",
-    "stories": 6
+    "read_on": "2026-11-23",
+    "stories": 5
   },
   "Sales Analytics & RFM Customer Segmentation Pipeline": {
     "sha": "c52e5e395f01b722b25fd825d3718eb7812d9060",
