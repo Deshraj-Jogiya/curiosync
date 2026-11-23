@@ -3489,7 +3489,30 @@
       "https://github.com/Deshraj-Jogiya/AI-Model-Observability-Auditing/blob/HEAD/README.md"
     ],
     "simulated": true,
-    "media_checked": "2026-11-21"
+    "media_checked": "2026-11-21",
+    "series": {
+      "type": "scatter",
+      "title": "Approval-gap z-score vs Days",
+      "x_label": "Day",
+      "y_label": "z-score",
+      "points": [
+        {
+          "label": "Day 30",
+          "x": "30",
+          "y": "0.88"
+        },
+        {
+          "label": "Day 52",
+          "x": "52",
+          "y": "1.65"
+        },
+        {
+          "label": "Day 55",
+          "x": "55",
+          "y": "1.65"
+        }
+      ]
+    }
   },
   {
     "id": "ai-model-observability-fairness-audits-5",
