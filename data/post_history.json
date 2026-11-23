@@ -342,5 +342,36 @@
       "hook": "measured_result",
       "slot": null
     }
+  },
+  {
+    "date": "2026-11-23",
+    "format": "project_spotlight",
+    "subject": "Extending STEM across ASL",
+    "hook_type": "measured_result",
+    "opener_words": [
+      "my",
+      "pytorch",
+      "model",
+      "reads",
+      "stem",
+      "signs",
+      "from",
+      "video",
+      "a",
+      "random"
+    ],
+    "text": "My PyTorch model reads STEM signs from video. A random pick of 29 is right 3.45% of the time; it got 94.83% in its top three.\n\nExtending STEM across ASL is my graduate project, peer reviewed and rebuilt on public video data, that recognises STEM and computing words in sign language. The study behind it found that only about 16% of ASL users go on to university, and missing STEM vocabulary, and too few people able to use it, was one of several main reasons.\n\nThe question was whether a model trained on a small public set could tell 29 such words apart. So I held out 2 clips of each word from 214 WLASL videos and trained on the rest. A Python pipeline turns each recording into MediaPipe hand landmarks plus OpenCV hand-crop features over 32 frames, and the PyTorch network reads them with a 1-D convolution and a bidirectional GRU.\n\nOn the held-out clips it was right 75.86% of the time on its first guess, and the correct answer was almost always among its first three guesses. Each one took 0.34 ms of model time.\n\nThat gap decided the design. The browser page shows the top three guesses for each recording, so a wrong first guess still leaves the right answer on screen.\n\nFor gesture recognition with only a few clips per class, do you show the single top guess or several candidates?\n\n#PyTorch #ComputerVision",
+    "story_id": "extending-stem-across-asl-1",
+    "approved_id": "chat-2026-11-23-extending-stem-across-asl-1",
+    "post_id": "urn:li:share:7530672730027880451",
+    "posted_at": "2026-11-23T16:44:52+00:00",
+    "media": "image",
+    "trigger": "publish_now",
+    "factors": {
+      "media": "image",
+      "angle": "project_spotlight",
+      "hook": "measured_result",
+      "slot": "morning"
+    }
   }
 ]
