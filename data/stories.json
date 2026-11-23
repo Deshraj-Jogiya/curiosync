@@ -4341,5 +4341,222 @@
       }
     },
     "media_checked": "2026-11-22"
+  },
+  {
+    "id": "job-market-lakehouse-2",
+    "subject": "Job Market Lakehouse",
+    "question": "Is a partition written straight to storage visible to queries?",
+    "test": "Write a test partition (3 rows, posted_month=2099-01) directly into storage, count SHOW PARTITIONS, run MSCK REPAIR TABLE, count again.",
+    "results": [
+      {
+        "label": "Partitions before repair",
+        "value": "20"
+      },
+      {
+        "label": "Partitions after repair",
+        "value": "21"
+      },
+      {
+        "label": "Rows in test partition",
+        "value": "3"
+      }
+    ],
+    "decision": "Any load that writes files outside INSERT runs MSCK REPAIR TABLE before the data is used.",
+    "chart_title": "MSCK REPAIR TABLE visibility",
+    "detail": "The new partition’s rows exist on disk but no query sees them until repair.",
+    "skills": [
+      "HiveQL",
+      "Parquet"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true,
+    "series": {
+      "type": "before_after",
+      "title": "Partitions before and after repair",
+      "points": [
+        {
+          "label": "Partitions",
+          "before": "20",
+          "after": "21"
+        }
+      ]
+    },
+    "media_checked": "2026-11-23"
+  },
+  {
+    "id": "job-market-lakehouse-3",
+    "subject": "Job Market Lakehouse",
+    "question": "Does \"top 5 per industry\" return five postings?",
+    "test": "Rank postings by salary within each of the 7 industries with dense_rank() and keep ranks 1 to 5.",
+    "results": [
+      {
+        "label": "Rows returned",
+        "value": "37"
+      },
+      {
+        "label": "Rows in Retail",
+        "value": "6"
+      },
+      {
+        "label": "Rows in Software",
+        "value": "6"
+      }
+    ],
+    "decision": "Kept, because the question is \"which postings pay the top five salaries\"; a report needing exactly five rows would use row_number().",
+    "chart_title": "Top 5 salary ranks per industry",
+    "detail": "Ties at rank 2 and 3 caused extra rows.",
+    "skills": [
+      "PySpark",
+      "SQL",
+      "dense_rank()"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true,
+    "media_checked": "2026-11-23"
+  },
+  {
+    "id": "job-market-lakehouse-4",
+    "subject": "Job Market Lakehouse",
+    "question": "Do Hadoop MapReduce and Spark agree on the same file in HDFS?",
+    "test": "Load raw CSV into single-node HDFS, run Hadoop Streaming MapReduce (Python mapper/reducer, 2 reducers) to count postings per month and source, then read same file with PySpark and compare counts.",
+    "results": [
+      {
+        "label": "Mapper lines read",
+        "value": "60,001"
+      },
+      {
+        "label": "Reducers keys written",
+        "value": "100"
+      },
+      {
+        "label": "Spark rows read",
+        "value": "60,000"
+      }
+    ],
+    "decision": "All counts match; the two systems agree on the data.",
+    "chart_title": "MapReduce vs Spark counts",
+    "detail": "The 100 counts sum to 60,000, matching Spark's read.",
+    "skills": [
+      "Hadoop",
+      "MapReduce",
+      "PySpark"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/job-market-lakehouse/blob/HEAD/README.md"
+    ],
+    "simulated": true,
+    "media_checked": "2026-11-23"
+  },
+  {
+    "id": "job-search-dbt-warehouse-1",
+    "subject": "Job Search dbt Warehouse",
+    "question": "How many days were incorrectly flagged as weekend when running the same dbt model on DuckDB versus Databricks SQL?",
+    "test": "Build all 10 models on DuckDB and compare each engine-specific expression with a straight copy of the Databricks SQL on the same 1,095‑day calendar and 17 applications.",
+    "results": [
+      {
+        "label": "Incorrect weekend flags on DuckDB",
+        "value": "468 of 1,095 days"
+      },
+      {
+        "label": "Mondays flagged as weekend",
+        "value": "156"
+      },
+      {
+        "label": "Weekend days missed",
+        "value": "312"
+      }
+    ],
+    "decision": "Implemented portable macros to use the correct SQL functions for each engine, ensuring weekend days match between Databricks and DuckDB.",
+    "chart_title": "Weekend Flag Accuracy by Engine",
+    "detail": "Five macros in macros/portable.sql were added to select the right form for the target.",
+    "skills": [
+      "dbt",
+      "SQL",
+      "DuckDB",
+      "Databricks SQL"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/README.md"
+    ],
+    "simulated": false,
+    "media_checked": "2026-11-23"
+  },
+  {
+    "id": "job-search-dbt-warehouse-2",
+    "subject": "Job Search dbt Warehouse",
+    "question": "Does the incremental snapshot model insert duplicate rows on a second run?",
+    "test": "Build the snapshot, run it again on its own, then count rows against distinct days.",
+    "results": [
+      {
+        "label": "Rows after two runs",
+        "value": "1,095"
+      },
+      {
+        "label": "Distinct days",
+        "value": "1,095"
+      },
+      {
+        "label": "Duplicate rows",
+        "value": "0"
+      }
+    ],
+    "decision": "Confirmed that the incremental filter and merge/delete+insert logic prevent duplicate days; the second run is part of CI.",
+    "chart_title": "Duplicate Row Check for Incremental Snapshot",
+    "detail": "The snapshot uses merge on date_day on Databricks and delete+insert on DuckDB.",
+    "skills": [
+      "dbt",
+      "SQL",
+      "DuckDB",
+      "Databricks SQL"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/README.md"
+    ],
+    "simulated": false,
+    "media_checked": "2026-11-23"
+  },
+  {
+    "id": "job-search-dbt-warehouse-3",
+    "subject": "Job Search dbt Warehouse",
+    "question": "Do all 22 dbt tests pass on both engines?",
+    "test": "Run dbt test on DuckDB and on Databricks SQL and compare pass counts.",
+    "results": [
+      {
+        "label": "Tests passed on DuckDB",
+        "value": "22 of 22"
+      },
+      {
+        "label": "Tests passed on Databricks",
+        "value": "22 of 22"
+      },
+      {
+        "label": "Schema tests passed",
+        "value": "20 of 20"
+      }
+    ],
+    "decision": "All tests pass on both engines, validating cross‑engine compatibility.",
+    "chart_title": "Test Pass Rate by Engine",
+    "detail": "The tests include 20 schema tests and 2 business‑rule tests.",
+    "skills": [
+      "dbt",
+      "SQL",
+      "DuckDB",
+      "Databricks SQL"
+    ],
+    "sources": [
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/docs/FINDINGS.md",
+      "https://github.com/Deshraj-Jogiya/job-search-dbt-warehouse/blob/HEAD/README.md"
+    ],
+    "simulated": false,
+    "media_checked": "2026-11-23"
   }
 ]

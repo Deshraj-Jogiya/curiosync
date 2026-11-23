@@ -1,8 +1,8 @@
 {
   "Job Market Lakehouse": {
-    "sha": "503ef5c646be03546590df86aaca88d2efccc2a6",
-    "read_on": "2026-11-18",
-    "stories": 1
+    "sha": "5b0938387d06bfc74bbd030313667f3991dda593",
+    "read_on": "2026-11-23",
+    "stories": 4
   },
   "Tax Anomaly Audit Compliance Engine": {
     "sha": "3d5d5c919b511ceb23122c936acde9fb0a3744af",
@@ -45,9 +45,9 @@
     "stories": 3
   },
   "Job Search dbt Warehouse": {
-    "sha": "f4fdfb28eef482cee46218d4ad66d8121e58d05b",
-    "read_on": "2026-11-18",
-    "stories": 0
+    "sha": "ef7a252d78c566dede0e43d6973cbd014d744452",
+    "read_on": "2026-11-23",
+    "stories": 3
   },
   "TalentVenue EventIntel: Enterprise Data Platform & Predictive Intelligence": {
     "sha": "fec5d8c5b5dab5186c5658e2696c64d49f7e012e",
@@ -70,33 +70,33 @@
     "stories": 3
   },
   "AI-ML Data Science Simulation": {
-    "sha": "2b86c4b7fce2ded557811e3d8a28e7165859b98b",
-    "read_on": "2026-10-27",
+    "sha": "0afa237c2c37951d5749e3e656734083f6d34e91",
+    "read_on": "2026-11-23",
     "stories": 2
   },
   "Automated Daily Data Insights": {
-    "sha": "9dc6a069663b6848f15309ed9b63fa5feae8e736",
-    "read_on": "2026-10-27",
+    "sha": "7f451a6152eb89bbe0af8b23422cd8e85a0eb23e",
+    "read_on": "2026-11-23",
     "stories": 2
   },
   "ArcGIS Commute Insights": {
-    "sha": "badbc7a6d3a221cbf0307d83a32d64b380635357",
-    "read_on": "2026-10-27",
+    "sha": "ba7f72d797ab72a1818233ee311246abfb16c5bf",
+    "read_on": "2026-11-23",
     "stories": 0
   },
   "Reactive Job Ingest Gateway": {
-    "sha": "282e7525da6bbb3d6c7c20ee4443451065c6b16c",
-    "read_on": "2026-10-27",
+    "sha": "35fbd64e39b61459d8dc15dfab9d683078747323",
+    "read_on": "2026-11-23",
     "stories": 0
   },
   "Interview Prep API": {
-    "sha": "7b49d122f97154bd17f41a1173c2fa13c42c4be4",
-    "read_on": "2026-10-27",
+    "sha": "a8ac9a080cced9710c730b979a3b95579a114c1d",
+    "read_on": "2026-11-23",
     "stories": 0
   },
   "Job Notes": {
-    "sha": "c2d6f0568273a53977621b03d50aa03c6c2f1081",
-    "read_on": "2026-10-27",
+    "sha": "933803bce3b513a99dea90da54a72defdb52d2cf",
+    "read_on": "2026-11-23",
     "stories": 0
   },
   "Company Search (HTMX)": {
