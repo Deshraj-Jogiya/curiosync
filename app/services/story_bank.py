@@ -836,26 +836,26 @@ async def refill(items: list[dict], history: list[dict], settings, path: str | N
     healthy = left >= HEALTHY_BANK
 
     never = [i for i in items if i.get("github_url") and i["title"] not in meta and not any(x["subject"] == i["title"] for x in stories)]
-    if reread_without_charts:
-        # Projects whose stories were mined before chart data existed, read again so their stories gain a series. Projects never
-        # read come first: a re-read only adds charts, a first read adds a whole project.
-        never = never + [i for i in items if i not in never and
-                         any(x["subject"] == i["title"] and not x.get("series") for x in stories)]
     todo, shas = never[:MAX_SUBJECTS_PER_REFILL], {}
-    if len(todo) < MAX_SUBJECTS_PER_REFILL:
-        for i in items:
-            if len(todo) >= MAX_SUBJECTS_PER_REFILL:
-                break
-            if not i.get("github_url") or i in todo:
-                continue
-            # A healthy bank still re-reads a changed project it holds fewer than THIN_PROJECT_STORIES stories for: new
-            # commits there (a findings page) are the only way that project's skills reach a post.
-            if healthy and sum(x["subject"] == i["title"] for x in stories) >= THIN_PROJECT_STORIES:
-                continue
-            sha = await head_sha(i["github_url"])
-            if sha and meta.get(i["title"], {}).get("sha") != sha:
-                todo.append(i)
-                shas[i["title"]] = sha
+    # Then projects with new commits. They come before chart re-reads: a re-read of unchanged documents mostly fails the same
+    # chart checks again, and taking every slot with those kept changed projects (new findings pages) from ever being read.
+    for i in items:
+        if len(todo) >= MAX_SUBJECTS_PER_REFILL:
+            break
+        if not i.get("github_url") or i in todo:
+            continue
+        # A healthy bank still re-reads a changed project it holds fewer than THIN_PROJECT_STORIES stories for: new
+        # commits there (a findings page) are the only way that project's skills reach a post.
+        if healthy and sum(x["subject"] == i["title"] for x in stories) >= THIN_PROJECT_STORIES:
+            continue
+        sha = await head_sha(i["github_url"])
+        if sha and meta.get(i["title"], {}).get("sha") != sha:
+            todo.append(i)
+            shas[i["title"]] = sha
+    if reread_without_charts:
+        # Projects whose stories were mined before chart data existed, read again so their stories gain a series.
+        todo += [i for i in items if i not in todo and any(x["subject"] == i["title"] and not x.get("series") for x in stories)]
+        todo = todo[:MAX_SUBJECTS_PER_REFILL]
 
     added = 0
     for item in todo:

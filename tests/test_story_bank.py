@@ -354,3 +354,21 @@ async def test_a_healthy_bank_still_rereads_a_changed_project_with_almost_no_sto
          patch("app.services.story_bank.cache_media", AsyncMock(return_value=0)):
         await refill(ITEMS, [], settings=None, path=path, meta_path=meta)
     assert [c.args[0]["title"] for c in mine.call_args_list] == ["Project A"]  # B already has many stories, so it waits
+
+
+@pytest.mark.asyncio
+async def test_a_changed_project_is_read_before_chart_rereads_take_every_slot(tmp_path, monkeypatch):
+    from app.services import story_bank
+
+    monkeypatch.setattr(story_bank, "MAX_SUBJECTS_PER_REFILL", 1)
+    path, meta = str(tmp_path / "stories.json"), str(tmp_path / "meta.json")
+    # Project A has a story with no chart (a re-read candidate) and an unchanged repo; Project B has new commits.
+    json.dump([{**STORY, "id": "a-1", "subject": "Project A"}, {**STORY, "id": "b-1", "subject": "Project B", "series": {"type": "bar"}}],
+              open(path, "w", encoding="utf-8"))
+    json.dump({"Project A": {"sha": "same"}, "Project B": {"sha": "old"}}, open(meta, "w", encoding="utf-8"))
+    sha = AsyncMock(side_effect=lambda url: "same" if url.endswith("/a") else "new")
+    mine = AsyncMock(return_value=[])
+    with patch("app.services.story_bank.head_sha", sha), patch("app.services.story_bank.mine_subject", mine), \
+         patch("app.services.story_bank.cache_media", AsyncMock(return_value=0)):
+        await refill(ITEMS, [], settings=None, path=path, meta_path=meta, reread_without_charts=True)
+    assert [c.args[0]["title"] for c in mine.call_args_list] == ["Project B"]
