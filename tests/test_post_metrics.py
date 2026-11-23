@@ -111,3 +111,11 @@ def test_factors_flag_a_level_that_runs_on_its_own_weekday_and_a_dominant_one():
     notes = balance(posts)
     assert any(n.startswith("angle: each level runs on its own weekday") for n in notes)
     assert any(n.startswith("media: 5 of 5") for n in notes) and any(n.startswith("hook: 5 of 5") for n in notes)
+
+
+def test_outcome_snapshot_replaces_the_same_day():
+    rows = []
+    pm.record_outcome(rows, date(2026, 11, 23), profile_viewers_90d=283, followers=2821)
+    pm.record_outcome(rows, date(2026, 11, 23), profile_viewers_90d=290)
+    assert rows == [{"date": "2026-11-23", "profile_viewers_90d": 290, "search_appearances_week": None, "followers": None,
+                     "post_impressions_7d": None, "recruiter_messages_week": None, "interview_invites_week": None}]

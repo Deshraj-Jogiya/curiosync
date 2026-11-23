@@ -3,6 +3,8 @@
     python -m app.metrics_cli import <export.xlsx|csv> [--measured YYYY-MM-DD]   LinkedIn's analytics export (Analytics > Export)
     python -m app.metrics_cli add <post date> <impressions> [--reactions N] [--comments N] [--reposts N] [--measured YYYY-MM-DD]
     python -m app.metrics_cli due                                                  posts 7-10 days old still to be read
+    python -m app.metrics_cli outcome --profile-viewers-90d N --search-appearances-week N --followers N --post-impressions-7d N
+                                      [--recruiter-messages-week N] [--interview-invites-week N]   weekly dashboard snapshot
     python -m app.metrics_cli report                                               each post against the account's recent median
 """
 
@@ -31,6 +33,10 @@ def main(argv=None) -> int:
         add.add_argument(f"--{k}", type=int)
     add.add_argument("--measured", default=str(date.today()))
     sub.add_parser("due")
+    oc = sub.add_parser("outcome")
+    for k in pm.OUTCOME_FIELDS:
+        oc.add_argument("--" + k.replace("_", "-"), type=int)
+    oc.add_argument("--measured", default=str(date.today()))
     sub.add_parser("report")
     a = p.parse_args(argv)
 
@@ -49,6 +55,12 @@ def main(argv=None) -> int:
             return 1
         row = pm.record(rows, post, date.fromisoformat(a.measured), a.impressions, a.reactions, a.comments, a.reposts)
         pm.save(rows)
+        print(f"recorded {row}")
+        return 0
+    if a.cmd == "outcome":
+        out = pm.load(pm.OUTCOMES_PATH)
+        row = pm.record_outcome(out, date.fromisoformat(a.measured), **{k: getattr(a, k) for k in pm.OUTCOME_FIELDS})
+        pm.save(out, pm.OUTCOMES_PATH)
         print(f"recorded {row}")
         return 0
     if a.cmd == "due":

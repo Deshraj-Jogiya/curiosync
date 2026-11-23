@@ -176,3 +176,19 @@ def due_for_measurement(rows: list[dict], history: list[dict], today: date) -> l
     """Posts 7-10 days old with no 7-day number yet: the ones to read this week."""
     return [h for h in history if DUE_WINDOW[0] <= (today - date.fromisoformat(h["date"])).days <= DUE_WINDOW[1]
             and not any(r["date"] == h["date"] and DUE_WINDOW[0] <= r["age_days"] <= DUE_WINDOW[1] for r in rows)]
+
+
+# --- Whether posting helps the job search (plan step 10) ---------------------------------------------------------------------------
+# Impressions are the learner's reward, but the goal is interviews: a weekly snapshot of the dashboard's profile and search numbers,
+# with recruiter contacts counted by hand, is read next to posting activity as a trend (too sparse to credit single posts).
+OUTCOMES_PATH = "data/outcomes.json"
+OUTCOME_FIELDS = ("profile_viewers_90d", "search_appearances_week", "followers", "post_impressions_7d", "recruiter_messages_week",
+                  "interview_invites_week")
+
+
+def record_outcome(rows: list[dict], on: date, **values) -> dict:
+    """Adds (or replaces) the snapshot for one day; values are the dashboard numbers read that morning."""
+    row = {"date": str(on), **{k: values.get(k) for k in OUTCOME_FIELDS}}
+    rows[:] = [r for r in rows if r["date"] != row["date"]] + [row]
+    rows.sort(key=lambda r: r["date"])
+    return row
