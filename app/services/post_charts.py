@@ -22,12 +22,15 @@ def number(value) -> float | None:
     return float(m.group(0).replace(",", "")) if m else None
 
 
-def _ticks(lo: float, hi: float, n: int = 5) -> list[float]:
+def _ticks(lo: float, hi: float, n: int = 5, whole: bool = False) -> list[float]:
     if hi == lo:
         hi = lo + 1
     raw = (hi - lo) / n
     mag = 10 ** math.floor(math.log10(raw))
     step = next(s * mag for s in (1, 2, 2.5, 5, 10) if s * mag >= raw)
+    if whole:
+        # Counted steps (epochs, weeks, runs) get whole-number ticks: a loss chart over 3 epochs showed 1.5 and 2.5 (2026-11-22).
+        step = max(1, math.ceil(step)) if step < 1 else (step if float(step).is_integer() else math.ceil(step))
     ticks, t = [], math.floor(lo / step) * step
     while t <= hi + step * 0.5:
         ticks.append(round(t, 10))
@@ -60,7 +63,7 @@ def _plot_area(draw, top: int, x_label: str, y_label: str, gutter: int = 20):
     return left, right, top + 60, bottom
 
 
-def _axes(draw, box, xs: tuple[float, float], ys: tuple[float, float], yfmt=None):
+def _axes(draw, box, xs: tuple[float, float], ys: tuple[float, float], yfmt=None, whole_x: bool = False):
     left, right, top, bottom = box
     small = _font(30)
     yt = _ticks(*ys)
@@ -73,7 +76,7 @@ def _axes(draw, box, xs: tuple[float, float], ys: tuple[float, float], yfmt=None
         draw.line([(left, sy(t)), (right, sy(t))], fill=GRID, width=1)
         label = (yfmt or _fmt)(t)
         draw.text((left - 14 - draw.textlength(label, font=small), sy(t) - 17), label, font=small, fill=MUTED)
-    xt = _ticks(*xs)
+    xt = _ticks(*xs, whole=whole_x)
     xlo, xhi = xt[0], xt[-1]
 
     def sx(v):
@@ -104,7 +107,8 @@ def _line(story: dict, item: dict) -> Image.Image | None:
     spread = (max(ys) - min(ys)) or abs(max(ys)) or 1
     # A line chart may start above zero: the change is the point, and the axis labels say where it starts.
     lo = 0 if min(ys) >= 0 and min(ys) < spread else min(ys) - spread * 0.15
-    sx, sy = _axes(draw, box, (min(p[0] for p in pts), max(p[0] for p in pts)), (lo, max(ys) + spread * 0.05))
+    sx, sy = _axes(draw, box, (min(p[0] for p in pts), max(p[0] for p in pts)), (lo, max(ys) + spread * 0.05),
+                   whole_x=all(float(p[0]).is_integer() for p in pts))
     f = _font(26, True)
     ends = []
     for n, name in enumerate(list(dict.fromkeys(p[2] for p in pts))[:2]):
@@ -215,7 +219,8 @@ def render_curves(story: dict, item: dict) -> tuple[str, str] | None:
     # A probability or rate is shown as a percent, as the posts write it (0.532 as 53.2%).
     pct = lo >= 0 and max(ys) <= 1 and bool(re.search(r"probab|rate|share|surviv", c["y_label"], re.IGNORECASE))
     vfmt = (lambda v: f"{v * 100:.4g}%") if pct else _fmt
-    sx, sy = _axes(draw, box, (min(p[0] for p in pts), max(p[0] for p in pts)), (lo, max(ys)), vfmt)
+    sx, sy = _axes(draw, box, (min(p[0] for p in pts), max(p[0] for p in pts)), (lo, max(ys)), vfmt,
+                   whole_x=all(float(p[0]).is_integer() for p in pts))
     decision = (story.get("decision") or "").lower()
     named = [g for g in c["groups"] if g.lower() in decision]
     pick = named[0] if len(named) == 1 else None

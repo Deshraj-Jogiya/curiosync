@@ -318,6 +318,9 @@ def story_results_in_post(story: dict, post_text: str) -> list[dict]:
     return [r for r in story["results"] if numbers_in(str(r["value"])) & in_post]
 
 
+_TEST_STATISTIC = re.compile(r"\bp[- ]?values?\b|\bp\s*[<=]|statistic|chi[- ]square|z[- ]score|\bt[- ]stat|\bks\b|\bpsi\b", re.I)
+
+
 def _rate(value: str) -> float | None:
     """A score on a 0-1 scale: "86.20%" -> 0.862, "0.65" -> 0.65; None for anything else (counts, times, money)."""
     v = str(value).strip()
@@ -569,7 +572,9 @@ def render_story_chart(story: dict, item: dict, post_text: str) -> tuple[str, st
     if share:
         return _share_chart(story, item, *share)
     pairs = expand_pairs(results)
-    rates = [r for r in pairs if _rate(r["value"]) is not None]
+    # A p-value or test statistic is a probability, not a share of anything: on one scale with an event rate it read as "0.9% of
+    # patients" (Clinical Trials document page, 2026-11-22), so it is never a bar next to rates.
+    rates = [r for r in pairs if _rate(r["value"]) is not None and not _TEST_STATISTIC.search(r["label"])]
     if 2 <= len(rates) <= 7:
         # Counts next to the rates stay in the post text; the chart compares the scores on one scale.
         return _rate_bars(story, item, rates, post_text)

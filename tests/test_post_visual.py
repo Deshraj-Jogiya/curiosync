@@ -118,3 +118,16 @@ def test_repeats_post_when_every_image_number_is_in_the_text():
     assert repeats_post(alt, "Random Forest reached 0.9216 against 0.9179 for XGBoost.")
     assert not repeats_post(alt, "Random Forest reached 0.9216.")
     assert not repeats_post("A flow of the pipeline.", "Anything 0.9216.")
+
+
+def test_a_p_value_is_never_a_bar_beside_rates():
+    from app.services.post_visual import _TEST_STATISTIC
+
+    assert _TEST_STATISTIC.search("High-dosage p-value") and _TEST_STATISTIC.search("KS statistic")
+    assert not _TEST_STATISTIC.search("Adverse event rate")
+
+
+def test_counted_steps_get_whole_number_ticks():
+    from app.services.post_charts import _ticks
+
+    assert _ticks(1, 3, whole=True) == [1, 2, 3]
