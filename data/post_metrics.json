@@ -118,5 +118,17 @@
     "comments": null,
     "reposts": null,
     "source": "activity page, read 2026-11-21"
+  },
+  {
+    "date": "2026-11-23",
+    "measured_at": "2026-11-24",
+    "age_days": 1,
+    "impressions": 50,
+    "reactions": 0,
+    "comments": 0,
+    "reposts": 0,
+    "profile_viewers": 0,
+    "followers_gained": 0,
+    "source": "post analytics page, read 2026-11-24"
   }
 ]
