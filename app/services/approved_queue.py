@@ -89,3 +89,16 @@ def open_post_days(today, history: list[dict], horizon: int = 400) -> list:
 def slot_for_next_draft(today, history: list[dict], path: str | None = None):
     """The post day a new draft would fill: the first open post day after the ones already taken by approved posts."""
     return open_post_days(today, history)[len(unposted(history, path))]
+
+
+def reserved_story_ids(history: list[dict], path: str | None = None) -> set[str]:
+    """Stories an upcoming post already uses: each queued post's own story and the stories its document borrows pages from. A
+    document may not borrow these, so the same chart never shows up in two posts a few weeks apart (2026-11-24: one observability
+    chart sat in three queued documents)."""
+    ids: set[str] = set()
+    for e in unposted(history, path):
+        sid = (e.get("history_entry") or {}).get("story_id")
+        if sid:
+            ids.add(sid)
+        ids.update(e.get("document_story_ids") or [])
+    return ids

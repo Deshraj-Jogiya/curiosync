@@ -417,8 +417,11 @@
       "text": "The dose that kept most patients alive also hurt the most. In my Python analysis, 23.75% had adverse events; on control, 8.42%.\n\nClinical Trials Patient Outcomes Analysis is a personal portfolio project that runs survival and safety statistics on simulated trial patients in three groups: control, a low dosage and a high one. I built it because of COVID: in India's second wave, fake news and fear made things much worse, because people lacked basic clarity on how an illness works.\n\nAn ETL step loads the patients into a SQL database (SQLite), and the survival test had already shown the high dose living longest. That answer felt incomplete, though: a treatment is only better if its benefit outweighs its harm, so I needed to know whether side effects rose with the dosage.\n\nSo I counted adverse events in each group and ran SciPy's chi-square test of independence on them. The low dosage sat close to control at 10.67%, while the highest one more than doubled it. The test put the chance of a gap this large arising by luck at p = 0.008807.\n\nThe result changed how the report reads. The longer survival now sits beside its safety cost, so whoever reads it weighs the two together instead of seeing one side alone.\n\nWhen a treatment improves one outcome but worsens another, how do you present the trade-off to people who are not statisticians?\n\n#Statistics #Python",
       "story_id": "clinical-trials-patient-outcomes-analysi-2"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-11-30-clinical-trials-patient-outcomes-analysi-2_doc.pdf",
+    "document_title": "Adverse Event Rates by Dosage Arm",
+    "document_story_ids": [
+      "clinical-trials-patient-outcomes-analysi-1"
+    ]
   },
   {
     "id": "chat-2026-12-02-talentvenue-eventintel-enterprise-data-p-1",
@@ -479,8 +482,12 @@
       "text": "My NLP Q&A system, built in Python with spaCy, told me Hans needed 20 front-row seats. The number came from a date, November 20.\n\nThe Member Messages QA System was my first chatbot-style project, and a basic one on purpose. Answers about people are usually buried in loose messages: a booking here, a phone number there. I wanted to see whether a small system could find the person first and then the message that holds it, without a language model making up the answer.\n\nSo it pairs semantic search with spaCy name matching, and I checked it on 26 hand-written questions. The first run got 22 right, 85%. Reading the misses, the extraction rules treated dates as quantities and did not know number words like \"four\". Hans got the seat answer above, and two related questions about him were wrong too.\n\nI changed the rules to skip dates and accept number words, then ran the same questions again: 25 right, 96%.\n\nThe evaluation now runs in CI on GitHub Actions, so if a later rule change brings the date problem back, the build fails before anyone reads a wrong count.\n\nWhen you test extraction rules, do you write the tricky questions yourself or collect them from real users?\n\n#NLP #Python",
       "story_id": "member-messages-qa-system-semantic-searc-2x"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-04-member-messages-qa-system-semantic-searc-2x_doc.pdf",
+    "document_title": "Count Extraction Accuracy Before vs After",
+    "document_story_ids": [
+      "member-messages-qa-system-semantic-searc-1",
+      "member-messages-qa-system-semantic-searc-4"
+    ]
   },
   {
     "id": "chat-2026-12-07-real-time-iot-telematics-predictive-main-1",
@@ -510,8 +517,9 @@
       "text": "An alarm on every odd reading gets ignored. A rolling z-score in Python caught 210 of 214 planted sensor spikes with few false flags.\n\nReal-Time IoT Telematics Predictive Maintenance is a personal portfolio project that monitors simulated vehicle telemetry from 5 devices. A sensor that drifts or jumps can mean a failing part, and I wanted to learn whether a simple statistical check could catch real spikes without flooding a fleet with false alarms. It was also my first time handling data that never stops arriving: an ETL pipeline loads it in micro-batches into SQLite.\n\nSo with pandas I flagged any battery-temperature or motor-vibration value whose z-score, over the last 50 readings, passed 3, and matched the flags against spikes the simulator planted and the detector never sees. Across 11,315 readings it raised 232 flags.\n\nPrecision came out at 90.52% and recall at 98.13%. The detector did slightly better on vibration, 99.06%, than on temperature, 97.22%, which was close enough to keep one method for both.\n\nSo the same threshold of 3 now runs on both sensors, and a warning repeats at most every 4 hours while a condition lasts, which gave 404 maintenance alerts across the fleet for the month.\n\nFor streaming telemetry, do you tune one anomaly threshold per sensor type or keep a single shared one?\n\n#Python #IoT",
       "story_id": "real-time-iot-telematics-predictive-main-1"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-07-real-time-iot-telematics-predictive-main-1_doc.pdf",
+    "document_title": "Rolling Z‑score detection performance",
+    "document_story_ids": []
   },
   {
     "id": "chat-2026-12-09-multi-state-land-use-emissions-analysis-3x",
@@ -541,8 +549,13 @@
       "text": "Rewriting a Python loop as grouped pandas operations cut my shock detector's time by 51.65%. On far more data, it saved 24.24%.\n\nMulti-State Land Use Emissions Analysis started because land use, like forests burning or land turning into suburbs, changes how much carbon a state stores or releases, and I wanted to learn how that is measured from public data. Its ETL pipeline loads the EPA's state inventory for 5 states into SQLite.\n\nOne step flags shock days: a value that jumps away from its rolling median. I first wrote it as a function called once per series, then as grouped operations. For timing I used simulated series shaped like the real data, at the project's own scale and at 50 states over 3 years.\n\nAt 5,350 records the grouped version took 9.5 ms against 19.6 ms. At 273,750 records it took 307.6 ms against 406.1 ms. Faster both times, but the gap narrowed as the data grew, so I would not promise the same saving at any scale.\n\nSpeed alone was not enough to switch. A test checks that both versions flag exactly the same days, and they do. With that in place, the grouped code is what the pipeline uses.\n\nWhen you replace a loop with a vectorised version, what do you check besides the timing?\n\n#Python #ETL",
       "story_id": "multi-state-land-use-emissions-analysis-3x"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-09-multi-state-land-use-emissions-analysis-3x_doc.pdf",
+    "document_title": "Vectorised vs Per‑Series Shock Detection Timing",
+    "document_story_ids": [
+      "multi-state-land-use-emissions-analysis-1",
+      "multi-state-land-use-emissions-analysis-5",
+      "multi-state-land-use-emissions-analysis-2x"
+    ]
   },
   {
     "id": "chat-2026-12-11-ai-ml-data-science-simulation-2",
@@ -572,8 +585,11 @@
       "text": "Reordering from last week's sales runs shelves empty when demand moves. A scikit-learn forecast cut stock-out days from 51 to 20.\n\nAI-ML Data Science Simulation is a personal portfolio project that forecasts daily demand for 5 branches on simulated sales data. A Python ingestion pipeline loads daily branch totals and the promotion calendar into SQL (SQLite). I wanted to learn whether a prediction actually beats that habit, and by how much, before trusting one.\n\nAccuracy on a chart was not enough; what matters to a store is shelves. So I replayed reordering on the held-out period both ways: every Monday, shelves were topped up to last week's sales plus 10%, or to a Random Forest machine learning prediction plus 10%, and each day's buying was drawn from what was there.\n\nThe habit filled 92.1% of orders; the model's version filled 99.5%, with far fewer units short and less left unsold each week. Almost all the gain came in promotion weeks, which last week's sales cannot see coming but the published calendar can.\n\nSo the model's prediction drives the reorder, with the promotion calendar as one of its inputs, and fewer shelves run empty while less sits unsold.\n\nWhen you replace a rule of thumb with a forecast for reordering, do you judge it on stock-outs, on leftover stock, or both?\n\n#MachineLearning #Python",
       "story_id": "ai-ml-data-science-simulation-2"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-11-ai-ml-data-science-simulation-2_doc.pdf",
+    "document_title": "Reorder Policy Comparison",
+    "document_story_ids": [
+      "ai-ml-data-science-simulation-1"
+    ]
   },
   {
     "id": "chat-2026-12-14-tax-anomaly-audit-compliance-engine-3",
@@ -603,8 +619,12 @@
       "text": "Same checks, same answers, very different wait. Pandas column operations beat a Python row-by-row loop by 99.86% on 100,000 ledger entries.\n\nTax Anomaly Audit Compliance Engine is a personal portfolio project that checks a simulated general ledger for bad entries before anything else reads it. I built it because as a new student in the US I had to file my taxes on my own, and learning how to do that is where this project came from.\n\nThe validation step of its ETL pipeline runs plain rules: required fields present, a positive value, a date inside the ledger year, an account that belongs to its department, no duplicates, and tax equal to the category rate times the amount. The question was how to run them, one row at a time in a loop, or as operations over whole columns.\n\nSo I ran the same rules both ways. The column version won by a wide margin, and the result was the part that mattered: both flagged exactly the same 3,405 invalid entries, so the speed cost nothing in accuracy.\n\nSo validation runs as column operations, and a full ledger pass now fits inside every run instead of being saved for occasional batches.\n\nWhen you rewrite a slow row-by-row check, how do you prove the faster version flags exactly the same records?\n\n#Python #ETL",
       "story_id": "tax-anomaly-audit-compliance-engine-3"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-14-tax-anomaly-audit-compliance-engine-3_doc.pdf",
+    "document_title": "Validation Performance Comparison by Execution Method",
+    "document_story_ids": [
+      "tax-anomaly-audit-compliance-engine-1",
+      "tax-anomaly-audit-compliance-engine-2x"
+    ]
   },
   {
     "id": "chat-2026-12-16-sentence-transformers-multi-task-learnin-1",
@@ -665,8 +685,12 @@
       "text": "A risk score that arrives after the applicant clicks submit protects no one. My Python scoring API answers in 67 ms at the median.\n\nThe FinTech Credit Risk & Fraud Command Center is personal for me. My father took a big loss in the market when a scam that had been going on was exposed; he was collateral damage, along with many other ordinary people. Catching risk only helps if the check runs while the decision is still open.\n\nSo the question I tested was whether the FastAPI endpoint is fast enough to sit inside an application flow. I called POST /api/predict 200 times on a laptop. With the machine learning model loaded once at startup and cached, the median was 67 ms and the 95th percentile was 85 ms.\n\nThe other option was loading the model on every request. I chose to load it once at startup and keep it in memory, so each call only pays for the scoring itself.\n\nA fast number on one day is not a promise, though. The build limit is 100 ms for the median, and a test fails CI on GitHub Actions if latency reaches it, so a slower change cannot slip in unnoticed.\n\nWhere do you set the latency limit for a model inside a live flow, and who decides it?\n\n#Python #MachineLearning",
       "story_id": "fintech-credit-risk-fraud-command-center-3"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-18-fintech-credit-risk-fraud-command-center-3_doc.pdf",
+    "document_title": "API latency vs CI limit",
+    "document_story_ids": [
+      "fintech-credit-risk-fraud-command-center-1",
+      "fintech-credit-risk-fraud-command-center-3x"
+    ]
   },
   {
     "id": "chat-2026-12-21-automated-daily-data-insights-1",
@@ -696,8 +720,11 @@
       "text": "A free GitHub Actions schedule is only useful if it keeps running. My Python pipeline has run 124 times since June, and all 124 succeeded.\n\nAutomated Daily Data Insights is a personal portfolio project that runs by itself every trading day: it pulls market prices, flags unusual days with a 20-day rolling z-score in pandas, and commits a chart and a report. Most pipelines I had built ran once on my laptop, so I wanted one that runs on real data with no server to pay for, and to see whether a free schedule is reliable enough for that.\n\nHosted runners fail in ordinary ways: a network blip, a rate limit, a day with no new close. So the script fetches 60 days of prices with up to three retries, skips a day that brings nothing new, and drops any row with a missing value before it reaches the report. Each of those has its own test.\n\nThe record from 2026-06-19 to 2026-10-20 is the answer. Every scheduled run finished, and none produced a wrong report.\n\nSo it stays on the Actions schedule with no server, and a fresh report lands in the repository each trading day without me touching it.\n\nIf you run a daily pipeline on a free scheduler, what do you put in place to catch the day it silently does not run?\n\n#Python #GitHubActions",
       "story_id": "automated-daily-data-insights-1"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-21-automated-daily-data-insights-1_doc.pdf",
+    "document_title": "Free Actions schedule reliability",
+    "document_story_ids": [
+      "automated-daily-data-insights-2"
+    ]
   },
   {
     "id": "chat-2026-12-23-extending-stem-across-asl-3",
@@ -727,8 +754,11 @@
       "text": "My PyTorch sign recognition model takes 8.9 ms. The whole Python request takes 1090.5 ms, and almost none of that wait is the model.\n\nExtending STEM across ASL comes from a study behind the project: only about 16% of ASL users go on to higher education at a university, and a lack of signs for STEM terms, and of people who know them, was one of several main reasons. This project recognises word signs from webcam video.\n\nFor it to work live, the answer has to come back while the person is still signing. So I sent 20 requests of 30 JPEG frames each, a two-second recording, to the Flask /recognize-sign endpoint and timed every stage on a laptop CPU.\n\nDecoding the frames with OpenCV took 76.2 ms at the median. Extracting hand features took 997.0 ms. The neural network itself was the smallest stage of all.\n\nThe hand landmarker is where the time goes, so that is what I changed: it is built once and reused across requests. Every answer also returns its time per stage, so the next slow step shows up in the response itself.\n\nWhen the slowest step in a pipeline is the preprocessing rather than the model, where do you look first to speed it up?\n\n#PyTorch #ComputerVision",
       "story_id": "extending-stem-across-asl-3"
     },
-    "document": null,
-    "document_title": null
+    "document": "assets/approved/chat-2026-12-23-extending-stem-across-asl-3_doc.pdf",
+    "document_title": "Webcam sign recognition pipeline latency breakdown",
+    "document_story_ids": [
+      "extending-stem-across-asl-4"
+    ]
   },
   {
     "id": "chat-2026-12-25-multi-state-land-use-emissions-analysis-2",
@@ -757,7 +787,12 @@
       ],
       "text": "My first scikit-learn emissions forecast scored a perfect R² of 1.0. The perfect score was the bug, not the result.\n\nMulti-State Land Use Emissions Analysis started because land use, like forests burning or land turning into suburbs, changes how much carbon a state stores or releases, and I wanted to learn how that is measured from public data. It runs on the EPA's state inventory for 5 states, with a simulated daily series built on top.\n\nThe daily target, CO2 tons, is calculated as land area times a fixed emission factor. The first model was given that day's area and the product itself as features. It was not forecasting anything; it was redoing the multiplication.\n\nSo I rebuilt the features in Python from what is known a week before the day being predicted: values from 7 and 14 days back, a rolling 7-day mean, and the calendar. Scored on the final 28 days, Linear Regression reached 0.9981 accuracy, Random Forest 0.9983, and copying the same day last week 0.9984.\n\nWith honest inputs, the models add nothing here, because daily land cover barely moves outside shocks. A test in CI now fails the build if the same-day area ever returns to the feature list.\n\nWhen a model scores perfectly, what is the first thing you check?\n\n#MachineLearning #Python",
       "story_id": "multi-state-land-use-emissions-analysis-2"
-    }
+    },
+    "document": "assets/approved/chat-2026-12-25-multi-state-land-use-emissions-analysis-2_doc.pdf",
+    "document_title": "Simulated daily balance week‑ahead forecast accuracy",
+    "document_story_ids": [
+      "multi-state-land-use-emissions-analysis-3"
+    ]
   },
   {
     "id": "chat-2026-12-28-ai-model-observability-fairness-audits-3x",
@@ -815,6 +850,41 @@
       ],
       "text": "My fairness check passed on all 60 days while the model was approving women less often than men.\n\nAI Model Observability & Fairness Audits is a personal portfolio project that watches an approval system after it goes live, using simulated decisions. I built it to understand how the whole system fits together, not just one piece.\n\nThe standard test is the four-fifths rule: if one group is approved at less than 80% of the other group's rate, it raises a flag. My simulated system approves almost everyone, and that hides a slide. In the week ending day 55, women were approved 97.4% of the time and men 99.1%. Divide one by the other and you get 0.98, nowhere near 0.8.\n\nSo I added a second check. Each day it compares the difference between the two approval rates over the last 7 days with the same gap in the first 5 days, and flags it only when the widening is too large to be chance: more than 3 standard errors.\n\nI started the drift on day 31. The ratio never went lower than 0.96. The gap measure flagged days 52 to 55, when the difference had grown 1.65 points past its starting level, and went quiet again on day 56.\n\nBoth now run together. The ratio still answers the legal question. The second one tells a reviewer that the system is leaning toward one group while the legal line is still far away. With 250 decisions a day it took three weeks to see a shift this small; a smaller one would need a longer window.\n\nIf your approval rates sit near 100%, what do you watch besides the four-fifths ratio to catch one group slipping?\n\n#MachineLearning #ResponsibleAI",
       "story_id": "ai-model-observability-fairness-audits-3xx"
-    }
+    },
+    "document": "assets/approved/chat-2026-12-30-ai-model-observability-fairness-audits-3xx_doc.pdf",
+    "document_title": "Fairness Signal Comparison",
+    "document_story_ids": []
+  },
+  {
+    "id": "chat-2027-01-01-job-search-dbt-warehouse-1",
+    "format": "decision",
+    "subject": "Job Search dbt Warehouse",
+    "text": "A SQL pipeline that compiles on two database engines can still return wrong numbers without raising an error.\n\nJob Search dbt Warehouse is a personal portfolio project that builds dimensional models on Databricks SQL and DuckDB for job application data. I built it to take my skills to the next level and understand how the whole system fits together.\n\nCode can compile on a second engine while quietly returning incorrect metrics, so I checked whether identical SQL logic produced silent errors across both tools before relying on dual-engine runs.\n\nSo I built all 10 dbt models on DuckDB and compared every engine-specific expression against a straight copy of the Databricks SQL on the same 1,095-day calendar and 17 applications.\n\nThe answer was that copying the Databricks day-of-week function directly to DuckDB gave wrong weekend flags on 468 of 1,095 days. It flagged 156 Mondays as weekends and missed 312 weekend days, while Tuesday through Friday had 0 errors.\n\nThat finding led me to write five macros that choose the target-specific SQL for dates and differences, and the transformations call them instead of raw functions.\n\nOn DuckDB, Saturday and Sunday now map to days 7 and 1, matching Databricks SQL and aligning all 312 weekend days.\n\nWhen you run dbt transformations across multiple database engines, do you write vendor-neutral macros or maintain separate SQL logic for each target?\n\n#SQL #Databricks",
+    "image": "assets/approved/chat-2027-01-01-job-search-dbt-warehouse-1.png",
+    "alt_text": "Bar chart, Days a straight copy of the weekend flag gets wrong, by weekday: Wrong: Monday 156 (flagged as weekend), Tuesday 0, Wednesday 0, Thursday 0, Friday 0, Saturday 156 (missed), Sunday 156 (missed).",
+    "post_day": "2027-01-01",
+    "history_entry": {
+      "date": "2027-01-01",
+      "format": "decision",
+      "subject": "Job Search dbt Warehouse",
+      "hook_type": "claim",
+      "opener_words": [
+        "a",
+        "sql",
+        "pipeline",
+        "that",
+        "compiles",
+        "on",
+        "two",
+        "database",
+        "engines",
+        "can"
+      ],
+      "text": "A SQL pipeline that compiles on two database engines can still return wrong numbers without raising an error.\n\nJob Search dbt Warehouse is a personal portfolio project that builds dimensional models on Databricks SQL and DuckDB for job application data. I built it to take my skills to the next level and understand how the whole system fits together.\n\nCode can compile on a second engine while quietly returning incorrect metrics, so I checked whether identical SQL logic produced silent errors across both tools before relying on dual-engine runs.\n\nSo I built all 10 dbt models on DuckDB and compared every engine-specific expression against a straight copy of the Databricks SQL on the same 1,095-day calendar and 17 applications.\n\nThe answer was that copying the Databricks day-of-week function directly to DuckDB gave wrong weekend flags on 468 of 1,095 days. It flagged 156 Mondays as weekends and missed 312 weekend days, while Tuesday through Friday had 0 errors.\n\nThat finding led me to write five macros that choose the target-specific SQL for dates and differences, and the transformations call them instead of raw functions.\n\nOn DuckDB, Saturday and Sunday now map to days 7 and 1, matching Databricks SQL and aligning all 312 weekend days.\n\nWhen you run dbt transformations across multiple database engines, do you write vendor-neutral macros or maintain separate SQL logic for each target?\n\n#SQL #Databricks",
+      "story_id": "job-search-dbt-warehouse-1"
+    },
+    "document": null,
+    "document_title": null,
+    "approved_by": "owner in chat 2026-11-24 (text from run 45302337859; image redrawn: days wrong, not days per weekday)"
   }
 ]

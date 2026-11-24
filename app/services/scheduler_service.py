@@ -210,6 +210,7 @@ async def run_daily_pipeline(
 
         image_path, alt_text, visual_kind = None, None, "none"
         document_path, document_pages, document_title = None, [], None
+        document_story_ids: list[str] = []
         try:
             if story:
                 # The image charts the same story the post tells, using only numbers the post states; no chart, no image.
@@ -219,8 +220,13 @@ async def run_daily_pipeline(
                 from app.services.story_bank import load_stories
 
                 # Other findings of the same project can continue the carousel when this story has one chart of its own.
-                siblings = [s for s in load_stories() if s.get("subject") == story.get("subject") and s.get("id") != story.get("id")]
-                doc = (render_story_document(story, post["item"], draft_text, siblings)
+                from app.services.approved_queue import reserved_story_ids
+
+                # A finding that has its own upcoming post, or is already a page of another queued document, is not borrowed.
+                reserved = reserved_story_ids(load_history())  # the published history: queued posts must count as upcoming
+                siblings = [s for s in load_stories() if s.get("subject") == story.get("subject")
+                            and s.get("id") != story.get("id") and s.get("id") not in reserved]
+                doc = (render_story_document(story, post["item"], draft_text, siblings, used_ids=document_story_ids)
                        if wants_document(story) or siblings else None)
                 if doc:
                     # A story with enough results goes out as a multi-page document (a carousel), like the first approved post.
@@ -280,6 +286,7 @@ async def run_daily_pipeline(
                 "document_path": document_path,
                 "document_pages": document_pages,
                 "document_title": document_title,
+                "document_story_ids": document_story_ids,
                 "history_entry": history_entry,
                 "compliance": compliance,
                 "steps": steps,

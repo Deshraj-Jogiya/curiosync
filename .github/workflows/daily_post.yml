@@ -337,6 +337,13 @@ jobs:
           git push
         fi
 
+    - name: Check every approved post still waiting to go out
+      # Missing or broken media, two posts on one day, a story already posted or a chart borrowed twice fails the run, so GitHub
+      # emails the owner days before the post day instead of the problem showing up on LinkedIn.
+      if: ${{ always() && (inputs.preview || 'none') == 'none' }}
+      working-directory: curiosync
+      run: python -m app.queue_audit
+
     - name: Fail loudly if no TIL note could be written
       # The checkout above is continue-on-error, so an expired PAT used to skip the TIL silently while the run still showed success.
       if: ${{ always() && steps.til_window.outputs.enabled == 'true' && (inputs.preview || 'none') == 'none' }}

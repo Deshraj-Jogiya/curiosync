@@ -196,6 +196,7 @@ def _write_pending(result: dict, preview: bool = False):
         "post_day": result.get("post_day"),
         "story_id": (result.get("history_entry") or {}).get("story_id"),
         "document_title": result.get("document_title"),
+        "document_story_ids": result.get("document_story_ids") or [],
         "pages": len(os.listdir(os.path.join(PENDING_DIR, "pages"))) if os.path.isdir(os.path.join(PENDING_DIR, "pages")) else 0,
     }
     with open(os.path.join(PENDING_DIR, "meta.json"), "w", encoding="utf-8") as f:
@@ -534,7 +535,8 @@ async def run_approve(access_token: str, raw_sub: str, settings):
         shutil.copy(document, document_dst)
     add_to_queue({"id": item_id, "format": meta.get("format"), "subject": meta.get("subject"), "text": text, "image": image_dst,
                   "alt_text": meta.get("alt_text"), "post_day": meta.get("post_day"), "history_entry": meta.get("history_entry"),
-                  "document": document_dst, "document_title": meta.get("document_title")})
+                  "document": document_dst, "document_title": meta.get("document_title"),
+                  "document_story_ids": meta.get("document_story_ids") or []})
     steps = {"approved": f"{item_id} ({meta.get('subject')}) for {meta.get('post_day')}"}
     steps["publish"] = await publish_due(access_token, raw_sub, settings)
     failed = steps["publish"].startswith("failed")

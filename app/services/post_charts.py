@@ -14,6 +14,16 @@ from app.services.post_visual import H, MARGIN, MUTED, TEXT, W, _accent, _canvas
 
 GRID = (43, 48, 54)
 SECOND = (168, 172, 178)  # a second series is drawn in the muted tone, never a second accent colour
+SEQUENCE_WORDS = {"day", "days", "date", "week", "month", "epoch", "epochs", "step", "steps", "iteration", "round", "time",
+                  "hour", "minute", "second", "trading", "index", "origin", "size", "rows", "records", "n"}
+
+
+def is_sequence_axis(label: str) -> bool:
+    """The x label names an order (time, steps, size). Any comparison word ("vs") means it is a measure, not an order."""
+    words = re.split(r"[^a-z]+", str(label).lower())
+    return "vs" not in words and bool(SEQUENCE_WORDS & set(words))
+
+
 KIND_NAMES = {"line": "Line chart", "scatter": "Scatter chart", "before_after": "Before and after"}
 
 
@@ -149,12 +159,21 @@ def _scatter(story: dict, item: dict) -> Image.Image | None:
     sx, sy = _axes(draw, box, (xlo, max(xs) + xpad), (ylo, max(ys) + ypad * 0.6))
     best = max(pts, key=lambda p: p[1])
     f = _font(24, True)
+    placed: list[tuple[float, float, float, float]] = []
     for x, y, label in pts:
         colour = accent if (x, y, label) == best else SECOND
         draw.ellipse([sx(x) - 12, sy(y) - 12, sx(x) + 12, sy(y) + 12], fill=colour)
         tag = f"{label} {_fmt(y)}".strip()
         tw = draw.textlength(tag, font=f)
-        draw.text((min(max(sx(x) - tw / 2, box[0]), box[1] - tw), sy(y) - 46), tag, font=f, fill=colour)
+        tx = min(max(sx(x) - tw / 2, box[0]), box[1] - tw)
+        # Two points close together printed their labels on top of each other ("Day 52 1.65" over "Day 55 1.65", 2026-11-24): a
+        # label that would overlap one already drawn goes below its point, then further down, instead.
+        for ty in (sy(y) - 46, sy(y) + 20, sy(y) + 52, sy(y) - 78):
+            rect = (tx - 4, ty - 2, tx + tw + 4, ty + f.size + 4)
+            if not any(rect[0] < r[2] and r[0] < rect[2] and rect[1] < r[3] and r[1] < rect[3] for r in placed):
+                break
+        placed.append(rect)
+        draw.text((tx, ty), tag, font=f, fill=colour)
     _footer(draw)
     return img
 
@@ -207,6 +226,10 @@ def render_curves(story: dict, item: dict) -> tuple[str, str] | None:
     curve that only falls is drawn as steps, as a Kaplan-Meier curve is. The group the decision names is in the accent."""
     c = story.get("curves")
     if not c or not 1 <= len(c["groups"]) <= 5:
+        return None
+    # A line joins points in order along time, steps or size. Accuracy against "skill vs last year" (Land Use, 2026-11-24) joined
+    # unrelated series into a spike to -1; such pairs are not a line.
+    if not is_sequence_axis(c.get("x_label", "")):
         return None
     item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
     accent = _accent(item["title"])

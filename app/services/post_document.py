@@ -6,6 +6,7 @@ whose numbers were checked against the project's own documents, in the same grap
 """
 
 import os
+import re
 import tempfile
 
 from PIL import Image
@@ -255,6 +256,8 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
         if kind in NUMBER_DISPLAYS and repeats_post(made[1], post_text):
             repeats = repeats or (made[0], made[1], f"{kind} (repeats the post: every number in it is already in the text)")
             continue
+        if overflows(made[0]):
+            continue  # text past the card's edge is never sent, whatever else the image shows
         fill = visual_fill(made[0])
         if fill >= MIN_FILL:
             return made[0], made[1], kind
@@ -265,37 +268,76 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
     return repeats
 
 
-def render_story_document(story: dict, item: dict, post_text: str,
-                          siblings: list[dict] | None = None) -> tuple[str, list[str], str] | None:
-    """Return (pdf path, page png paths, document title) when the story yields at least two different charts, else None (the post
-    then carries the single best image). Pages are charts only: a page that restates the post's sentences in large type adds
-    nothing a reader has not just read (owner's review, 2026-10-27), so the question, method and decision stay in the post text."""
+# A document page is a chart: bars, a line, a scatter, the steps of a process or a table. A card of big numbers or a before/after
+# card repeats what the post says (owner, 2026-11-24 review of the converted queue: pages of "60 -> 21" and number lists).
+CHART_PAGE_PREFIXES = ("Bar chart", "Line chart", "Scatter chart", "Process chart", "Table")
+
+
+def overflows(path: str) -> bool:
+    """True when something is drawn in the card's right edge strip, where nothing belongs: text ran past the card ("156 (flagged
+    as weekend)", 2026-11-24)."""
+    img = Image.open(path).convert("RGB")
+    strip = img.crop((W - 24, 0, W, H - 150))
+    return any(sum(abs(a - b) for a, b in zip(px, BG)) > 60 for px in strip.getdata())
+
+
+def page_problem(made: tuple[str, str] | None, shown: set, alts: list[str]) -> str | None:
+    """Why a rendered page may not go into a document, or None. Every rule here is one the owner had to point out by hand."""
+    if not made:
+        return "not drawn"
+    path, alt = made
+    if not alt.startswith(CHART_PAGE_PREFIXES):
+        return "not a chart (a card of numbers)"
+    if visual_fill(path) < MIN_FILL:
+        return "sparse"
+    if overflows(path):
+        return "text runs past the card"
+    core = alt.replace(" Simulated data.", "").strip().lower()
+    if any(core == a.replace(" simulated data.", "").strip().lower() for a in alts):
+        return "same chart as an earlier page"
+    numbers = numbers_in(alt)
+    if alt.startswith("Bar chart") and len(re.findall(r"\d[\d,]*(?:\.\d+)?", alt.split(":", 1)[-1])) < 3:
+        return "too few bars to compare"  # "0.963" beside "0" on one axis (Observability, 2026-11-24) is not a comparison
+    if numbers and len(numbers - shown) * 2 < len(numbers):
+        return "mostly numbers an earlier page already shows"
+    return None
+
+
+def render_story_document(story: dict, item: dict, post_text: str, siblings: list[dict] | None = None,
+                          first_page: tuple[str, str] | None = None,
+                          used_ids: list[str] | None = None) -> tuple[str, list[str], str] | None:
+    """Return (pdf path, page png paths, document title) when the story yields at least two charts that each pass page_problem,
+    else None (the post then carries the single best image). first_page is an image already approved for the post: it opens the
+    document and its numbers count as shown. Pages of other findings of the same project (siblings) continue a story with one chart
+    of its own; their ids are appended to used_ids so no other upcoming post borrows them again. The only document post so far
+    (2026-10-23, 8 pages) reached 281 people; the single-image posts after it reached 42 to 131."""
     base_item = item
     item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
     all_values = " ".join(str(r["value"]) for r in story["results"])
-    candidates = [
-        ("shape", lambda: render_curves(story, item)),
-        ("numbers", lambda: render_group_chart(story, item)),
-        ("numbers", lambda: render_story_chart(story, item, all_values)),
-        ("shape", lambda: render_series(story, item)),
-        ("numbers", lambda: _table_image(story, item) if _document_table_fits(story) else None),
-        ("numbers", lambda: render_stage_flow(story, item)),
-    ]
-    charts, shown = [], set()
-    for kind, draw in candidates:
-        made = draw()
-        if not made or visual_fill(made[0]) < MIN_FILL:
-            continue
-        numbers = numbers_in(made[1])
-        # A page earns its place by showing something the earlier pages did not: a line or scatter shows a shape, any other page
-        # must show mostly new numbers. Pages that only restated page 1 made 5 of 7 trial carousels on 2026-11-22.
-        if kind == "numbers" and charts and numbers and len(numbers - shown) * 2 < len(numbers):
-            continue
+    charts, shown, alts = [], set(), []
+    if first_page:
+        charts.append(first_page[0])
+        shown |= numbers_in(first_page[1])
+        alts.append(first_page[1].lower())
+
+    def take(made) -> bool:
+        if page_problem(made, shown, alts):
+            return False
         charts.append(made[0])
-        shown |= numbers
-    # When the story has one chart of its own, the carousel continues with other findings of the same project, each drawn from its
-    # own verified chart data (a series, curves, a group table or the steps of a process, never a card of numbers). The only
-    # document post so far (2026-10-23, 8 pages) reached 281 people; the single-image posts after it reached 42 to 131.
+        shown.update(numbers_in(made[1]))
+        alts.append(made[1].lower())
+        return True
+
+    for draw in (lambda: render_curves(story, item), lambda: render_group_chart(story, item),
+                 lambda: render_story_chart(story, item, all_values), lambda: render_series(story, item),
+                 lambda: _table_image(story, item) if _document_table_fits(story) else None,
+                 lambda: render_stage_flow(story, item)):
+        if len(charts) >= MAX_DOCUMENT_PAGES:
+            break
+        try:
+            take(draw())
+        except Exception:
+            pass
     for sib in siblings or []:
         if len(charts) >= MAX_DOCUMENT_PAGES:
             break
@@ -306,14 +348,10 @@ def render_story_document(story: dict, item: dict, post_text: str,
                 made = draw()
             except Exception:
                 made = None
-            if not made or visual_fill(made[0]) < MIN_FILL:
-                continue
-            numbers = numbers_in(made[1])
-            if numbers and len(numbers - shown) * 2 < len(numbers):
-                continue
-            charts.append(made[0])
-            shown |= numbers
-            break
+            if take(made):
+                if used_ids is not None:
+                    used_ids.append(sib.get("id"))
+                break
     if len(charts) < MIN_CHART_PAGES:
         return None
     pages = [Image.open(c).convert("RGB") for c in charts]
