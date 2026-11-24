@@ -216,7 +216,12 @@ async def run_daily_pipeline(
                 from app.services.post_document import render_story_document, wants_document
                 from app.services.post_visual import render_story_chart
 
-                doc = render_story_document(story, post["item"], draft_text) if wants_document(story) else None
+                from app.services.story_bank import load_stories
+
+                # Other findings of the same project can continue the carousel when this story has one chart of its own.
+                siblings = [s for s in load_stories() if s.get("subject") == story.get("subject") and s.get("id") != story.get("id")]
+                doc = (render_story_document(story, post["item"], draft_text, siblings)
+                       if wants_document(story) or siblings else None)
                 if doc:
                     # A story with enough results goes out as a multi-page document (a carousel), like the first approved post.
                     document_path, document_pages, document_title = doc

@@ -112,3 +112,34 @@ def test_a_document_page_that_only_repeats_earlier_numbers_is_left_out(tmp_path)
         op.return_value.convert.return_value.save = lambda *a, **k: None
         doc = pd.render_story_document(story, {"title": "X"}, "")
     assert doc and len(doc[1]) == 2
+
+
+def test_a_story_with_one_chart_continues_with_the_projects_other_findings(tmp_path):
+    from app.services import post_document as pd
+
+    def page(alt):
+        f = tmp_path / f"{abs(hash(alt))}.png"
+        f.write_bytes(b"x")
+        return (str(f), alt)
+
+    story = {"id": "a", "results": [{"label": "a", "value": "1"}], "chart_title": "T", "simulated": True}
+    sib_real = {"id": "b", "chart_title": "S", "simulated": False}
+    seen = []
+
+    def group(st, item):
+        seen.append((st["id"], item.get("simulated")))
+        return page("Monday 156; Tuesday 0") if st["id"] == "a" else page("Software 6; Retail 6; Finance 5")
+
+    with patch.object(pd, "render_curves", lambda *a: None), \
+            patch.object(pd, "render_group_chart", group), \
+            patch.object(pd, "render_story_chart", lambda *a: None), \
+            patch.object(pd, "render_series", lambda *a: None), \
+            patch.object(pd, "render_stage_flow", lambda *a: None), \
+            patch.object(pd, "comparison_grid", lambda r: None), \
+            patch.object(pd, "visual_fill", lambda p: 1.0), \
+            patch("PIL.Image.open") as op:
+        op.return_value.convert.return_value.save = lambda *a, **k: None
+        assert pd.render_story_document(story, {"title": "X"}, "") is None  # one chart alone is no carousel
+        doc = pd.render_story_document(story, {"title": "X"}, "", [sib_real])
+    assert doc and len(doc[1]) == 2
+    assert [s for i, s in seen if i == "b"] and not any(s for i, s in seen if i == "b")  # the borrowed page is labelled by its own data, not the main story's "simulated"

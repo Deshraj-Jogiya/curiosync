@@ -20,6 +20,8 @@ from app.services.post_visual import (ACCENTS, BG, H, MARGIN, MUTED, TEXT, W, _a
 MIN_RESULTS_FOR_DOCUMENT = 4
 # ...and only when it yields this many different charts; text-only pages are never drawn.
 MIN_CHART_PAGES = 2
+# ...and at most this many pages, counting pages borrowed from the project's other findings.
+MAX_DOCUMENT_PAGES = 4
 
 
 def wants_document(story: dict) -> bool:
@@ -263,10 +265,12 @@ def story_image(story: dict, item: dict, post_text: str) -> tuple[str, str, str]
     return repeats
 
 
-def render_story_document(story: dict, item: dict, post_text: str) -> tuple[str, list[str], str] | None:
+def render_story_document(story: dict, item: dict, post_text: str,
+                          siblings: list[dict] | None = None) -> tuple[str, list[str], str] | None:
     """Return (pdf path, page png paths, document title) when the story yields at least two different charts, else None (the post
     then carries the single best image). Pages are charts only: a page that restates the post's sentences in large type adds
     nothing a reader has not just read (owner's review, 2026-10-27), so the question, method and decision stay in the post text."""
+    base_item = item
     item = {**item, "simulated": story.get("simulated") or item.get("simulated")}
     all_values = " ".join(str(r["value"]) for r in story["results"])
     candidates = [
@@ -289,6 +293,27 @@ def render_story_document(story: dict, item: dict, post_text: str) -> tuple[str,
             continue
         charts.append(made[0])
         shown |= numbers
+    # When the story has one chart of its own, the carousel continues with other findings of the same project, each drawn from its
+    # own verified chart data (a series, curves, a group table or the steps of a process, never a card of numbers). The only
+    # document post so far (2026-10-23, 8 pages) reached 281 people; the single-image posts after it reached 42 to 131.
+    for sib in siblings or []:
+        if len(charts) >= MAX_DOCUMENT_PAGES:
+            break
+        sib_item = {**base_item, "simulated": sib.get("simulated") or base_item.get("simulated")}  # each page its own data
+        for draw in (lambda: render_curves(sib, sib_item), lambda: render_series(sib, sib_item),
+                     lambda: render_group_chart(sib, sib_item), lambda: render_stage_flow(sib, sib_item)):
+            try:
+                made = draw()
+            except Exception:
+                made = None
+            if not made or visual_fill(made[0]) < MIN_FILL:
+                continue
+            numbers = numbers_in(made[1])
+            if numbers and len(numbers - shown) * 2 < len(numbers):
+                continue
+            charts.append(made[0])
+            shown |= numbers
+            break
     if len(charts) < MIN_CHART_PAGES:
         return None
     pages = [Image.open(c).convert("RGB") for c in charts]
