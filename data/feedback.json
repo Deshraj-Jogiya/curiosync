@@ -618,5 +618,19 @@
       "uses we/our/us on a solo project; write 'I'",
       "unsupported by the facts: Claiming that Sales represents a case where p-values showed fit while MAD flagged nonconformity (for Sales, the p-value of 0.0334 indicates nonconformity; the FACTS state that this divergence occurred in Finance, HR, Marketing, and Operations)."
     ]
+  },
+  {
+    "date": "2026-11-23",
+    "story_id": "job-market-lakehouse-3",
+    "comment": "",
+    "rules": [
+      "repetition: 'rank' is used 6 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: 'rows' is used 6 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: 'five' is used 5 times; use it at most 4 times, then rephrase or name the specific thing; use 'it' only where the sentence just before names that thing",
+      "repetition: \"In Retail two entries shared the same compensation...\" uses 'entrie' twice in one sentence",
+      "repetition: \"Because dense_rank() gives tied values the same ra...\" uses 'rank' twice in one sentence",
+      "skills: no showcased skill in the first 210 characters (what shows before 'see more'); name Python early",
+      "number 60000 is not in the story"
+    ]
   }
 ]
