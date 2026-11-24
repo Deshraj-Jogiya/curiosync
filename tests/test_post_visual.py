@@ -131,3 +131,14 @@ def test_counted_steps_get_whole_number_ticks():
     from app.services.post_charts import _ticks
 
     assert _ticks(1, 3, whole=True) == [1, 2, 3]
+
+
+def test_a_column_that_is_the_same_for_every_group_is_not_the_one_charted():
+    from app.services.post_visual import _group_columns
+
+    days = ["156", "156", "157", "157", "157", "156", "156"]
+    wrong = ["156 (flagged as weekend)", "0", "0", "0", "0", "156 (missed)", "156 (missed)"]
+    names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    groups = {"group": "Weekday", "columns": ["Days", "Wrong"],
+              "rows": [{"name": n, "values": {"Days": d, "Wrong": w}} for n, d, w in zip(names, days, wrong)]}
+    assert _group_columns(groups) == ["Wrong"]

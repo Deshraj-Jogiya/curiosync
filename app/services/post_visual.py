@@ -630,7 +630,19 @@ def _group_columns(groups: dict) -> list[str]:
     # Only measures every group has a number for: a bar left empty for "not reached" (a median past the end of the trial) reads as
     # zero, the opposite of what it means.
     cols = [c for c in groups["columns"] if all(_value_number(r["values"][c]) is not None for r in rows)]
-    return cols[:max(1, min(3, 9 // max(1, len(rows))))]
+    room = max(1, min(3, 9 // max(1, len(rows))))
+
+    def spread(c: str) -> float:
+        vals = [_value_number(r["values"][c]) for r in rows]
+        top = max(abs(v) for v in vals) or 1.0
+        return (max(vals) - min(vals)) / top
+
+    # A measure that is (nearly) the same for every group compares nothing: the dbt weekday table's "Days" column (156/157 for
+    # each weekday) took the only slot of the 2026-11-24 draft while the "Wrong" column (156/0/0/0/0/156/156) was the finding.
+    varied = [c for c in cols if spread(c) > 0.05]
+    if varied:
+        cols = varied if len(varied) <= room else sorted(varied, key=lambda c: -spread(c))
+    return cols[:room]
 
 
 def _highlight(groups: dict, story: dict) -> str | None:
@@ -676,7 +688,8 @@ def render_group_chart(story: dict, item: dict) -> tuple[str, str] | None:
         draw.text((MARGIN, y), c, font=_font(32, True), fill=MUTED)
         top_y = y + 56
         values = [_value_number(r["values"][c]) for r in rows]
-        texts = [r["values"][c] for r in rows]
+        # A note in brackets ("156 (flagged as weekend)") ran past the card's edge; the bar shows the value, the alt text keeps the note.
+        texts = [re.sub(r"\s*\([^)]*\)", "", r["values"][c]).strip() or r["values"][c] for r in rows]
         if all(t.strip().endswith("%") for t, v in zip(texts, values) if v is not None):
             scale = 100.0
         elif all(v <= 1 for v in values if v is not None):
