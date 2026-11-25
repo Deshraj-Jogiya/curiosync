@@ -225,8 +225,16 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         n=0
-        for id in $(gh api "repos/${{ github.repository }}/actions/runs?status=waiting&per_page=50" --jq '.workflow_runs[].id' || true); do
+        cutoff=$(date -u -d '48 hours ago' +%s)
+        # A draft left waiting more than 48 hours (approved elsewhere, or a cancel that never went through: run 45302337859 held
+        # every draft from 2026-11-24) stops blocking new drafts and is named as an error in the run.
+        for row in $(gh api "repos/${{ github.repository }}/actions/runs?status=waiting&per_page=50" --jq '.workflow_runs[] | "\(.id),\(.created_at)"' || true); do
+          id=${row%%,*}; created=${row#*,}
           c=$(gh api "repos/${{ github.repository }}/actions/runs/$id/jobs" --jq '[.jobs[] | select(.name == "approve" and .status == "waiting")] | length' || echo 0)
+          if [ "$c" -gt 0 ] && [ "$(date -u -d "$created" +%s)" -lt "$cutoff" ]; then
+            echo "::error::Draft run $id has waited for approval since $created; it no longer blocks drafting. Approve, reject or cancel it."
+            continue
+          fi
           n=$((n + c))
         done
         echo "count=$n" >> "$GITHUB_OUTPUT"
