@@ -457,6 +457,11 @@ def unused(history: list[dict], stories: list[dict] | None = None, feedback: lis
     feedback = load_feedback() if feedback is None else feedback
     today = today or date.today()
     taken = {h.get("story_id") for h in history}
+    # A page in a queued document shows that story already: the 2026-11-25 draft re-used the Benford chart on page 3 of the Dec 14
+    # document.
+    from app.services.approved_queue import load_queue
+
+    taken |= {b for e in load_queue() for b in (e.get("document_story_ids") or [])}
     # A story told already under another id (a re-read stored it again) counts as taken too.
     told = [s for s in stories if s["id"] in taken]
     return [s for s in stories if s["id"] not in taken and not any(_same_test(s, t) for t in told if t["subject"] == s["subject"])

@@ -301,7 +301,8 @@ def _real_visual(item: dict) -> tuple[str, str] | None:
 
 
 def _value_number(value: str) -> float | None:
-    m = re.search(r"\d[\d,]*(?:\.\d+)?", value)
+    # Scientific notation is one number: "5.4e-70" read as 5.4 drew the smallest p-value as the longest bar (2026-11-25 draft).
+    m = re.search(r"\d[\d,]*(?:\.\d+)?(?:[eE][-+]?\d+)?", value)
     return float(m.group(0).replace(",", "")) if m else None
 
 

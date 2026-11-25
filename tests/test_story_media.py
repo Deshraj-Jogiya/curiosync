@@ -213,3 +213,19 @@ def test_the_queue_audit_flags_missing_media_repeats_and_clashing_days(tmp_path,
     assert any("already posted" in p for p in found)
     assert any("borrows x" in p for p in found)
     assert not any(p.startswith("2026-12-01 a:") for p in found)
+
+
+def test_scientific_notation_is_one_number():
+    from app.services.post_charts import number
+    from app.services.post_visual import _value_number
+
+    assert _value_number("5.4e-70") == 5.4e-70 and number("5.4e-70") == 5.4e-70
+    assert _value_number("1,200") == 1200.0
+
+
+def test_a_story_shown_as_a_page_of_a_queued_document_is_not_picked_again():
+    from app.services import story_bank
+
+    stories = [{"id": "t-1", "subject": "Tax", "question": "q1"}, {"id": "t-2", "subject": "Tax", "question": "q2"}]
+    with patch("app.services.approved_queue.load_queue", return_value=[{"id": "p", "document_story_ids": ["t-2"]}]):
+        assert [s["id"] for s in story_bank.unused([], stories, [])] == ["t-1"]

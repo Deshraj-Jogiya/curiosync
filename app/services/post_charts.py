@@ -28,7 +28,7 @@ KIND_NAMES = {"line": "Line chart", "scatter": "Scatter chart", "before_after": 
 
 
 def number(value) -> float | None:
-    m = re.search(r"-?\d[\d,]*(?:\.\d+)?", str(value))
+    m = re.search(r"-?\d[\d,]*(?:\.\d+)?(?:[eE][-+]?\d+)?", str(value))
     return float(m.group(0).replace(",", "")) if m else None
 
 
