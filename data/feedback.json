@@ -632,5 +632,10 @@
       "skills: no showcased skill in the first 210 characters (what shows before 'see more'); name Python early",
       "number 60000 is not in the story"
     ]
+  },
+  {
+    "date": "2026-11-24",
+    "story_id": "tax-anomaly-audit-compliance-engine-2x",
+    "comment": "Tax again (posted 11/20, queued 12/14) and its chart is page 3 of the queued Dec 14 document. The text calls the MAD (0.0091) a p-value: name each number by what it measures. Write skill names as plain words in a sentence (statistics, not Statistics). Lead with the finding the write-up makes, not a list of figures."
   }
 ]
