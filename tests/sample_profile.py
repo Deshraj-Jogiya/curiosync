@@ -3,7 +3,7 @@
 SAMPLE_PROFILE = {
     "title": "Data Engineer & Machine Learning Engineer",
     "summary": "Data engineer and machine learning engineer (MS Information Technology, ASU, 4.0 GPA).",
-    "education": [{"degree": "Master of Science, IT", "institution": "Arizona State University (ASU)", "date": "Aug 2022 - Jul 2024"}],
+    "education": [{"degree": "Master of Science, IT", "institution": "Arizona State University (ASU)", "date": "Aug 2022 - May 2024"}],
     "experience": [
         {
             "role": "Teleoperation Data Collection Associate",
