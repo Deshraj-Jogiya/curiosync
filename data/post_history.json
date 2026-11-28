@@ -428,5 +428,36 @@
       "hook": "measured_result",
       "slot": "afternoon"
     }
+  },
+  {
+    "date": "2026-11-27",
+    "format": "lesson",
+    "subject": "AI Model Observability & Fairness Audits",
+    "hook_type": "measured_result",
+    "opener_words": [
+      "nobody",
+      "reads",
+      "360",
+      "metric",
+      "values",
+      "to",
+      "find",
+      "the",
+      "29",
+      "that"
+    ],
+    "text": "Nobody reads 360 metric values to find the 29 that matter. My Python monitor writes a SQL row only when a rule breaks.\n\nAI Model Observability & Fairness Audits is a personal portfolio project that watches a deployed classifier on simulated inference records: statistical drift tests on its inputs and bias checks on its decisions. I built it to learn how the whole monitoring system fits together, not just one piece, because with AI changing how work gets done, I believe an engineer has to keep adapting.\n\nThe risk with monitoring is that it buries people. So each day's run, in Python with pandas and SciPy, writes to an audit_alerts table in SQLite only when a threshold is crossed: a KS p-value under 0.01, PSI above 0.25, disparate impact outside 0.8 to 1.25, a true-positive-rate gap of more than 10 points between groups, or an approval gap more than 3 standard errors wider than its baseline.\n\nI then counted what a reviewer would read with that table against reading every daily metric over a 60-day run. Only 21 of the 60 days raised anything at all, 65% fewer days to open.\n\nThe reviewer now works from audit_alerts alone and opens a day only when it has a row there.\n\nIf you monitor models for drift and bias, do you alert on every threshold breach or group them into a daily digest?\n\n#Python #MachineLearning",
+    "story_id": "ai-model-observability-fairness-audits-2",
+    "approved_id": "chat-2026-11-27-ai-model-observability-fairness-audits-2",
+    "post_id": "urn:li:share:7532232330078420992",
+    "posted_at": "2026-11-28T00:02:10+00:00",
+    "media": "image",
+    "trigger": "schedule",
+    "factors": {
+      "media": "image",
+      "angle": "lesson",
+      "hook": "measured_result",
+      "slot": "afternoon"
+    }
   }
 ]
